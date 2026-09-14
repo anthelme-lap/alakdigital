@@ -86,9 +86,14 @@ export function Footer() {
         </div>
 
         <div className="mt-12 pt-8 border-t border-white/10 flex flex-col md:flex-row items-center justify-between gap-4">
-          <p className="text-xs text-ink-500">
-            © {new Date().getFullYear()} {APP_CONFIG.name}. Tous droits réservés.
-          </p>
+          <div className="flex items-center gap-4">
+            <p className="text-xs text-ink-500">
+              © {new Date().getFullYear()} {APP_CONFIG.name}. Tous droits réservés.
+            </p>
+            <Link to="/admin/login" className="text-xs text-ink-600 hover:text-primary-400 transition-colors">
+              Espace admin
+            </Link>
+          </div>
           <div className="flex items-center gap-2">
             {socialLinks.map(({ Icon, href, label }) => (
               <a
