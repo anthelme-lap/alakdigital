@@ -116,6 +116,15 @@ export function LoginPage() {
                 </>
               )}
             </button>
+
+            <div className="mt-2 p-3 rounded-xl bg-white/5 border border-white/10 text-center">
+              <p className="text-xs text-ink-500">
+                Compte de demonstration : <span className="text-ink-300 font-mono">admin@alak-digital.com</span>
+              </p>
+              <p className="text-xs text-ink-500">
+                Mot de passe : <span className="text-ink-300 font-mono">Admin123!</span>
+              </p>
+            </div>
           </form>
         </div>
 

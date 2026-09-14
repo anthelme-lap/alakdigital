@@ -1,10 +1,17 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
-import type { Session, User } from '@supabase/supabase-js';
-import { supabase } from '@/core/database/supabase_client';
+
+const ADMIN_EMAIL = 'admin@alak-digital.com';
+const ADMIN_PASSWORD = 'Admin123!';
+const STORAGE_KEY = 'alak_admin_session';
+
+interface FictitiousUser {
+  email: string;
+  name: string;
+  role: string;
+}
 
 interface AuthContextValue {
-  session: Session | null;
-  user: User | null;
+  user: FictitiousUser | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
@@ -13,42 +20,41 @@ interface AuthContextValue {
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [session, setSession] = useState<Session | null>(null);
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<FictitiousUser | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session);
-      setUser(data.session?.user ?? null);
-      setLoading(false);
-    });
-
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, newSession) => {
-      setSession(newSession);
-      setUser(newSession?.user ?? null);
-      setLoading(false);
-    });
-
-    return () => {
-      listener.subscription.unsubscribe();
-    };
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (stored) {
+        setUser(JSON.parse(stored));
+      }
+    } catch {
+      // ignore parse errors
+    }
+    setLoading(false);
   }, []);
 
   async function signIn(email: string, password: string) {
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) {
-      return { error: error.message };
+    await new Promise((r) => setTimeout(r, 400));
+
+    if (email.trim().toLowerCase() === ADMIN_EMAIL && password === ADMIN_PASSWORD) {
+      const u: FictitiousUser = { email: ADMIN_EMAIL, name: 'Konan A.', role: 'Administrateur' };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(u));
+      setUser(u);
+      return { error: null };
     }
-    return { error: null };
+
+    return { error: 'Email ou mot de passe incorrect.' };
   }
 
   async function signOut() {
-    await supabase.auth.signOut();
+    localStorage.removeItem(STORAGE_KEY);
+    setUser(null);
   }
 
   return (
-    <AuthContext.Provider value={{ session, user, loading, signIn, signOut }}>
+    <AuthContext.Provider value={{ user, loading, signIn, signOut }}>
       {children}
     </AuthContext.Provider>
   );
