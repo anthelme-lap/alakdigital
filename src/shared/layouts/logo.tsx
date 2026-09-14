@@ -6,10 +6,11 @@ interface LogoProps {
 export function Logo({ dark = false, className = '' }: LogoProps) {
   return (
     <div className={`flex items-center gap-2.5 ${className}`}>
-      <div className="relative flex h-9 w-9 items-center justify-center rounded-xl bg-ink-900 shadow-lg">
-        <span className="font-display text-lg font-extrabold text-white">A</span>
-        <div className="absolute -top-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-secondary-500 ring-2 ring-white" />
-      </div>
+      <img
+        src="/favicon.svg"
+        alt="ALAK Digital"
+        className="h-9 w-9 rounded-xl shadow-lg"
+      />
       <div className="flex flex-col leading-none">
         <span className={`font-display text-base font-extrabold tracking-tight ${dark ? 'text-white' : 'text-ink-900'}`}>
           ALAK
