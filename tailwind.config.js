@@ -1,0 +1,128 @@
+/** @type {import('tailwindcss').Config} */
+export default {
+  content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
+  theme: {
+    extend: {
+      colors: {
+        primary: {
+          50: '#fef3f0',
+          100: '#fde2da',
+          200: '#fcc6b6',
+          300: '#fa9d80',
+          400: '#f76d4a',
+          500: '#fd320c',
+          600: '#e0270a',
+          700: '#ba1f0a',
+          800: '#981c0c',
+          900: '#7c1a0d',
+          950: '#430805',
+        },
+        secondary: {
+          50: '#f0f0ff',
+          100: '#e0e1ff',
+          200: '#c3c4ff',
+          300: '#9a9bff',
+          400: '#6a6aff',
+          500: '#3d3df5',
+          600: '#2a1fdb',
+          700: '#14007e',
+          800: '#10006a',
+          900: '#0c0056',
+          950: '#080038',
+        },
+        accent: {
+          50: '#fffbeb',
+          100: '#fef3c7',
+          200: '#fde68a',
+          300: '#fcd34d',
+          400: '#fbbf24',
+          500: '#f59e0b',
+          600: '#d97706',
+          700: '#b45309',
+          800: '#92400e',
+          900: '#78350f',
+          950: '#451a03',
+        },
+        ink: {
+          50: '#f8fafc',
+          100: '#f1f5f9',
+          200: '#e2e8f0',
+          300: '#cbd5e1',
+          400: '#94a3b8',
+          500: '#64748b',
+          600: '#475569',
+          700: '#334155',
+          800: '#1e293b',
+          900: '#0f172a',
+          950: '#020617',
+        },
+      },
+      fontFamily: {
+        sans: ['Manrope', 'system-ui', 'sans-serif'],
+        display: ['Plus Jakarta Sans', 'system-ui', 'sans-serif'],
+        mono: ['JetBrains Mono', 'monospace'],
+      },
+      fontSize: {
+        'display-xl': ['clamp(2.25rem, 4.5vw, 3.75rem)', { lineHeight: '1.1', letterSpacing: '-0.025em', fontWeight: '700' }],
+        'display-lg': ['clamp(1.875rem, 3.5vw, 3rem)', { lineHeight: '1.12', letterSpacing: '-0.025em', fontWeight: '700' }],
+        'display-md': ['clamp(1.625rem, 3vw, 2.5rem)', { lineHeight: '1.15', letterSpacing: '-0.02em', fontWeight: '700' }],
+        'display-sm': ['clamp(1.375rem, 2.5vw, 2rem)', { lineHeight: '1.2', letterSpacing: '-0.02em', fontWeight: '700' }],
+      },
+      spacing: {
+        '18': '4.5rem',
+        '22': '5.5rem',
+        '30': '7.5rem',
+        '38': '9.5rem',
+      },
+      maxWidth: {
+        '8xl': '80rem',
+      },
+      animation: {
+        'fade-in': 'fadeIn 0.6s ease-out forwards',
+        'fade-up': 'fadeUp 0.6s ease-out forwards',
+        'slide-right': 'slideRight 0.8s ease-out forwards',
+        'marquee': 'marquee 30s linear infinite',
+        'shimmer': 'shimmer 2s linear infinite',
+        'float': 'float 6s ease-in-out infinite',
+        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+      },
+      keyframes: {
+        fadeIn: {
+          '0%': { opacity: '0' },
+          '100%': { opacity: '1' },
+        },
+        fadeUp: {
+          '0%': { opacity: '0', transform: 'translateY(20px)' },
+          '100%': { opacity: '1', transform: 'translateY(0)' },
+        },
+        slideRight: {
+          '0%': { opacity: '0', transform: 'translateX(-30px)' },
+          '100%': { opacity: '1', transform: 'translateX(0)' },
+        },
+        marquee: {
+          '0%': { transform: 'translateX(0)' },
+          '100%': { transform: 'translateX(-50%)' },
+        },
+        shimmer: {
+          '0%': { backgroundPosition: '-200% 0' },
+          '100%': { backgroundPosition: '200% 0' },
+        },
+        float: {
+          '0%, 100%': { transform: 'translateY(0px)' },
+          '50%': { transform: 'translateY(-12px)' },
+        },
+      },
+      backgroundImage: {
+        'grid-pattern': "linear-gradient(to right, rgba(148, 163, 184, 0.07) 1px, transparent 1px), linear-gradient(to bottom, rgba(148, 163, 184, 0.07) 1px, transparent 1px)",
+        'radial-fade': 'radial-gradient(circle at center, var(--tw-gradient-stops))',
+      },
+      boxShadow: {
+        'premium': '0 20px 60px -15px rgba(0, 0, 0, 0.1), 0 8px 25px -10px rgba(0, 0, 0, 0.06)',
+        'premium-lg': '0 40px 100px -20px rgba(0, 0, 0, 0.12), 0 20px 50px -15px rgba(0, 0, 0, 0.08)',
+        'glow': '0 0 40px rgba(253, 50, 12, 0.2)',
+        'glow-orange': '0 0 40px rgba(20, 0, 126, 0.2)',
+      },
+    },
+  },
+  plugins: [],
+};
