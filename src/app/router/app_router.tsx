@@ -21,6 +21,9 @@ const NotFoundPage = lazy(() => import('@/features/home/presentation/pages/not_f
 const LoginPage = lazy(() => import('@/features/auth/presentation/pages/login_page').then((m) => ({ default: m.LoginPage })));
 const AdminDashboardPage = lazy(() => import('@/features/admin/presentation/pages/admin_dashboard_page').then((m) => ({ default: m.AdminDashboardPage })));
 const AdminArticlesPage = lazy(() => import('@/features/admin/presentation/pages/admin_articles_page').then((m) => ({ default: m.AdminArticlesPage })));
+const AdminProjectsPage = lazy(() => import('@/features/admin/presentation/pages/admin_projects_page').then((m) => ({ default: m.AdminProjectsPage })));
+const AdminServicesPage = lazy(() => import('@/features/admin/presentation/pages/admin_services_page').then((m) => ({ default: m.AdminServicesPage })));
+const AdminSolutionsPage = lazy(() => import('@/features/admin/presentation/pages/admin_solutions_page').then((m) => ({ default: m.AdminSolutionsPage })));
 
 export function AppRouter() {
   return (
@@ -38,6 +41,9 @@ export function AppRouter() {
         >
           <Route index element={<AdminDashboardPage />} />
           <Route path="articles" element={<AdminArticlesPage />} />
+          <Route path="projects" element={<AdminProjectsPage />} />
+          <Route path="services" element={<AdminServicesPage />} />
+          <Route path="solutions" element={<AdminSolutionsPage />} />
         </Route>
 
         <Route element={<MainLayout />}>

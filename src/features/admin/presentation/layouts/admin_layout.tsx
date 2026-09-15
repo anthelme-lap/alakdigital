@@ -4,11 +4,13 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   LayoutDashboard,
   FileText,
+  FolderKanban,
+  Wrench,
+  Lightbulb,
   LogOut,
   Menu,
   X,
   ExternalLink,
-  ChevronLeft,
 } from 'lucide-react';
 import { useAuth } from '@/features/auth/presentation/contexts/auth_context';
 import { Logo } from '@/shared/layouts/logo';
@@ -16,6 +18,9 @@ import { Logo } from '@/shared/layouts/logo';
 const navItems = [
   { label: 'Tableau de bord', to: '/admin', icon: LayoutDashboard, end: true },
   { label: 'Articles', to: '/admin/articles', icon: FileText, end: false },
+  { label: 'Projets', to: '/admin/projects', icon: FolderKanban, end: false },
+  { label: 'Services', to: '/admin/services', icon: Wrench, end: false },
+  { label: 'Solutions', to: '/admin/solutions', icon: Lightbulb, end: false },
 ];
 
 export function AdminLayout() {
