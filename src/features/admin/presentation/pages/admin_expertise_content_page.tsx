@@ -1,7 +1,10 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, Edit3, Trash2, X, Save, ArrowLeft, Target } from 'lucide-react';
-import { useContentStore } from '@/features/content/presentation/store/content_store';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import {
+  fetchExpertise, insertExpertise, updateExpertise as updateExpertiseApi, deleteExpertise as deleteExpertiseApi,
+} from '@/features/content/infrastructure/content_api';
 import { Button } from '@/shared/ui';
 import type { ExpertiseDomain } from '@/features/content/domain/entities/content';
 
@@ -13,10 +16,21 @@ const emptyForm: FormData = { icon: 'Code2', label: '', description: '', technol
 const toFormData = (e: ExpertiseDomain): FormData => ({ icon: e.icon, label: e.label, description: e.description, technologies: e.technologies.join(', ') });
 
 export function AdminExpertiseContentPage() {
-  const expertise = useContentStore((s) => s.expertise);
-  const addExpertise = useContentStore((s) => s.addExpertise);
-  const updateExpertise = useContentStore((s) => s.updateExpertise);
-  const deleteExpertise = useContentStore((s) => s.deleteExpertise);
+  const queryClient = useQueryClient();
+  const { data: expertise = [] } = useQuery({ queryKey: ['expertise'], queryFn: fetchExpertise });
+  const addExpertise = useMutation({
+    mutationFn: (e: { icon: string; label: string; description: string; technologies: string[] }) => insertExpertise(e),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['expertise'] }),
+  }).mutate;
+  const updateExpertiseMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: Partial<ExpertiseDomain> }) => updateExpertiseApi(id, data),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['expertise'] }),
+  });
+  const updateExpertise = (id: string, data: Partial<ExpertiseDomain>) => updateExpertiseMutation.mutate({ id, data });
+  const deleteExpertise = useMutation({
+    mutationFn: (id: string) => deleteExpertiseApi(id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['expertise'] }),
+  }).mutate;
   const [view, setView] = useState<'list' | 'edit'>('list');
   const [editing, setEditing] = useState<ExpertiseDomain | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<ExpertiseDomain | null>(null);

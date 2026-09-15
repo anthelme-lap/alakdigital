@@ -1,8 +1,9 @@
 import { motion } from 'framer-motion';
-import { useContentStore } from '@/features/content/presentation/store/content_store';
+import { useQuery } from '@tanstack/react-query';
+import { fetchClients } from '@/features/content/infrastructure/content_api';
 
 export function ClientsSection() {
-  const clients = useContentStore((s) => s.clients);
+  const { data: clients = [] } = useQuery({ queryKey: ['clients'], queryFn: fetchClients });
   const names = clients.map((c) => c.name);
 
   if (names.length === 0) return null;

@@ -1,7 +1,11 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, Edit3, Trash2, X, Save, ArrowLeft, Award, Target, Eye } from 'lucide-react';
-import { useContentStore } from '@/features/content/presentation/store/content_store';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import {
+  fetchMissionVision, updateMissionVision as updateMissionVisionApi,
+  fetchPillars, insertPillar, updatePillar as updatePillarApi, deletePillar as deletePillarApi,
+} from '@/features/content/infrastructure/content_api';
 import { Button } from '@/shared/ui';
 import type { MissionVision, AboutPillar } from '@/features/content/domain/entities/content';
 
@@ -27,8 +31,13 @@ export function AdminAboutContentPage() {
 }
 
 function MissionTab() {
-  const missionVision = useContentStore((s) => s.missionVision);
-  const updateMissionVision = useContentStore((s) => s.updateMissionVision);
+  const queryClient = useQueryClient();
+  const { data: missionVision = [] } = useQuery({ queryKey: ['missionVision'], queryFn: fetchMissionVision });
+  const updateMissionVisionMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: Partial<MissionVision> }) => updateMissionVisionApi(id, data),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['missionVision'] }),
+  });
+  const updateMissionVision = (id: string, data: Partial<MissionVision>) => updateMissionVisionMutation.mutate({ id, data });
   const [editing, setEditing] = useState<MissionVision | null>(null);
   const [formData, setFormData] = useState({ icon: '', label: '', title: '', description: '', points: '' });
 
@@ -70,10 +79,21 @@ function MissionTab() {
 }
 
 function PillarsTab() {
-  const pillars = useContentStore((s) => s.pillars);
-  const addPillar = useContentStore((s) => s.addPillar);
-  const updatePillar = useContentStore((s) => s.updatePillar);
-  const deletePillar = useContentStore((s) => s.deletePillar);
+  const queryClient = useQueryClient();
+  const { data: pillars = [] } = useQuery({ queryKey: ['pillars'], queryFn: fetchPillars });
+  const addPillar = useMutation({
+    mutationFn: (p: { icon: string; title: string; description: string }) => insertPillar(p),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['pillars'] }),
+  }).mutate;
+  const updatePillarMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: Partial<AboutPillar> }) => updatePillarApi(id, data),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['pillars'] }),
+  });
+  const updatePillar = (id: string, data: Partial<AboutPillar>) => updatePillarMutation.mutate({ id, data });
+  const deletePillar = useMutation({
+    mutationFn: (id: string) => deletePillarApi(id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['pillars'] }),
+  }).mutate;
   const [view, setView] = useState<'list' | 'edit'>('list');
   const [editing, setEditing] = useState<AboutPillar | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<AboutPillar | null>(null);

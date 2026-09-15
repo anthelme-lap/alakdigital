@@ -12,7 +12,8 @@ import {
   Save,
   Wrench,
 } from 'lucide-react';
-import { useContentStore } from '@/features/content/presentation/store/content_store';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { fetchServices, insertService, updateService, deleteService } from '@/features/content/infrastructure/content_api';
 import { Button } from '@/shared/ui';
 import type { Service } from '@/features/services/domain/entities/service';
 
@@ -66,10 +67,20 @@ const inputClass =
 const textareaClass = inputClass.replace('h-11', '');
 
 export function AdminServicesPage() {
-  const services = useContentStore((s) => s.services);
-  const addService = useContentStore((s) => s.addService);
-  const updateService = useContentStore((s) => s.updateService);
-  const deleteService = useContentStore((s) => s.deleteService);
+  const queryClient = useQueryClient();
+  const { data: services = [] } = useQuery({ queryKey: ['services'], queryFn: fetchServices });
+  const insertMutation = useMutation({
+    mutationFn: insertService,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['services'] }),
+  });
+  const updateMutation = useMutation({
+    mutationFn: ({ id, ...payload }: { id: string } & Partial<Service>) => updateService(id, payload),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['services'] }),
+  });
+  const deleteMutation = useMutation({
+    mutationFn: deleteService,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['services'] }),
+  });
   const [view, setView] = useState<View>('list');
   const [editingService, setEditingService] = useState<Service | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -107,9 +118,9 @@ export function AdminServicesPage() {
       technologies: formData.technologies.split(',').map((t) => t.trim()).filter(Boolean),
     };
     if (editingService) {
-      updateService(editingService.id, payload);
+      updateMutation.mutate({ id: editingService.id, ...payload });
     } else {
-      addService(payload);
+      insertMutation.mutate(payload);
     }
     setView('list');
   }
@@ -294,7 +305,7 @@ export function AdminServicesPage() {
                 </button>
               </div>
               <div className="flex gap-3 mt-6">
-                <Button variant="primary" size="md" onClick={() => { deleteService(deleteConfirm.id); setDeleteConfirm(null); }} className="!bg-red-600 hover:!bg-red-700 !shadow-red-600/20">
+                <Button variant="primary" size="md" onClick={() => { deleteMutation.mutate(deleteConfirm.id); setDeleteConfirm(null); }} className="!bg-red-600 hover:!bg-red-700 !shadow-red-600/20">
                   Supprimer
                 </Button>
                 <Button variant="outline" size="md" onClick={() => setDeleteConfirm(null)}>

@@ -1,12 +1,13 @@
 import { motion } from 'framer-motion';
 import { useInView } from 'framer-motion';
 import { useRef } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Section } from '@/shared/ui';
 import { useCountUp } from '@/shared/hooks/use_ui';
-import { useContentStore } from '@/features/content/presentation/store/content_store';
+import { fetchStats } from '@/features/content/infrastructure/content_api';
 
 export function StatsSection() {
-  const stats = useContentStore((s) => s.stats);
+  const { data: stats = [] } = useQuery({ queryKey: ['stats'], queryFn: fetchStats });
   const ref = useRef(null);
   const inView = useInView(ref, { once: true, margin: '-100px' });
 

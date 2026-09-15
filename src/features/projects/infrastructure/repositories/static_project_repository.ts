@@ -1,16 +1,17 @@
-import { useContentStore } from '@/features/content/presentation/store/content_store';
+import { fetchProjects, fetchProjectBySlug } from '@/features/content/infrastructure/content_api';
 import type { ProjectRepository } from '@/features/projects/domain/repositories/project_repository';
 
 export class StaticProjectRepository implements ProjectRepository {
   async getAll() {
-    return useContentStore.getState().projects;
+    return fetchProjects();
   }
 
   async getBySlug(slug: string) {
-    return useContentStore.getState().projects.find((p) => p.slug === slug) ?? null;
+    return fetchProjectBySlug(slug);
   }
 
   async getFeatured() {
-    return useContentStore.getState().projects.filter((p) => p.featured);
+    const projects = await fetchProjects();
+    return projects.filter((p) => p.featured);
   }
 }

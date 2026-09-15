@@ -4,7 +4,7 @@ import {
   Check, ArrowRight, ArrowLeft, Send, CheckCircle2, Globe, Smartphone, Layers, Server, RefreshCw, Package, Sparkles, FileText, Wallet, Clock, User,
 } from 'lucide-react';
 import { Container, Button, Section } from '@/shared/ui';
-import { useContentStore } from '@/features/content/presentation/store/content_store';
+import { insertQuotation } from '@/features/content/infrastructure/content_api';
 
 const steps = [
   { num: 1, label: 'Type', icon: Layers },
@@ -49,26 +49,28 @@ export function QuotationPage() {
   const [step, setStep] = useState(1);
   const [submitted, setSubmitted] = useState(false);
   const [data, setData] = useState<Record<string, string>>({});
-  const addQuotation = useContentStore((s) => s.addQuotation);
 
   const next = () => setStep((s) => Math.min(s + 1, steps.length));
   const prev = () => setStep((s) => Math.max(s - 1, 1));
   const update = (key: string, value: string) => setData((d) => ({ ...d, [key]: value }));
 
   const submit = async () => {
-    await new Promise((r) => setTimeout(r, 1000));
-    addQuotation({
-      project_type: data.projectType ?? '',
-      description: data.description ?? '',
-      features: data.features ?? '',
-      budget: data.budget ?? '',
-      timeline: data.timeline ?? '',
-      name: data.name ?? '',
-      company: data.company ?? '',
-      email: data.email ?? '',
-      phone: data.phone ?? '',
-    });
-    setSubmitted(true);
+    try {
+      await insertQuotation({
+        project_type: data.projectType ?? '',
+        description: data.description ?? '',
+        features: data.features ?? '',
+        budget: data.budget ?? '',
+        timeline: data.timeline ?? '',
+        name: data.name ?? '',
+        company: data.company ?? '',
+        email: data.email ?? '',
+        phone: data.phone ?? '',
+      });
+      setSubmitted(true);
+    } catch {
+      // keep user on the form if submit fails
+    }
   };
 
   const canProceed = () => {

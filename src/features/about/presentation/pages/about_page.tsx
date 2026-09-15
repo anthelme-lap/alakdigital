@@ -1,17 +1,18 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Check } from 'lucide-react';
 import { Container, Section, SectionHeading } from '@/shared/ui';
 import { CtaSection } from '@/shared/components/cta_section';
 import { Reveal, StaggerContainer, StaggerItem } from '@/shared/components/reveal';
-import { useContentStore } from '@/features/content/presentation/store/content_store';
+import { fetchValues, fetchMissionVision, fetchTeam, fetchPillars } from '@/features/content/infrastructure/content_api';
 import * as Icons from 'lucide-react';
 
 export function AboutPage() {
-  const values = useContentStore((s) => s.values);
-  const missionVision = useContentStore((s) => s.missionVision);
-  const team = useContentStore((s) => s.team);
-  const pillars = useContentStore((s) => s.pillars);
+  const { data: values = [] } = useQuery({ queryKey: ['values'], queryFn: fetchValues });
+  const { data: missionVision = [] } = useQuery({ queryKey: ['missionVision'], queryFn: fetchMissionVision });
+  const { data: team = [] } = useQuery({ queryKey: ['team'], queryFn: fetchTeam });
+  const { data: pillars = [] } = useQuery({ queryKey: ['pillars'], queryFn: fetchPillars });
   const [activeTab, setActiveTab] = useState<'mission' | 'vision'>('mission');
   const active = missionVision.find((mv) => mv.tab_key === activeTab) ?? missionVision[0];
 

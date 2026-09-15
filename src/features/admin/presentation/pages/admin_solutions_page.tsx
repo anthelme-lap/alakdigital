@@ -12,7 +12,8 @@ import {
   Save,
   Lightbulb,
 } from 'lucide-react';
-import { useContentStore } from '@/features/content/presentation/store/content_store';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { fetchSolutions, insertSolution, updateSolution, deleteSolution } from '@/features/content/infrastructure/content_api';
 import { Button } from '@/shared/ui';
 import type { Solution } from '@/features/solutions/domain/entities/solution';
 
@@ -63,10 +64,20 @@ const inputClass =
 const textareaClass = inputClass.replace('h-11', '');
 
 export function AdminSolutionsPage() {
-  const solutions = useContentStore((s) => s.solutions);
-  const addSolution = useContentStore((s) => s.addSolution);
-  const updateSolution = useContentStore((s) => s.updateSolution);
-  const deleteSolution = useContentStore((s) => s.deleteSolution);
+  const queryClient = useQueryClient();
+  const { data: solutions = [] } = useQuery({ queryKey: ['solutions'], queryFn: fetchSolutions });
+  const insertMutation = useMutation({
+    mutationFn: insertSolution,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['solutions'] }),
+  });
+  const updateMutation = useMutation({
+    mutationFn: ({ id, ...payload }: { id: string } & Partial<Solution>) => updateSolution(id, payload),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['solutions'] }),
+  });
+  const deleteMutation = useMutation({
+    mutationFn: deleteSolution,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['solutions'] }),
+  });
   const [view, setView] = useState<View>('list');
   const [editingSolution, setEditingSolution] = useState<Solution | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -116,9 +127,9 @@ export function AdminSolutionsPage() {
       technologies: formData.technologies.split(',').map((t) => t.trim()).filter(Boolean),
     };
     if (editingSolution) {
-      updateSolution(editingSolution.id, payload);
+      updateMutation.mutate({ id: editingSolution.id, ...payload });
     } else {
-      addSolution(payload);
+      insertMutation.mutate(payload);
     }
     setView('list');
   }
@@ -322,7 +333,7 @@ export function AdminSolutionsPage() {
                 </button>
               </div>
               <div className="flex gap-3 mt-6">
-                <Button variant="primary" size="md" onClick={() => { deleteSolution(deleteConfirm.id); setDeleteConfirm(null); }} className="!bg-red-600 hover:!bg-red-700 !shadow-red-600/20">
+                <Button variant="primary" size="md" onClick={() => { deleteMutation.mutate(deleteConfirm.id); setDeleteConfirm(null); }} className="!bg-red-600 hover:!bg-red-700 !shadow-red-600/20">
                   Supprimer
                 </Button>
                 <Button variant="outline" size="md" onClick={() => setDeleteConfirm(null)}>

@@ -5,7 +5,11 @@ import {
   Users, BarChart3, Mail, FileCheck, Star, Award, Target, Sparkles,
 } from 'lucide-react';
 import { useAuth } from '@/features/auth/presentation/contexts/auth_context';
-import { useContentStore } from '@/features/content/presentation/store/content_store';
+import { useQuery } from '@tanstack/react-query';
+import {
+  fetchArticles, fetchProjects, fetchServices, fetchSolutions,
+  fetchMessages, fetchQuotations, fetchTeam,
+} from '@/features/content/infrastructure/content_api';
 
 function formatDate(date: string) {
   return new Date(date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' });
@@ -53,13 +57,13 @@ function RecentRow({ title, subtitle, badge, date, to, delay }: RecentRowProps) 
 
 export function AdminDashboardPage() {
   const { user } = useAuth();
-  const articles = useContentStore((s) => s.articles);
-  const projects = useContentStore((s) => s.projects);
-  const services = useContentStore((s) => s.services);
-  const solutions = useContentStore((s) => s.solutions);
-  const messages = useContentStore((s) => s.messages);
-  const quotations = useContentStore((s) => s.quotations);
-  const team = useContentStore((s) => s.team);
+  const { data: articles = [] } = useQuery({ queryKey: ['articles'], queryFn: fetchArticles });
+  const { data: projects = [] } = useQuery({ queryKey: ['projects'], queryFn: fetchProjects });
+  const { data: services = [] } = useQuery({ queryKey: ['services'], queryFn: fetchServices });
+  const { data: solutions = [] } = useQuery({ queryKey: ['solutions'], queryFn: fetchSolutions });
+  const { data: messages = [] } = useQuery({ queryKey: ['messages'], queryFn: fetchMessages });
+  const { data: quotations = [] } = useQuery({ queryKey: ['quotations'], queryFn: fetchQuotations });
+  const { data: team = [] } = useQuery({ queryKey: ['team'], queryFn: fetchTeam });
 
   const totalArticles = articles.length;
   const featuredArticles = articles.filter((a) => a.featured).length;

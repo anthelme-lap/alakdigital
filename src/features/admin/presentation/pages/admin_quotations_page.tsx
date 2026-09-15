@@ -1,7 +1,10 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FileCheck, Trash2, X, CheckCircle2, Clock } from 'lucide-react';
-import { useContentStore } from '@/features/content/presentation/store/content_store';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import {
+  fetchQuotations, updateQuotationStatus as updateQuotationStatusApi, deleteQuotation as deleteQuotationApi,
+} from '@/features/content/infrastructure/content_api';
 import { Button } from '@/shared/ui';
 import type { QuotationRequest } from '@/features/content/domain/entities/content';
 
@@ -11,9 +14,17 @@ const budgetLabels: Record<string, string> = { 'less-1m': 'Moins de 1M FCFA', '1
 const timelineLabels: Record<string, string> = { urgent: 'Urgent (< 2 mois)', '2-4m': '2 — 4 mois', '4-6m': '4 — 6 mois', '6m-plus': 'Plus de 6 mois', flexible: 'Flexible' };
 
 export function AdminQuotationsPage() {
-  const quotations = useContentStore((s) => s.quotations);
-  const updateQuotationStatus = useContentStore((s) => s.updateQuotationStatus);
-  const deleteQuotation = useContentStore((s) => s.deleteQuotation);
+  const queryClient = useQueryClient();
+  const { data: quotations = [] } = useQuery({ queryKey: ['quotations'], queryFn: fetchQuotations });
+  const updateQuotationStatusMutation = useMutation({
+    mutationFn: ({ id, status }: { id: string; status: string }) => updateQuotationStatusApi(id, status),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['quotations'] }),
+  });
+  const updateQuotationStatus = (id: string, status: string) => updateQuotationStatusMutation.mutate({ id, status });
+  const deleteQuotation = useMutation({
+    mutationFn: (id: string) => deleteQuotationApi(id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['quotations'] }),
+  }).mutate;
   const [selected, setSelected] = useState<QuotationRequest | null>(null);
   const [filter, setFilter] = useState<'all' | 'new' | 'processed'>('all');
 

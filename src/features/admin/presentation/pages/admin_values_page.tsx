@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, Edit3, Trash2, X, Save, ArrowLeft, Award } from 'lucide-react';
-import { useContentStore } from '@/features/content/presentation/store/content_store';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { fetchValues, insertValue, updateValue, deleteValue } from '@/features/content/infrastructure/content_api';
 import { Button } from '@/shared/ui';
 import type { Value } from '@/features/content/domain/entities/content';
 
@@ -13,10 +14,20 @@ const emptyForm: FormData = { icon: 'Award', title: '', description: '' };
 const toFormData = (v: Value): FormData => ({ icon: v.icon, title: v.title, description: v.description });
 
 export function AdminValuesPage() {
-  const values = useContentStore((s) => s.values);
-  const addValue = useContentStore((s) => s.addValue);
-  const updateValue = useContentStore((s) => s.updateValue);
-  const deleteValue = useContentStore((s) => s.deleteValue);
+  const queryClient = useQueryClient();
+  const { data: values = [] } = useQuery({ queryKey: ['values'], queryFn: fetchValues });
+  const insertMutation = useMutation({
+    mutationFn: insertValue,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['values'] }),
+  });
+  const updateMutation = useMutation({
+    mutationFn: ({ id, ...payload }: { id: string } & Partial<Value>) => updateValue(id, payload),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['values'] }),
+  });
+  const deleteMutation = useMutation({
+    mutationFn: deleteValue,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['values'] }),
+  });
   const [view, setView] = useState<'list' | 'edit'>('list');
   const [editing, setEditing] = useState<Value | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<Value | null>(null);
@@ -24,7 +35,7 @@ export function AdminValuesPage() {
 
   function handleEdit(v: Value) { setEditing(v); setFormData(toFormData(v)); setView('edit'); }
   function handleCreate() { setEditing(null); setFormData(emptyForm); setView('edit'); }
-  function handleSave(e: React.FormEvent) { e.preventDefault(); const payload = { icon: formData.icon, title: formData.title, description: formData.description }; if (editing) updateValue(editing.id, payload); else addValue(payload); setView('list'); }
+  function handleSave(e: React.FormEvent) { e.preventDefault(); const payload = { icon: formData.icon, title: formData.title, description: formData.description }; if (editing) updateMutation.mutate({ id: editing.id, ...payload }); else insertMutation.mutate(payload); setView('list'); }
 
   if (view === 'edit') {
     return (
@@ -68,7 +79,7 @@ export function AdminValuesPage() {
             <div className="absolute inset-0 bg-ink-950/50 backdrop-blur-sm" onClick={() => setDeleteConfirm(null)} />
             <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className="relative w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
               <div className="flex items-start gap-4"><div className="flex h-12 w-12 items-center justify-center rounded-xl bg-red-50 text-red-500"><Trash2 className="h-6 w-6" /></div><div className="flex-1"><h3 className="text-lg font-bold text-ink-900 mb-1">Supprimer ?</h3><p className="text-sm text-ink-500">Supprimer « {deleteConfirm.title} » ?</p></div><button onClick={() => setDeleteConfirm(null)} className="p-1 rounded-lg hover:bg-ink-100 text-ink-400"><X className="h-5 w-5" /></button></div>
-              <div className="flex gap-3 mt-6"><Button variant="primary" size="md" onClick={() => { deleteValue(deleteConfirm.id); setDeleteConfirm(null); }} className="!bg-red-600 hover:!bg-red-700">Supprimer</Button><Button variant="outline" size="md" onClick={() => setDeleteConfirm(null)}>Annuler</Button></div>
+              <div className="flex gap-3 mt-6"><Button variant="primary" size="md" onClick={() => { deleteMutation.mutate(deleteConfirm.id); setDeleteConfirm(null); }} className="!bg-red-600 hover:!bg-red-700">Supprimer</Button><Button variant="outline" size="md" onClick={() => setDeleteConfirm(null)}>Annuler</Button></div>
             </motion.div>
           </motion.div>
         )}

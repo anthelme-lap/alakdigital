@@ -16,12 +16,12 @@ import {
   ChevronLeft,
   ChevronRight,
 } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
 import { Container, Button, Badge } from '@/shared/ui';
-import { useContentStore } from '@/features/content/presentation/store/content_store';
-import type { HeroSlide } from '@/features/content/domain/entities/content';
+import { fetchHeroSlides } from '@/features/content/infrastructure/content_api';
 
 export function Hero() {
-  const slides = useContentStore((s) => s.heroSlides);
+  const { data: slides = [] } = useQuery({ queryKey: ['heroSlides'], queryFn: fetchHeroSlides });
   const [current, setCurrent] = useState(0);
   const [autoPlay, setAutoPlay] = useState(true);
 

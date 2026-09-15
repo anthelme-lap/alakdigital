@@ -1,16 +1,27 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Mail, Trash2, X, CheckCircle2, Clock, MailOpen } from 'lucide-react';
-import { useContentStore } from '@/features/content/presentation/store/content_store';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import {
+  fetchMessages, updateMessageStatus as updateMessageStatusApi, deleteMessage as deleteMessageApi,
+} from '@/features/content/infrastructure/content_api';
 import { Button } from '@/shared/ui';
 import type { ContactMessage } from '@/features/content/domain/entities/content';
 
 function formatDate(date: string) { return new Date(date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }); }
 
 export function AdminMessagesPage() {
-  const messages = useContentStore((s) => s.messages);
-  const updateMessageStatus = useContentStore((s) => s.updateMessageStatus);
-  const deleteMessage = useContentStore((s) => s.deleteMessage);
+  const queryClient = useQueryClient();
+  const { data: messages = [] } = useQuery({ queryKey: ['messages'], queryFn: fetchMessages });
+  const updateMessageStatusMutation = useMutation({
+    mutationFn: ({ id, status }: { id: string; status: string }) => updateMessageStatusApi(id, status),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['messages'] }),
+  });
+  const updateMessageStatus = (id: string, status: string) => updateMessageStatusMutation.mutate({ id, status });
+  const deleteMessage = useMutation({
+    mutationFn: (id: string) => deleteMessageApi(id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['messages'] }),
+  }).mutate;
   const [selected, setSelected] = useState<ContactMessage | null>(null);
   const [filter, setFilter] = useState<'all' | 'new' | 'read'>('all');
 

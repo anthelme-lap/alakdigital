@@ -15,7 +15,8 @@ import {
   Save,
   FileText,
 } from 'lucide-react';
-import { useContentStore } from '@/features/content/presentation/store/content_store';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { fetchArticles, insertArticle, updateArticle, deleteArticle } from '@/features/content/infrastructure/content_api';
 import { Button } from '@/shared/ui';
 import type { BlogArticle } from '@/features/blog/domain/entities/article';
 
@@ -72,10 +73,20 @@ function emptyForm(): EditFormData {
 }
 
 export function AdminArticlesPage() {
-  const articles = useContentStore((s) => s.articles);
-  const addArticle = useContentStore((s) => s.addArticle);
-  const updateArticle = useContentStore((s) => s.updateArticle);
-  const deleteArticle = useContentStore((s) => s.deleteArticle);
+  const queryClient = useQueryClient();
+  const { data: articles = [] } = useQuery({ queryKey: ['articles'], queryFn: fetchArticles });
+  const insertMutation = useMutation({
+    mutationFn: insertArticle,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['articles'] }),
+  });
+  const updateMutation = useMutation({
+    mutationFn: ({ id, ...payload }: { id: string } & Partial<BlogArticle>) => updateArticle(id, payload),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['articles'] }),
+  });
+  const deleteMutation = useMutation({
+    mutationFn: deleteArticle,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['articles'] }),
+  });
   const [view, setView] = useState<View>('list');
   const [editingArticle, setEditingArticle] = useState<BlogArticle | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -135,16 +146,16 @@ export function AdminArticlesPage() {
       authorBio: editingArticle ? editingArticle.authorBio : '',
     };
     if (editingArticle) {
-      updateArticle(editingArticle.id, payload);
+      updateMutation.mutate({ id: editingArticle.id, ...payload });
     } else {
-      addArticle(payload);
+      insertMutation.mutate(payload);
     }
     setView('list');
   }
 
   function handleDelete() {
     if (deleteConfirm) {
-      deleteArticle(deleteConfirm.id);
+      deleteMutation.mutate(deleteConfirm.id);
     }
     setDeleteConfirm(null);
   }

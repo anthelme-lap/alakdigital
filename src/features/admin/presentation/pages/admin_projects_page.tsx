@@ -14,7 +14,8 @@ import {
   Star,
   FolderKanban,
 } from 'lucide-react';
-import { useContentStore } from '@/features/content/presentation/store/content_store';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { fetchProjects, insertProject, updateProject, deleteProject } from '@/features/content/infrastructure/content_api';
 import { Button } from '@/shared/ui';
 import type { Project } from '@/features/projects/domain/entities/project';
 
@@ -91,10 +92,20 @@ function fromCommaList(value: string): string[] {
 }
 
 export function AdminProjectsPage() {
-  const projects = useContentStore((s) => s.projects);
-  const addProject = useContentStore((s) => s.addProject);
-  const updateProject = useContentStore((s) => s.updateProject);
-  const deleteProject = useContentStore((s) => s.deleteProject);
+  const queryClient = useQueryClient();
+  const { data: projects = [] } = useQuery({ queryKey: ['projects'], queryFn: fetchProjects });
+  const insertMutation = useMutation({
+    mutationFn: insertProject,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['projects'] }),
+  });
+  const updateMutation = useMutation({
+    mutationFn: ({ id, ...payload }: { id: string } & Partial<Project>) => updateProject(id, payload),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['projects'] }),
+  });
+  const deleteMutation = useMutation({
+    mutationFn: deleteProject,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['projects'] }),
+  });
   const [view, setView] = useState<View>('list');
   const [editingProject, setEditingProject] = useState<Project | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -150,9 +161,9 @@ export function AdminProjectsPage() {
       results: editingProject ? editingProject.results : [],
     };
     if (editingProject) {
-      updateProject(editingProject.id, payload);
+      updateMutation.mutate({ id: editingProject.id, ...payload });
     } else {
-      addProject(payload);
+      insertMutation.mutate(payload);
     }
     setView('list');
   }
@@ -417,7 +428,7 @@ export function AdminProjectsPage() {
                 </button>
               </div>
               <div className="flex gap-3 mt-6">
-                <Button variant="primary" size="md" onClick={() => { deleteProject(deleteConfirm.id); setDeleteConfirm(null); }} className="!bg-red-600 hover:!bg-red-700 !shadow-red-600/20">
+                <Button variant="primary" size="md" onClick={() => { deleteMutation.mutate(deleteConfirm.id); setDeleteConfirm(null); }} className="!bg-red-600 hover:!bg-red-700 !shadow-red-600/20">
                   Supprimer
                 </Button>
                 <Button variant="outline" size="md" onClick={() => setDeleteConfirm(null)}>

@@ -1,12 +1,12 @@
-import { useContentStore } from '@/features/content/presentation/store/content_store';
+import { fetchSolutions, fetchSolutionBySlug } from '@/features/content/infrastructure/content_api';
 import type { SolutionRepository } from '@/features/solutions/domain/repositories/solution_repository';
 
 export class StaticSolutionRepository implements SolutionRepository {
   async getAll() {
-    return useContentStore.getState().solutions;
+    return fetchSolutions();
   }
 
   async getBySlug(slug: string) {
-    return useContentStore.getState().solutions.find((s) => s.slug === slug) ?? null;
+    return fetchSolutionBySlug(slug);
   }
 }

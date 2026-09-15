@@ -8,7 +8,7 @@ import {
 } from 'lucide-react';
 import { Container, Button, Section } from '@/shared/ui';
 import { APP_CONFIG } from '@/core/config/app_config';
-import { useContentStore } from '@/features/content/presentation/store/content_store';
+import { insertMessage } from '@/features/content/infrastructure/content_api';
 
 const schema = z.object({
   name: z.string().min(2, 'Veuillez saisir votre nom'),
@@ -134,22 +134,26 @@ function FloatingField({ id, label, type = 'text', value, onChange, error, requi
 
 export function ContactPage() {
   const [submitted, setSubmitted] = useState(false);
-  const addMessage = useContentStore((s) => s.addMessage);
+  const [submitError, setSubmitError] = useState('');
   const { register, handleSubmit, formState: { errors, isSubmitting }, watch } = useForm<FormData>({
     resolver: zodResolver(schema),
   });
 
   const onSubmit = async (data: FormData) => {
-    await new Promise((r) => setTimeout(r, 1000));
-    addMessage({
-      name: data.name,
-      company: data.company ?? '',
-      email: data.email,
-      phone: data.phone ?? '',
-      project_type: data.projectType,
-      message: data.message,
-    });
-    setSubmitted(true);
+    try {
+      setSubmitError('');
+      await insertMessage({
+        name: data.name,
+        company: data.company ?? '',
+        email: data.email,
+        phone: data.phone ?? '',
+        project_type: data.projectType,
+        message: data.message,
+      });
+      setSubmitted(true);
+    } catch {
+      setSubmitError("Une erreur est survenue. Veuillez réessayer ou nous contacter directement.");
+    }
   };
 
   return (

@@ -1,16 +1,17 @@
-import { useContentStore } from '@/features/content/presentation/store/content_store';
+import { fetchArticles, fetchArticleBySlug } from '@/features/content/infrastructure/content_api';
 import type { BlogRepository } from '@/features/blog/domain/repositories/blog_repository';
 
 export class StaticBlogRepository implements BlogRepository {
   async getAll() {
-    return useContentStore.getState().articles;
+    return fetchArticles();
   }
 
   async getBySlug(slug: string) {
-    return useContentStore.getState().articles.find((a) => a.slug === slug) ?? null;
+    return fetchArticleBySlug(slug);
   }
 
   async getByCategory(category: string) {
-    return useContentStore.getState().articles.filter((a) => a.category === category);
+    const articles = await fetchArticles();
+    return articles.filter((a) => a.category === category);
   }
 }

@@ -1,7 +1,13 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, Edit3, Trash2, X, Save, ArrowLeft, BarChart3, Image, TrendingUp, Users, Sparkles } from 'lucide-react';
-import { useContentStore } from '@/features/content/presentation/store/content_store';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import {
+  fetchHeroSlides, insertHeroSlide, updateHeroSlide as updateHeroSlideApi, deleteHeroSlide as deleteHeroSlideApi,
+  fetchStats, insertStat, updateStat as updateStatApi, deleteStat as deleteStatApi,
+  fetchClients, insertClient, updateClient as updateClientApi, deleteClient as deleteClientApi,
+  fetchWhyUs, insertWhyUs, updateWhyUs as updateWhyUsApi, deleteWhyUs as deleteWhyUsApi,
+} from '@/features/content/infrastructure/content_api';
 import { Button } from '@/shared/ui';
 import type { HeroSlide, Stat, Client, WhyUsReason } from '@/features/content/domain/entities/content';
 
@@ -38,10 +44,21 @@ export function AdminHomepagePage() {
 }
 
 function HeroTab() {
-  const heroSlides = useContentStore((s) => s.heroSlides);
-  const addHeroSlide = useContentStore((s) => s.addHeroSlide);
-  const updateHeroSlide = useContentStore((s) => s.updateHeroSlide);
-  const deleteHeroSlide = useContentStore((s) => s.deleteHeroSlide);
+  const queryClient = useQueryClient();
+  const { data: heroSlides = [] } = useQuery({ queryKey: ['heroSlides'], queryFn: fetchHeroSlides });
+  const addHeroSlide = useMutation({
+    mutationFn: (h: Omit<HeroSlide, 'id' | 'sort_order'>) => insertHeroSlide(h),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['heroSlides'] }),
+  }).mutate;
+  const updateHeroSlideMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: Partial<HeroSlide> }) => updateHeroSlideApi(id, data),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['heroSlides'] }),
+  });
+  const updateHeroSlide = (id: string, data: Partial<HeroSlide>) => updateHeroSlideMutation.mutate({ id, data });
+  const deleteHeroSlide = useMutation({
+    mutationFn: (id: string) => deleteHeroSlideApi(id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['heroSlides'] }),
+  }).mutate;
   const [view, setView] = useState<'list' | 'edit'>('list');
   const [editing, setEditing] = useState<HeroSlide | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<HeroSlide | null>(null);
@@ -98,10 +115,21 @@ function HeroTab() {
 }
 
 function StatsTab() {
-  const stats = useContentStore((s) => s.stats);
-  const addStat = useContentStore((s) => s.addStat);
-  const updateStat = useContentStore((s) => s.updateStat);
-  const deleteStat = useContentStore((s) => s.deleteStat);
+  const queryClient = useQueryClient();
+  const { data: stats = [] } = useQuery({ queryKey: ['stats'], queryFn: fetchStats });
+  const addStat = useMutation({
+    mutationFn: (stat: { value: number; suffix: string; label: string }) => insertStat(stat),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['stats'] }),
+  }).mutate;
+  const updateStatMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: Partial<Stat> }) => updateStatApi(id, data),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['stats'] }),
+  });
+  const updateStat = (id: string, data: Partial<Stat>) => updateStatMutation.mutate({ id, data });
+  const deleteStat = useMutation({
+    mutationFn: (id: string) => deleteStatApi(id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['stats'] }),
+  }).mutate;
   const [view, setView] = useState<'list' | 'edit'>('list');
   const [editing, setEditing] = useState<Stat | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<Stat | null>(null);
@@ -146,10 +174,21 @@ function StatsTab() {
 }
 
 function ClientsTab() {
-  const clients = useContentStore((s) => s.clients);
-  const addClient = useContentStore((s) => s.addClient);
-  const updateClient = useContentStore((s) => s.updateClient);
-  const deleteClient = useContentStore((s) => s.deleteClient);
+  const queryClient = useQueryClient();
+  const { data: clients = [] } = useQuery({ queryKey: ['clients'], queryFn: fetchClients });
+  const addClient = useMutation({
+    mutationFn: (c: { name: string }) => insertClient(c),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['clients'] }),
+  }).mutate;
+  const updateClientMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: Partial<Client> }) => updateClientApi(id, data),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['clients'] }),
+  });
+  const updateClient = (id: string, data: Partial<Client>) => updateClientMutation.mutate({ id, data });
+  const deleteClient = useMutation({
+    mutationFn: (id: string) => deleteClientApi(id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['clients'] }),
+  }).mutate;
   const [view, setView] = useState<'list' | 'edit'>('list');
   const [editing, setEditing] = useState<Client | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<Client | null>(null);
@@ -189,10 +228,21 @@ function ClientsTab() {
 }
 
 function WhyUsTab() {
-  const whyUs = useContentStore((s) => s.whyUs);
-  const addWhyUs = useContentStore((s) => s.addWhyUs);
-  const updateWhyUs = useContentStore((s) => s.updateWhyUs);
-  const deleteWhyUs = useContentStore((s) => s.deleteWhyUs);
+  const queryClient = useQueryClient();
+  const { data: whyUs = [] } = useQuery({ queryKey: ['whyUs'], queryFn: fetchWhyUs });
+  const addWhyUs = useMutation({
+    mutationFn: (w: { icon: string; title: string; description: string }) => insertWhyUs(w),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['whyUs'] }),
+  }).mutate;
+  const updateWhyUsMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: Partial<WhyUsReason> }) => updateWhyUsApi(id, data),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['whyUs'] }),
+  });
+  const updateWhyUs = (id: string, data: Partial<WhyUsReason>) => updateWhyUsMutation.mutate({ id, data });
+  const deleteWhyUs = useMutation({
+    mutationFn: (id: string) => deleteWhyUsApi(id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['whyUs'] }),
+  }).mutate;
   const [view, setView] = useState<'list' | 'edit'>('list');
   const [editing, setEditing] = useState<WhyUsReason | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<WhyUsReason | null>(null);

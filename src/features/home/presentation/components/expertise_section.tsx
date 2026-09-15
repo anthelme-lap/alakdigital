@@ -1,13 +1,14 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronRight } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
 import { Section, SectionHeading } from '@/shared/ui';
 import { Reveal } from '@/shared/components/reveal';
-import { useContentStore } from '@/features/content/presentation/store/content_store';
+import { fetchExpertise } from '@/features/content/infrastructure/content_api';
 import * as Icons from 'lucide-react';
 
 export function ExpertiseSection() {
-  const expertise = useContentStore((s) => s.expertise);
+  const { data: expertise = [] } = useQuery({ queryKey: ['expertise-home'], queryFn: fetchExpertise });
   const [active, setActive] = useState(0);
 
   if (expertise.length === 0) return null;

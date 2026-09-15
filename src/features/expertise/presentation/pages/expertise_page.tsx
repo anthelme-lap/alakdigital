@@ -1,12 +1,13 @@
 import { motion } from 'framer-motion';
+import { useQuery } from '@tanstack/react-query';
 import { Container, Section, SectionHeading } from '@/shared/ui';
 import { CtaSection } from '@/shared/components/cta_section';
 import { StaggerContainer, StaggerItem } from '@/shared/components/reveal';
-import { useContentStore } from '@/features/content/presentation/store/content_store';
+import { fetchExpertise } from '@/features/content/infrastructure/content_api';
 import * as Icons from 'lucide-react';
 
 export function ExpertisePage() {
-  const expertise = useContentStore((s) => s.expertise);
+  const { data: expertise = [] } = useQuery({ queryKey: ['expertise'], queryFn: fetchExpertise });
 
   return (
     <>

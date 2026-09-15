@@ -1,10 +1,11 @@
+import { useQuery } from '@tanstack/react-query';
 import { Section, SectionHeading } from '@/shared/ui';
 import { StaggerContainer, StaggerItem } from '@/shared/components/reveal';
-import { useContentStore } from '@/features/content/presentation/store/content_store';
+import { fetchWhyUs } from '@/features/content/infrastructure/content_api';
 import * as Icons from 'lucide-react';
 
 export function WhyUsSection() {
-  const reasons = useContentStore((s) => s.whyUs);
+  const { data: reasons = [] } = useQuery({ queryKey: ['whyUs'], queryFn: fetchWhyUs });
 
   return (
     <Section>
