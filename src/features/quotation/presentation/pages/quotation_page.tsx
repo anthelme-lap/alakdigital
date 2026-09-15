@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Check, ArrowRight, ArrowLeft, Send, CheckCircle2, Globe, Smartphone, Layers, Server, RefreshCw, Package } from 'lucide-react';
 import { Container, Input, Textarea, Button, Section } from '@/shared/ui';
+import { useContentStore } from '@/features/content/presentation/store/content_store';
 
 const steps = [
   { num: 1, label: 'Type de projet' },
@@ -43,6 +44,7 @@ export function QuotationPage() {
   const [step, setStep] = useState(1);
   const [submitted, setSubmitted] = useState(false);
   const [data, setData] = useState<Record<string, string>>({});
+  const addQuotation = useContentStore((s) => s.addQuotation);
 
   const next = () => setStep((s) => Math.min(s + 1, steps.length));
   const prev = () => setStep((s) => Math.max(s - 1, 1));
@@ -51,6 +53,17 @@ export function QuotationPage() {
 
   const submit = async () => {
     await new Promise((r) => setTimeout(r, 1000));
+    addQuotation({
+      project_type: data.projectType ?? '',
+      description: data.description ?? '',
+      features: data.features ?? '',
+      budget: data.budget ?? '',
+      timeline: data.timeline ?? '',
+      name: data.name ?? '',
+      company: data.company ?? '',
+      email: data.email ?? '',
+      phone: data.phone ?? '',
+    });
     setSubmitted(true);
   };
 

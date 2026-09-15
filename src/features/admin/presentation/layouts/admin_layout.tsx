@@ -11,6 +11,12 @@ import {
   Menu,
   X,
   ExternalLink,
+  Users,
+  Mail,
+  FileCheck,
+  BarChart3,
+  Award,
+  Target,
 } from 'lucide-react';
 import { useAuth } from '@/features/auth/presentation/contexts/auth_context';
 import { Logo } from '@/shared/layouts/logo';
@@ -21,6 +27,13 @@ const navItems = [
   { label: 'Projets', to: '/admin/projects', icon: FolderKanban, end: false },
   { label: 'Services', to: '/admin/services', icon: Wrench, end: false },
   { label: 'Solutions', to: '/admin/solutions', icon: Lightbulb, end: false },
+  { label: 'Équipe', to: '/admin/team', icon: Users, end: false },
+  { label: 'Valeurs', to: '/admin/values', icon: Award, end: false },
+  { label: 'Expertise', to: '/admin/expertise-content', icon: Target, end: false },
+  { label: 'Accueil', to: '/admin/homepage', icon: BarChart3, end: false },
+  { label: 'À propos', to: '/admin/about-content', icon: Award, end: false },
+  { label: 'Messages', to: '/admin/messages', icon: Mail, end: false },
+  { label: 'Devis', to: '/admin/quotations', icon: FileCheck, end: false },
 ];
 
 export function AdminLayout() {
@@ -57,7 +70,7 @@ export function AdminLayout() {
         </div>
 
         <nav className="flex-1 px-3 py-6 space-y-1">
-          <p className="px-3 mb-3 text-[10px] font-bold uppercase tracking-wider text-ink-600">Menu</p>
+          <p className="px-3 mb-3 text-[10px] font-bold uppercase tracking-wider text-ink-600">Contenu</p>
           {navItems.map((item) => (
             <NavLink
               key={item.to}

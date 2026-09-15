@@ -17,68 +17,25 @@ import {
   ChevronRight,
 } from 'lucide-react';
 import { Container, Button, Badge } from '@/shared/ui';
-
-interface Slide {
-  id: number;
-  eyebrow: string;
-  title: string;
-  highlight: string;
-  subtitle: string;
-  cta: { label: string; to: string };
-  accent: 'primary' | 'secondary';
-  mockup: 'dashboard' | 'mobile' | 'saas';
-}
-
-const slides: Slide[] = [
-  {
-    id: 0,
-    eyebrow: 'Applications Web',
-    title: 'Nous concevons les',
-    highlight: 'solutions digitales',
-    subtitle:
-      "Sites corporate, applications web, dashboards et plateformes métiers performants pour les entreprises et organisations.",
-    cta: { label: 'Voir nos réalisations', to: '/projects' },
-    accent: 'primary',
-    mockup: 'dashboard',
-  },
-  {
-    id: 1,
-    eyebrow: 'Applications Mobiles',
-    title: 'Des expériences',
-    highlight: 'mobiles natives',
-    subtitle:
-      'Applications iOS, Android et cross-platform avec Flutter. Une expérience fluide et professionnelle sur tous les appareils.',
-    cta: { label: 'Découvrir nos services', to: '/services' },
-    accent: 'secondary',
-    mockup: 'mobile',
-  },
-  {
-    id: 2,
-    eyebrow: 'Plateformes SaaS',
-    title: 'Des plateformes',
-    highlight: 'SaaS évolutives',
-    subtitle:
-      'Logiciels multi-tenant, abonnements et outils métiers. Nous transformons vos idées en produits rentables et durables.',
-    cta: { label: 'Explorer nos solutions', to: '/solutions' },
-    accent: 'primary',
-    mockup: 'saas',
-  },
-];
+import { useContentStore } from '@/features/content/presentation/store/content_store';
+import type { HeroSlide } from '@/features/content/domain/entities/content';
 
 export function Hero() {
+  const slides = useContentStore((s) => s.heroSlides);
   const [current, setCurrent] = useState(0);
   const [autoPlay, setAutoPlay] = useState(true);
 
-  const goTo = useCallback((index: number) => setCurrent((index + slides.length) % slides.length), []);
+  const goTo = useCallback((index: number) => setCurrent((index + slides.length) % slides.length), [slides.length]);
   const next = useCallback(() => goTo(current + 1), [current, goTo]);
   const prev = useCallback(() => goTo(current - 1), [current, goTo]);
 
   useEffect(() => {
-    if (!autoPlay) return;
+    if (!autoPlay || slides.length === 0) return;
     const timer = setInterval(() => setCurrent((c) => (c + 1) % slides.length), 6000);
     return () => clearInterval(timer);
-  }, [autoPlay]);
+  }, [autoPlay, slides.length]);
 
+  if (slides.length === 0) return null;
   const slide = slides[current];
 
   return (
@@ -136,8 +93,8 @@ export function Hero() {
                   <Button to="/quotation" variant="primary" size="lg" rightIcon={<ArrowRight className="h-5 w-5" />}>
                     Démarrer un projet
                   </Button>
-                  <Button to={slide.cta.to} variant="outline" size="lg" rightIcon={<ArrowRight className="h-4 w-4" />}>
-                    {slide.cta.label}
+                  <Button to={slide.cta_to} variant="outline" size="lg" rightIcon={<ArrowRight className="h-4 w-4" />}>
+                    {slide.cta_label}
                   </Button>
                 </div>
               </motion.div>
@@ -158,23 +115,6 @@ export function Hero() {
                 {String(current + 1).padStart(2, '0')} / {String(slides.length).padStart(2, '0')}
               </span>
             </div>
-
-            <div className="mt-8 flex items-center gap-6">
-              <div>
-                <div className="text-2xl font-extrabold text-ink-900 font-display">50+</div>
-                <div className="text-xs text-ink-400 mt-0.5">Projets livrés</div>
-              </div>
-              <div className="h-10 w-px bg-ink-200" />
-              <div>
-                <div className="text-2xl font-extrabold text-ink-900 font-display">5+</div>
-                <div className="text-xs text-ink-400 mt-0.5">Solutions SaaS</div>
-              </div>
-              <div className="h-10 w-px bg-ink-200" />
-              <div>
-                <div className="text-2xl font-extrabold text-ink-900 font-display">100%</div>
-                <div className="text-xs text-ink-400 mt-0.5">Sur mesure</div>
-              </div>
-            </div>
           </div>
 
           <div className="relative z-10 hidden lg:block">
@@ -192,20 +132,24 @@ export function Hero() {
               </motion.div>
             </AnimatePresence>
 
-            <button
-              onClick={prev}
-              className="absolute -left-4 top-1/2 -translate-y-1/2 flex h-10 w-10 items-center justify-center rounded-full bg-white border border-ink-200 shadow-premium text-ink-600 hover:bg-ink-900 hover:text-white hover:border-ink-900 transition-all duration-300 z-20"
-              aria-label="Slide précédent"
-            >
-              <ChevronLeft className="h-5 w-5" />
-            </button>
-            <button
-              onClick={next}
-              className="absolute -right-4 top-1/2 -translate-y-1/2 flex h-10 w-10 items-center justify-center rounded-full bg-white border border-ink-200 shadow-premium text-ink-600 hover:bg-ink-900 hover:text-white hover:border-ink-900 transition-all duration-300 z-20"
-              aria-label="Slide suivant"
-            >
-              <ChevronRight className="h-5 w-5" />
-            </button>
+            {slides.length > 1 && (
+              <>
+                <button
+                  onClick={prev}
+                  className="absolute -left-4 top-1/2 -translate-y-1/2 flex h-10 w-10 items-center justify-center rounded-full bg-white border border-ink-200 shadow-premium text-ink-600 hover:bg-ink-900 hover:text-white hover:border-ink-900 transition-all duration-300 z-20"
+                  aria-label="Slide précédent"
+                >
+                  <ChevronLeft className="h-5 w-5" />
+                </button>
+                <button
+                  onClick={next}
+                  className="absolute -right-4 top-1/2 -translate-y-1/2 flex h-10 w-10 items-center justify-center rounded-full bg-white border border-ink-200 shadow-premium text-ink-600 hover:bg-ink-900 hover:text-white hover:border-ink-900 transition-all duration-300 z-20"
+                  aria-label="Slide suivant"
+                >
+                  <ChevronRight className="h-5 w-5" />
+                </button>
+              </>
+            )}
           </div>
         </div>
       </Container>

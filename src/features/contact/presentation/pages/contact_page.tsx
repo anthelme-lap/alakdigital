@@ -6,6 +6,7 @@ import { motion } from 'framer-motion';
 import { Mail, Phone, MapPin, MessageCircle, Send, CheckCircle2, Linkedin, Facebook, Instagram, Github } from 'lucide-react';
 import { Container, Input, Textarea, Select, Button, Section } from '@/shared/ui';
 import { APP_CONFIG } from '@/core/config/app_config';
+import { useContentStore } from '@/features/content/presentation/store/content_store';
 
 const schema = z.object({
   name: z.string().min(2, 'Veuillez saisir votre nom'),
@@ -43,12 +44,21 @@ const socials = [
 
 export function ContactPage() {
   const [submitted, setSubmitted] = useState(false);
+  const addMessage = useContentStore((s) => s.addMessage);
   const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<FormData>({
     resolver: zodResolver(schema),
   });
 
-  const onSubmit = async (_data: FormData) => {
+  const onSubmit = async (data: FormData) => {
     await new Promise((r) => setTimeout(r, 1000));
+    addMessage({
+      name: data.name,
+      company: data.company ?? '',
+      email: data.email,
+      phone: data.phone ?? '',
+      project_type: data.projectType,
+      message: data.message,
+    });
     setSubmitted(true);
   };
 

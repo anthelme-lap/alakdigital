@@ -1,17 +1,12 @@
 import { motion } from 'framer-motion';
-
-const clients = [
-  'EventFlow CI',
-  'GaragePro',
-  'PressingExpress',
-  'VoucherConnect',
-  'StockMaster',
-  'CorpWeb',
-  'Ministère Digital',
-  'AfriTech Hub',
-];
+import { useContentStore } from '@/features/content/presentation/store/content_store';
 
 export function ClientsSection() {
+  const clients = useContentStore((s) => s.clients);
+  const names = clients.map((c) => c.name);
+
+  if (names.length === 0) return null;
+
   return (
     <section className="border-y border-ink-100 bg-ink-50/50 py-12">
       <div className="mx-auto max-w-8xl container-px">
@@ -24,7 +19,7 @@ export function ClientsSection() {
             animate={{ x: ['0%', '-50%'] }}
             transition={{ duration: 25, repeat: Infinity, ease: 'linear' }}
           >
-            {[...clients, ...clients].map((client, i) => (
+            {[...names, ...names].map((client, i) => (
               <div
                 key={i}
                 className="flex-shrink-0 text-xl font-display font-bold text-ink-300 hover:text-ink-600 transition-colors duration-300 whitespace-nowrap"

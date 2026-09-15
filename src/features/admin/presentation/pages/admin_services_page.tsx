@@ -12,8 +12,8 @@ import {
   Save,
   Wrench,
 } from 'lucide-react';
-import { useServices } from '@/features/services/presentation/queries/use_services';
-import { Button, Loader } from '@/shared/ui';
+import { useContentStore } from '@/features/content/presentation/store/content_store';
+import { Button } from '@/shared/ui';
 import type { Service } from '@/features/services/domain/entities/service';
 
 type View = 'list' | 'edit';
@@ -66,13 +66,15 @@ const inputClass =
 const textareaClass = inputClass.replace('h-11', '');
 
 export function AdminServicesPage() {
-  const { data: services, isLoading } = useServices();
+  const services = useContentStore((s) => s.services);
+  const addService = useContentStore((s) => s.addService);
+  const updateService = useContentStore((s) => s.updateService);
+  const deleteService = useContentStore((s) => s.deleteService);
   const [view, setView] = useState<View>('list');
   const [editingService, setEditingService] = useState<Service | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [deleteConfirm, setDeleteConfirm] = useState<Service | null>(null);
   const [formData, setFormData] = useState<ServiceFormData>(emptyForm());
-  const [saved, setSaved] = useState(false);
 
   const filtered = useMemo(() => {
     if (!services) return [];
@@ -95,11 +97,21 @@ export function AdminServicesPage() {
 
   function handleSave(e: React.FormEvent) {
     e.preventDefault();
-    setSaved(true);
-    setTimeout(() => {
-      setSaved(false);
-      setView('list');
-    }, 1200);
+    const payload = {
+      name: formData.name,
+      slug: formData.slug,
+      tagline: formData.tagline,
+      description: formData.description,
+      icon: formData.icon,
+      features: formData.features.split(',').map((f) => f.trim()).filter(Boolean),
+      technologies: formData.technologies.split(',').map((t) => t.trim()).filter(Boolean),
+    };
+    if (editingService) {
+      updateService(editingService.id, payload);
+    } else {
+      addService(payload);
+    }
+    setView('list');
   }
 
   if (view === 'edit') {
@@ -164,8 +176,8 @@ export function AdminServicesPage() {
           </div>
 
           <div className="flex items-center gap-3">
-            <Button type="submit" variant="primary" size="md" leftIcon={saved ? <Eye className="h-4 w-4" /> : <Save className="h-4 w-4" />}>
-              {saved ? 'Enregistre !' : 'Enregistrer'}
+            <Button type="submit" variant="primary" size="md" leftIcon={<Save className="h-4 w-4" />}>
+              Enregistrer
             </Button>
             <Button type="button" variant="outline" size="md" onClick={() => setView('list')}>
               Annuler
@@ -199,9 +211,7 @@ export function AdminServicesPage() {
         />
       </div>
 
-      {isLoading ? (
-        <div className="flex justify-center py-20"><Loader size={32} /></div>
-      ) : filtered.length === 0 ? (
+      {filtered.length === 0 ? (
         <div className="text-center py-20 rounded-2xl border border-ink-100 bg-white">
           <Wrench className="h-12 w-12 text-ink-300 mx-auto mb-3" />
           <p className="text-ink-500 mb-4">Aucun service trouve</p>
@@ -284,7 +294,7 @@ export function AdminServicesPage() {
                 </button>
               </div>
               <div className="flex gap-3 mt-6">
-                <Button variant="primary" size="md" onClick={() => setDeleteConfirm(null)} className="!bg-red-600 hover:!bg-red-700 !shadow-red-600/20">
+                <Button variant="primary" size="md" onClick={() => { deleteService(deleteConfirm.id); setDeleteConfirm(null); }} className="!bg-red-600 hover:!bg-red-700 !shadow-red-600/20">
                   Supprimer
                 </Button>
                 <Button variant="outline" size="md" onClick={() => setDeleteConfirm(null)}>

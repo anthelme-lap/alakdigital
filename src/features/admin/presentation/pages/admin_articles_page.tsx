@@ -15,8 +15,8 @@ import {
   Save,
   FileText,
 } from 'lucide-react';
-import { useArticles } from '@/features/blog/presentation/queries/use_articles';
-import { Button, Loader } from '@/shared/ui';
+import { useContentStore } from '@/features/content/presentation/store/content_store';
+import { Button } from '@/shared/ui';
 import type { BlogArticle } from '@/features/blog/domain/entities/article';
 
 function formatDate(date: string) {
@@ -72,22 +72,22 @@ function emptyForm(): EditFormData {
 }
 
 export function AdminArticlesPage() {
-  const { data: articles, isLoading } = useArticles();
+  const articles = useContentStore((s) => s.articles);
+  const addArticle = useContentStore((s) => s.addArticle);
+  const updateArticle = useContentStore((s) => s.updateArticle);
+  const deleteArticle = useContentStore((s) => s.deleteArticle);
   const [view, setView] = useState<View>('list');
   const [editingArticle, setEditingArticle] = useState<BlogArticle | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState('Tous');
   const [deleteConfirm, setDeleteConfirm] = useState<BlogArticle | null>(null);
   const [formData, setFormData] = useState<EditFormData>(emptyForm());
-  const [saved, setSaved] = useState(false);
 
   const categories = useMemo(() => {
-    if (!articles) return ['Tous'];
     return ['Tous', ...Array.from(new Set(articles.map((a) => a.category)))];
   }, [articles]);
 
   const filtered = useMemo(() => {
-    if (!articles) return [];
     let result = articles;
     if (activeCategory !== 'Tous') {
       result = result.filter((a) => a.category === activeCategory);
@@ -115,14 +115,37 @@ export function AdminArticlesPage() {
 
   function handleSave(e: React.FormEvent) {
     e.preventDefault();
-    setSaved(true);
-    setTimeout(() => {
-      setSaved(false);
-      setView('list');
-    }, 1200);
+    const tags = formData.tags
+      .split(',')
+      .map((t) => t.trim())
+      .filter(Boolean);
+    const payload = {
+      title: formData.title,
+      slug: formData.slug,
+      excerpt: formData.excerpt,
+      category: formData.category,
+      author: formData.author,
+      authorRole: formData.authorRole,
+      readingTime: formData.readingTime,
+      coverImage: formData.coverImage,
+      featured: formData.featured,
+      content: formData.content,
+      tags,
+      date: editingArticle ? editingArticle.date : new Date().toISOString().split('T')[0],
+      authorBio: editingArticle ? editingArticle.authorBio : '',
+    };
+    if (editingArticle) {
+      updateArticle(editingArticle.id, payload);
+    } else {
+      addArticle(payload);
+    }
+    setView('list');
   }
 
   function handleDelete() {
+    if (deleteConfirm) {
+      deleteArticle(deleteConfirm.id);
+    }
     setDeleteConfirm(null);
   }
 
@@ -297,8 +320,8 @@ export function AdminArticlesPage() {
           </div>
 
           <div className="flex items-center gap-3">
-            <Button type="submit" variant="primary" size="md" leftIcon={saved ? <Eye className="h-4 w-4" /> : <Save className="h-4 w-4" />}>
-              {saved ? 'Enregistré !' : 'Enregistrer'}
+            <Button type="submit" variant="primary" size="md" leftIcon={<Save className="h-4 w-4" />}>
+              Enregistrer
             </Button>
             <Button type="button" variant="outline" size="md" onClick={() => setView('list')}>
               Annuler
@@ -349,11 +372,7 @@ export function AdminArticlesPage() {
         </div>
       </div>
 
-      {isLoading ? (
-        <div className="flex justify-center py-20">
-          <Loader size={32} />
-        </div>
-      ) : filtered.length === 0 ? (
+      {filtered.length === 0 ? (
         <div className="text-center py-20 rounded-2xl border border-ink-100 bg-white">
           <FileText className="h-12 w-12 text-ink-300 mx-auto mb-3" />
           <p className="text-ink-500 mb-4">Aucun article trouvé</p>

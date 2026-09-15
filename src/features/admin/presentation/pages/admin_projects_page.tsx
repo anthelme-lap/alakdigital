@@ -14,8 +14,8 @@ import {
   Star,
   FolderKanban,
 } from 'lucide-react';
-import { useProjects } from '@/features/projects/presentation/queries/use_projects';
-import { Button, Loader } from '@/shared/ui';
+import { useContentStore } from '@/features/content/presentation/store/content_store';
+import { Button } from '@/shared/ui';
 import type { Project } from '@/features/projects/domain/entities/project';
 
 type View = 'list' | 'edit';
@@ -46,13 +46,13 @@ function toFormData(p: Project): ProjectFormData {
     description: p.description,
     problem: p.problem,
     solution: p.solution,
-    technologies: p.technologies.join(', '),
-    services: p.services.join(', '),
+    technologies: toCommaList(p.technologies),
+    services: toCommaList(p.services),
     featured: p.featured,
     year: p.year,
     client: p.client,
     duration: p.duration,
-    features: p.features.join(', '),
+    features: toCommaList(p.features),
   };
 }
 
@@ -79,23 +79,34 @@ const inputClass =
   'w-full h-11 px-4 rounded-xl border border-ink-200 bg-white text-sm text-ink-900 placeholder:text-ink-400 focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20';
 const textareaClass = inputClass.replace('h-11', '');
 
+function toCommaList(arr: string[]): string {
+  return arr.join(', ');
+}
+
+function fromCommaList(value: string): string[] {
+  return value
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean);
+}
+
 export function AdminProjectsPage() {
-  const { data: projects, isLoading } = useProjects();
+  const projects = useContentStore((s) => s.projects);
+  const addProject = useContentStore((s) => s.addProject);
+  const updateProject = useContentStore((s) => s.updateProject);
+  const deleteProject = useContentStore((s) => s.deleteProject);
   const [view, setView] = useState<View>('list');
   const [editingProject, setEditingProject] = useState<Project | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeSector, setActiveSector] = useState('Tous');
   const [deleteConfirm, setDeleteConfirm] = useState<Project | null>(null);
   const [formData, setFormData] = useState<ProjectFormData>(emptyForm());
-  const [saved, setSaved] = useState(false);
 
   const sectors = useMemo(() => {
-    if (!projects) return ['Tous'];
     return ['Tous', ...Array.from(new Set(projects.map((p) => p.sector)))];
   }, [projects]);
 
   const filtered = useMemo(() => {
-    if (!projects) return [];
     let result = projects;
     if (activeSector !== 'Tous') result = result.filter((p) => p.sector === activeSector);
     if (searchQuery.trim()) {
@@ -121,11 +132,29 @@ export function AdminProjectsPage() {
 
   function handleSave(e: React.FormEvent) {
     e.preventDefault();
-    setSaved(true);
-    setTimeout(() => {
-      setSaved(false);
-      setView('list');
-    }, 1200);
+    const payload = {
+      name: formData.name,
+      slug: formData.slug,
+      sector: formData.sector,
+      tagline: formData.tagline,
+      description: formData.description,
+      problem: formData.problem,
+      solution: formData.solution,
+      technologies: fromCommaList(formData.technologies),
+      services: fromCommaList(formData.services),
+      featured: formData.featured,
+      year: formData.year,
+      client: formData.client,
+      duration: formData.duration,
+      features: fromCommaList(formData.features),
+      results: editingProject ? editingProject.results : [],
+    };
+    if (editingProject) {
+      updateProject(editingProject.id, payload);
+    } else {
+      addProject(payload);
+    }
+    setView('list');
   }
 
   if (view === 'edit') {
@@ -230,8 +259,8 @@ export function AdminProjectsPage() {
           </div>
 
           <div className="flex items-center gap-3">
-            <Button type="submit" variant="primary" size="md" leftIcon={saved ? <Eye className="h-4 w-4" /> : <Save className="h-4 w-4" />}>
-              {saved ? 'Enregistre !' : 'Enregistrer'}
+            <Button type="submit" variant="primary" size="md" leftIcon={<Save className="h-4 w-4" />}>
+              Enregistrer
             </Button>
             <Button type="button" variant="outline" size="md" onClick={() => setView('list')}>
               Annuler
@@ -280,9 +309,7 @@ export function AdminProjectsPage() {
         </div>
       </div>
 
-      {isLoading ? (
-        <div className="flex justify-center py-20"><Loader size={32} /></div>
-      ) : filtered.length === 0 ? (
+      {filtered.length === 0 ? (
         <div className="text-center py-20 rounded-2xl border border-ink-100 bg-white">
           <FolderKanban className="h-12 w-12 text-ink-300 mx-auto mb-3" />
           <p className="text-ink-500 mb-4">Aucun projet trouve</p>
@@ -390,7 +417,7 @@ export function AdminProjectsPage() {
                 </button>
               </div>
               <div className="flex gap-3 mt-6">
-                <Button variant="primary" size="md" onClick={() => setDeleteConfirm(null)} className="!bg-red-600 hover:!bg-red-700 !shadow-red-600/20">
+                <Button variant="primary" size="md" onClick={() => { deleteProject(deleteConfirm.id); setDeleteConfirm(null); }} className="!bg-red-600 hover:!bg-red-700 !shadow-red-600/20">
                   Supprimer
                 </Button>
                 <Button variant="outline" size="md" onClick={() => setDeleteConfirm(null)}>

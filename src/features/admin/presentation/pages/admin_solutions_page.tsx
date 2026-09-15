@@ -12,8 +12,8 @@ import {
   Save,
   Lightbulb,
 } from 'lucide-react';
-import { useSolutions } from '@/features/solutions/presentation/queries/use_solutions';
-import { Button, Loader } from '@/shared/ui';
+import { useContentStore } from '@/features/content/presentation/store/content_store';
+import { Button } from '@/shared/ui';
 import type { Solution } from '@/features/solutions/domain/entities/solution';
 
 type View = 'list' | 'edit';
@@ -63,14 +63,16 @@ const inputClass =
 const textareaClass = inputClass.replace('h-11', '');
 
 export function AdminSolutionsPage() {
-  const { data: solutions, isLoading } = useSolutions();
+  const solutions = useContentStore((s) => s.solutions);
+  const addSolution = useContentStore((s) => s.addSolution);
+  const updateSolution = useContentStore((s) => s.updateSolution);
+  const deleteSolution = useContentStore((s) => s.deleteSolution);
   const [view, setView] = useState<View>('list');
   const [editingSolution, setEditingSolution] = useState<Solution | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState('Tous');
   const [deleteConfirm, setDeleteConfirm] = useState<Solution | null>(null);
   const [formData, setFormData] = useState<SolutionFormData>(emptyForm());
-  const [saved, setSaved] = useState(false);
 
   const categories = useMemo(() => {
     if (!solutions) return ['Tous'];
@@ -102,11 +104,23 @@ export function AdminSolutionsPage() {
 
   function handleSave(e: React.FormEvent) {
     e.preventDefault();
-    setSaved(true);
-    setTimeout(() => {
-      setSaved(false);
-      setView('list');
-    }, 1200);
+    const payload = {
+      name: formData.name,
+      slug: formData.slug,
+      tagline: formData.tagline,
+      category: formData.category,
+      problem: formData.problem,
+      target: formData.target,
+      description: formData.description,
+      features: formData.features.split(',').map((f) => f.trim()).filter(Boolean),
+      technologies: formData.technologies.split(',').map((t) => t.trim()).filter(Boolean),
+    };
+    if (editingSolution) {
+      updateSolution(editingSolution.id, payload);
+    } else {
+      addSolution(payload);
+    }
+    setView('list');
   }
 
   if (view === 'edit') {
@@ -181,8 +195,8 @@ export function AdminSolutionsPage() {
           </div>
 
           <div className="flex items-center gap-3">
-            <Button type="submit" variant="primary" size="md" leftIcon={saved ? <Eye className="h-4 w-4" /> : <Save className="h-4 w-4" />}>
-              {saved ? 'Enregistre !' : 'Enregistrer'}
+            <Button type="submit" variant="primary" size="md" leftIcon={<Save className="h-4 w-4" />}>
+              Enregistrer
             </Button>
             <Button type="button" variant="outline" size="md" onClick={() => setView('list')}>
               Annuler
@@ -231,9 +245,7 @@ export function AdminSolutionsPage() {
         </div>
       </div>
 
-      {isLoading ? (
-        <div className="flex justify-center py-20"><Loader size={32} /></div>
-      ) : filtered.length === 0 ? (
+      {filtered.length === 0 ? (
         <div className="text-center py-20 rounded-2xl border border-ink-100 bg-white">
           <Lightbulb className="h-12 w-12 text-ink-300 mx-auto mb-3" />
           <p className="text-ink-500 mb-4">Aucune solution trouvee</p>
@@ -310,7 +322,7 @@ export function AdminSolutionsPage() {
                 </button>
               </div>
               <div className="flex gap-3 mt-6">
-                <Button variant="primary" size="md" onClick={() => setDeleteConfirm(null)} className="!bg-red-600 hover:!bg-red-700 !shadow-red-600/20">
+                <Button variant="primary" size="md" onClick={() => { deleteSolution(deleteConfirm.id); setDeleteConfirm(null); }} className="!bg-red-600 hover:!bg-red-700 !shadow-red-600/20">
                   Supprimer
                 </Button>
                 <Button variant="outline" size="md" onClick={() => setDeleteConfirm(null)}>

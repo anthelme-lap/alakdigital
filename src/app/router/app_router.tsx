@@ -24,6 +24,13 @@ const AdminArticlesPage = lazy(() => import('@/features/admin/presentation/pages
 const AdminProjectsPage = lazy(() => import('@/features/admin/presentation/pages/admin_projects_page').then((m) => ({ default: m.AdminProjectsPage })));
 const AdminServicesPage = lazy(() => import('@/features/admin/presentation/pages/admin_services_page').then((m) => ({ default: m.AdminServicesPage })));
 const AdminSolutionsPage = lazy(() => import('@/features/admin/presentation/pages/admin_solutions_page').then((m) => ({ default: m.AdminSolutionsPage })));
+const AdminTeamPage = lazy(() => import('@/features/admin/presentation/pages/admin_team_page').then((m) => ({ default: m.AdminTeamPage })));
+const AdminValuesPage = lazy(() => import('@/features/admin/presentation/pages/admin_values_page').then((m) => ({ default: m.AdminValuesPage })));
+const AdminExpertiseContentPage = lazy(() => import('@/features/admin/presentation/pages/admin_expertise_content_page').then((m) => ({ default: m.AdminExpertiseContentPage })));
+const AdminMessagesPage = lazy(() => import('@/features/admin/presentation/pages/admin_messages_page').then((m) => ({ default: m.AdminMessagesPage })));
+const AdminQuotationsPage = lazy(() => import('@/features/admin/presentation/pages/admin_quotations_page').then((m) => ({ default: m.AdminQuotationsPage })));
+const AdminHomepagePage = lazy(() => import('@/features/admin/presentation/pages/admin_homepage_page').then((m) => ({ default: m.AdminHomepagePage })));
+const AdminAboutContentPage = lazy(() => import('@/features/admin/presentation/pages/admin_about_content_page').then((m) => ({ default: m.AdminAboutContentPage })));
 
 export function AppRouter() {
   return (
@@ -44,6 +51,13 @@ export function AppRouter() {
           <Route path="projects" element={<AdminProjectsPage />} />
           <Route path="services" element={<AdminServicesPage />} />
           <Route path="solutions" element={<AdminSolutionsPage />} />
+          <Route path="team" element={<AdminTeamPage />} />
+          <Route path="values" element={<AdminValuesPage />} />
+          <Route path="expertise-content" element={<AdminExpertiseContentPage />} />
+          <Route path="messages" element={<AdminMessagesPage />} />
+          <Route path="quotations" element={<AdminQuotationsPage />} />
+          <Route path="homepage" element={<AdminHomepagePage />} />
+          <Route path="about-content" element={<AdminAboutContentPage />} />
         </Route>
 
         <Route element={<MainLayout />}>

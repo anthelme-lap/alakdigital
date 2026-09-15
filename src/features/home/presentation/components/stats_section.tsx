@@ -3,23 +3,18 @@ import { useInView } from 'framer-motion';
 import { useRef } from 'react';
 import { Section } from '@/shared/ui';
 import { useCountUp } from '@/shared/hooks/use_ui';
-
-const stats = [
-  { value: 50, suffix: '+', label: 'Projets livrés' },
-  { value: 5, suffix: '+', label: 'Solutions SaaS' },
-  { value: 30, suffix: '+', label: 'Clients satisfaits' },
-  { value: 99, suffix: '%', label: 'Disponibilité' },
-];
+import { useContentStore } from '@/features/content/presentation/store/content_store';
 
 export function StatsSection() {
+  const stats = useContentStore((s) => s.stats);
   const ref = useRef(null);
   const inView = useInView(ref, { once: true, margin: '-100px' });
 
   return (
-    <Section className="py-16 lg:py-20" >
+    <Section className="py-16 lg:py-20">
       <div ref={ref} className="grid grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-4">
         {stats.map((stat, i) => (
-          <StatItem key={i} {...stat} start={inView} delay={i * 100} />
+          <StatItem key={stat.id} value={stat.value} suffix={stat.suffix} label={stat.label} start={inView} delay={i * 100} />
         ))}
       </div>
     </Section>
