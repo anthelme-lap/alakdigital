@@ -35,18 +35,28 @@ jobs:
       - name: Link project and push migrations
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_ID }}
+          DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
         run: |
-          supabase link --project-ref "${{ secrets.SUPABASE_PROJECT_ID }}"
-          supabase db push --password "${{ secrets.SUPABASE_DB_PASSWORD }}"
+          supabase link --project-ref "$PROJECT_REF"
+          supabase db push --password "$DB_PASSWORD"
 
+      # --linked (Management API) demande des privileges d'org que le token
+      # n'a pas toujours (403 "Initialising login role"), et "supabase db
+      # query --file" ne supporte pas les fichiers multi-instructions. On se
+      # connecte donc directement a Postgres via psql, comme "db push" au-dessus.
       - name: Apply seed data (idempotent, ON CONFLICT DO NOTHING)
         env:
-          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_ID }}
+          DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
         run: |
           set -e
+          sudo apt-get update -y -qq && sudo apt-get install -y -qq postgresql-client
+          ENC_PASSWORD=$(jq -rn --arg v "$DB_PASSWORD" '$v|@uri')
+          DB_URL="postgresql://postgres:${ENC_PASSWORD}@db.${PROJECT_REF}.supabase.co:5432/postgres"
           for f in supabase/seeds/*.sql; do
             echo "--- Seeding: $f ---"
-            supabase db query --linked --file "$f"
+            psql "$DB_URL" -v ON_ERROR_STOP=1 -f "$f"
           done
 
   build-and-push:
