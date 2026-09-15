@@ -151,7 +151,7 @@ function FeaturedRow({ project, index }: { project: Project; index: number }) {
           }`}
         >
           <img
-            src="/alak_1.png"
+            src={project.image || '/alak_1.png'}
             alt={project.name}
             className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
           />
@@ -227,7 +227,7 @@ function CompactCard({ project, index }: { project: Project; index: number }) {
       >
         <div className="relative h-32 overflow-hidden bg-ink-900">
           <img
-            src="/alak_1.png"
+            src={project.image || '/alak_1.png'}
             alt={project.name}
             className="absolute inset-0 h-full w-full object-cover opacity-80 transition-transform duration-700 group-hover:scale-110"
           />

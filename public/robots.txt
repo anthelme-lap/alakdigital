@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://alak-digital.com/sitemap.xml
+Sitemap: https://alakdigital.com/sitemap.xml

@@ -33,7 +33,7 @@ type ProjectRow = {
   description: string; problem: string; solution: string;
   technologies: string[]; services: string[]; featured: boolean;
   year: string; client: string; duration: string;
-  results: { label: string; value: string }[]; features: string[];
+  results: { label: string; value: string }[]; features: string[]; image: string;
 };
 
 function mapProject(r: ProjectRow): Project {
@@ -42,7 +42,7 @@ function mapProject(r: ProjectRow): Project {
     description: r.description, problem: r.problem, solution: r.solution,
     technologies: r.technologies ?? [], services: r.services ?? [],
     featured: r.featured, year: r.year, client: r.client, duration: r.duration,
-    results: r.results ?? [], features: r.features ?? [],
+    results: r.results ?? [], features: r.features ?? [], image: r.image ?? '',
   };
 }
 
@@ -271,7 +271,7 @@ export async function insertProject(p: Omit<Project, 'id'>): Promise<Project> {
     description: p.description, problem: p.problem, solution: p.solution,
     technologies: p.technologies, services: p.services, featured: p.featured,
     year: p.year, client: p.client, duration: p.duration,
-    results: p.results, features: p.features,
+    results: p.results, features: p.features, image: p.image,
   }).select('*').single();
   if (error) throw error;
   return mapProject(data);
@@ -294,6 +294,7 @@ export async function updateProject(id: string, p: Partial<Project>): Promise<Pr
   if (p.duration !== undefined) update.duration = p.duration;
   if (p.results !== undefined) update.results = p.results;
   if (p.features !== undefined) update.features = p.features;
+  if (p.image !== undefined) update.image = p.image;
   const { data, error } = await supabase.from('projects').update(update).eq('id', id).select('*').single();
   if (error) throw error;
   return mapProject(data);

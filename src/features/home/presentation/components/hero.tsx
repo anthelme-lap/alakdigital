@@ -334,7 +334,7 @@ function SaasMockup() {
             <Layers className="h-4 w-4 text-primary-400" />
           </div>
           <div>
-            <div className="text-xs font-bold text-white">GaragePro</div>
+            <div className="text-xs font-bold text-white">Garage Manager</div>
             <div className="text-[10px] text-ink-500">SaaS Platform</div>
           </div>
           <Server className="ml-auto h-4 w-4 text-green-500" />

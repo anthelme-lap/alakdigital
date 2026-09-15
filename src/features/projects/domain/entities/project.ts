@@ -15,6 +15,7 @@ export interface Project {
   duration: string;
   results: { label: string; value: string }[];
   features: string[];
+  image: string;
 }
 
 export const projects: Project[] = [
@@ -48,15 +49,16 @@ export const projects: Project[] = [
       'Gestion multi-organisateurs',
       'Notifications push automatiques',
     ],
+    image: 'https://images.pexels.com/photos/11035471/pexels-photo-11035471.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
   },
   {
     id: '2',
-    name: 'GaragePro',
-    slug: 'garagepro',
+    name: 'Garage Manager',
+    slug: 'garage-manager',
     sector: 'SaaS Automotive',
     tagline: 'SaaS de gestion de garage automobile',
     description:
-      'GaragePro est un logiciel SaaS permettant aux garagistes de gérer leurs réparations, stock de pièces, facturation et relation client depuis une interface unique.',
+      'Garage Manager est un logiciel SaaS permettant aux garagistes de gérer leurs réparations, stock de pièces, facturation et relation client depuis une interface unique.',
     problem:
       'Les garages automobiles géraient leurs opérations manuellement, avec des pertes de temps significatives et des erreurs de facturation fréquentes.',
     solution:
@@ -65,7 +67,7 @@ export const projects: Project[] = [
     services: ['Plateformes SaaS', 'Développement Web', 'Backend & API'],
     featured: true,
     year: '2024',
-    client: 'GaragePro',
+    client: 'Garage Manager',
     duration: '4 mois',
     results: [
       { label: 'Garages actifs', value: '30+' },
@@ -79,15 +81,16 @@ export const projects: Project[] = [
       'Base de données clients',
       'Tableau de bord de performance',
     ],
+    image: 'https://images.pexels.com/photos/3184292/pexels-photo-3184292.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
   },
   {
     id: '3',
-    name: 'PressingExpress',
-    slug: 'pressingexpress',
+    name: 'Lavex',
+    slug: 'lavex',
     sector: 'SaaS Services',
     tagline: 'Solution de gestion de pressing et blanchisserie',
     description:
-      'PressingExpress est une solution SaaS qui digitalise la gestion des pressings: prise en charge, suivi des commandes, notifications client et facturation.',
+      'Lavex est une solution SaaS qui digitalise la gestion des pressings: prise en charge, suivi des commandes, notifications client et facturation.',
     problem:
       'Les pressings locaux ne disposaient d\'aucun outil de suivi, entraînant des pertes de vêtements et une insatisfaction client.',
     solution:
@@ -96,7 +99,7 @@ export const projects: Project[] = [
     services: ['Plateformes SaaS', 'Développement Mobile', 'Backend & API'],
     featured: true,
     year: '2023',
-    client: 'PressingExpress',
+    client: 'Lavex',
     duration: '3 mois',
     results: [
       { label: 'Pressings équipés', value: '15+' },
@@ -110,6 +113,7 @@ export const projects: Project[] = [
       'Application mobile client',
       'Facturation et statistiques',
     ],
+    image: 'https://images.pexels.com/photos/7376/startup-photos.jpg?auto=compress&cs=tinysrgb&h=650&w=940',
   },
   {
     id: '4',
@@ -141,15 +145,16 @@ export const projects: Project[] = [
       'Suivi en temps réel',
       'Intégration paiement mobile',
     ],
+    image: 'https://images.pexels.com/photos/1966447/pexels-photo-1966447.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
   },
   {
     id: '5',
-    name: 'StockMaster',
-    slug: 'stockmaster',
+    name: 'ModaStock',
+    slug: 'modastock',
     sector: 'Logistique',
     tagline: 'Gestion de stock et d\'inventaire cloud',
     description:
-      'StockMaster est une solution cloud de gestion de stock permettant aux entreprises de suivre leurs inventaires en temps réel, gérer leurs fournisseurs et automatiser leurs commandes.',
+      'ModaStock est une solution cloud de gestion de stock permettant aux entreprises de suivre leurs inventaires en temps réel, gérer leurs fournisseurs et automatiser leurs commandes.',
     problem:
       'Les PME géraient leurs stocks sur Excel, avec des écarts d\'inventaire réguliers et aucune visibilité en temps réel.',
     solution:
@@ -158,7 +163,7 @@ export const projects: Project[] = [
     services: ['Plateformes SaaS', 'Développement Web', 'Développement Mobile'],
     featured: false,
     year: '2024',
-    client: 'StockMaster',
+    client: 'ModaStock',
     duration: '4 mois',
     results: [
       { label: 'Articles gérés', value: '500K+' },
@@ -172,6 +177,7 @@ export const projects: Project[] = [
       'Gestion des fournisseurs',
       'Rapports analytiques avancés',
     ],
+    image: 'https://images.pexels.com/photos/1181271/pexels-photo-1181271.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
   },
   {
     id: '6',
@@ -203,5 +209,6 @@ export const projects: Project[] = [
       'Publication de rapports',
       'Authentification à deux facteurs',
     ],
+    image: 'https://images.pexels.com/photos/3184465/pexels-photo-3184465.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
   },
 ];

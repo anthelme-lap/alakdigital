@@ -99,7 +99,7 @@ function SolutionForm({ defaultValues, onSubmit, onCancel, loading, isEdit = fal
             </div>
           </CardHeader>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <Input label="Nom *" placeholder="GaragePro" error={errors.name?.message} {...register('name')} />
+            <Input label="Nom *" placeholder="Garage Manager" error={errors.name?.message} {...register('name')} />
             <Input label="Slug *" placeholder="garagepro" className="font-mono" error={errors.slug?.message} {...register('slug')} />
             <Input label="Categorie *" placeholder="SaaS Automotive" error={errors.category?.message} {...register('category')} />
             <Input label="Cible *" placeholder="Garages automobiles" error={errors.target?.message} {...register('target')} />

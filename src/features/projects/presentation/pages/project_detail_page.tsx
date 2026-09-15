@@ -40,6 +40,14 @@ export function ProjectDetailPage() {
         </Container>
       </section>
 
+      {project.image && (
+        <Container className="-mt-14 lg:-mt-20 relative z-10">
+          <div className="h-64 lg:h-96 w-full overflow-hidden rounded-3xl shadow-premium-lg">
+            <img src={project.image} alt={project.name} className="w-full h-full object-cover" />
+          </div>
+        </Container>
+      )}
+
       <section className="py-20 lg:py-28">
         <Container>
           <div className="grid lg:grid-cols-3 gap-12">

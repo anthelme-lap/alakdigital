@@ -1,0 +1,35 @@
+name: alak_digital
+
+services:
+  alak_digital:
+    image: ${APP_IMAGE:-ghcr.io/anthelme-lap/alakdigital:latest}
+    container_name: alak_digital
+    restart: always
+    ports:
+      - "127.0.0.1:3014:8080"
+
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:8080/healthz || exit 1"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+
+    mem_limit: 256m
+    cpus: 1.0
+
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+    security_opt:
+      - no-new-privileges:true
+
+    read_only: true
+
+    tmpfs:
+      - /tmp
+      - /var/cache/nginx
+      - /var/run

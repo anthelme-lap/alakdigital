@@ -23,7 +23,7 @@ import {
 } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { fetchArticles, insertArticle, updateArticle, deleteArticle } from '@/features/content/infrastructure/content_api';
-import { Button, Input, Textarea, Card, CardHeader, CardTitle, CardDescription, Badge } from '@/shared/ui';
+import { Button, Input, Textarea, Card, CardHeader, CardTitle, CardDescription, Badge, ImageUpload } from '@/shared/ui';
 import { articleSchema, type ArticleFormValues } from '../forms/article_schema';
 import type { BlogArticle } from '@/features/blog/domain/entities/article';
 
@@ -116,12 +116,13 @@ function ArticleForm({ defaultValues, onSubmit, onCancel, loading, isEdit = fals
             <Textarea label="Extrait *" rows={3} placeholder="Resume court de l'article" error={errors.excerpt?.message} {...register('excerpt')} />
           </div>
           <div className="mt-4">
-            <Input label="Image de couverture" type="url" placeholder="https://images.pexels.com/..." error={errors.coverImage?.message} {...register('coverImage')} />
-            {values.coverImage && (
-              <div className="mt-3 rounded-xl overflow-hidden border border-ink-100 max-h-48">
-                <img src={values.coverImage} alt="Preview" className="w-full h-full object-cover" />
-              </div>
-            )}
+            <ImageUpload
+              label="Image de couverture"
+              folder="articles"
+              value={values.coverImage ?? ''}
+              onChange={(url) => setValue('coverImage', url, { shouldValidate: true })}
+              error={errors.coverImage?.message}
+            />
           </div>
         </Card>
 

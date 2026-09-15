@@ -5,7 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Plus, Edit3, Trash2, Eye, X, Save, Users, ArrowLeft, UserCircle, Tag } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { fetchTeam, insertTeamMember, updateTeamMember, deleteTeamMember } from '@/features/content/infrastructure/content_api';
-import { Button, Input, Card, CardHeader, CardTitle, CardDescription, Badge } from '@/shared/ui';
+import { Button, Input, Card, CardHeader, CardTitle, CardDescription, Badge, ImageUpload } from '@/shared/ui';
 import { teamSchema, type TeamFormValues } from '../forms/team_schema';
 import type { TeamMember } from '@/features/content/domain/entities/content';
 
@@ -44,6 +44,7 @@ function TeamMemberForm({ defaultValues, onSubmit, onCancel, loading, isEdit = f
     register,
     handleSubmit,
     watch,
+    setValue,
     formState: { errors },
   } = useForm<TeamFormValues>({
     resolver: zodResolver(teamSchema),
@@ -69,13 +70,6 @@ function TeamMemberForm({ defaultValues, onSubmit, onCancel, loading, isEdit = f
             <Input label="Nom *" placeholder="Kouassi Aristide" error={errors.name?.message} {...register('name')} />
             <Input label="Rôle *" placeholder="Lead Developer" error={errors.role?.message} {...register('role')} />
             <Input
-              label="Photo (URL)"
-              placeholder="https://..."
-              className="sm:col-span-2"
-              error={errors.image?.message}
-              {...register('image')}
-            />
-            <Input
               label="Outils (virgule)"
               placeholder="React, TypeScript, Docker"
               className="sm:col-span-2"
@@ -83,11 +77,15 @@ function TeamMemberForm({ defaultValues, onSubmit, onCancel, loading, isEdit = f
               {...register('tools')}
             />
           </div>
-          {values.image && (
-            <div className="mt-4 rounded-xl overflow-hidden border border-ink-100 max-h-48">
-              <img src={values.image} alt="Aperçu" className="w-full h-full object-cover" />
-            </div>
-          )}
+          <div className="mt-4">
+            <ImageUpload
+              label="Photo"
+              folder="team"
+              value={values.image ?? ''}
+              onChange={(url) => setValue('image', url, { shouldValidate: true })}
+              error={errors.image?.message}
+            />
+          </div>
         </Card>
       </div>
 

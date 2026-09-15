@@ -18,6 +18,7 @@ export const projectSchema = z.object({
   featured: z.boolean(),
   year: z.string().min(1, 'Année requise'),
   duration: z.string().optional().or(z.literal('')),
+  image: z.string().optional().or(z.literal('')),
 });
 
 export type ProjectFormValues = z.infer<typeof projectSchema>;

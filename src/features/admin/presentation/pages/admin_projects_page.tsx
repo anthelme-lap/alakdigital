@@ -24,7 +24,7 @@ import {
 } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { fetchProjects, insertProject, updateProject, deleteProject } from '@/features/content/infrastructure/content_api';
-import { Button, Input, Textarea, Card, CardHeader, CardTitle, CardDescription, Badge } from '@/shared/ui';
+import { Button, Input, Textarea, Card, CardHeader, CardTitle, CardDescription, Badge, ImageUpload } from '@/shared/ui';
 import { projectSchema, type ProjectFormValues } from '../forms/project_schema';
 import type { Project } from '@/features/projects/domain/entities/project';
 
@@ -46,6 +46,7 @@ function toFormData(p: Project): ProjectFormValues {
     client: p.client,
     duration: p.duration,
     features: toCommaList(p.features),
+    image: p.image,
   };
 }
 
@@ -65,6 +66,7 @@ function emptyForm(): ProjectFormValues {
     client: '',
     duration: '',
     features: '',
+    image: '',
   };
 }
 
@@ -123,6 +125,15 @@ function ProjectForm({ defaultValues, onSubmit, onCancel, loading, isEdit = fals
           </div>
           <div className="mt-4">
             <Textarea label="Description *" rows={3} placeholder="Description du projet" error={errors.description?.message} {...register('description')} />
+          </div>
+          <div className="mt-4">
+            <ImageUpload
+              label="Image de couverture"
+              folder="projects"
+              value={values.image ?? ''}
+              onChange={(url) => setValue('image', url, { shouldValidate: true })}
+              error={errors.image?.message}
+            />
           </div>
         </Card>
 
@@ -254,6 +265,12 @@ function ProjectDetailView({ project, onBack, onEdit, onDelete }: ProjectDetailV
       </div>
 
       <div className="space-y-5">
+        {project.image && (
+          <div className="h-64 w-full overflow-hidden rounded-2xl border border-ink-100 bg-ink-50">
+            <img src={project.image} alt={project.name} className="w-full h-full object-cover" />
+          </div>
+        )}
+
         <Card>
           <CardHeader>
             <div>
@@ -480,6 +497,7 @@ export function AdminProjectsPage() {
       client: values.client,
       duration: values.duration ?? '',
       features: fromCommaList(values.features ?? ''),
+      image: values.image ?? '',
       results: editingProject ? editingProject.results : [],
     };
     if (editingProject) {

@@ -14,13 +14,13 @@ export interface Solution {
 export const solutions: Solution[] = [
   {
     id: '1',
-    name: 'GaragePro',
-    slug: 'garagepro',
+    name: 'Garage Manager',
+    slug: 'garage-manager',
     tagline: 'SaaS de gestion de garage automobile',
     problem: 'Les garages automobiles gèrent leurs opérations manuellement, avec des pertes de temps et des erreurs de facturation.',
     target: 'Garages automobiles, ateliers de réparation',
     description:
-      'GaragePro est un logiciel SaaS permettant aux garagistes de gérer leurs réparations, stock de pièces, facturation et relation client depuis une interface unique.',
+      'Garage Manager est un logiciel SaaS permettant aux garagistes de gérer leurs réparations, stock de pièces, facturation et relation client depuis une interface unique.',
     features: [
       'Gestion des ordres de réparation',
       'Suivi de stock de pièces détachées',
@@ -33,13 +33,13 @@ export const solutions: Solution[] = [
   },
   {
     id: '2',
-    name: 'PressingExpress',
-    slug: 'pressingexpress',
+    name: 'Lavex',
+    slug: 'lavex',
     tagline: 'Solution de gestion de pressing et blanchisserie',
     problem: 'Les pressings locaux ne disposent d\'aucun outil de suivi, entraînant des pertes de vêtements et une insatisfaction client.',
     target: 'Pressings, blanchisseries, laveries',
     description:
-      'PressingExpress digitalise la gestion des pressings: prise en charge, suivi des commandes, notifications client et facturation.',
+      'Lavex digitalise la gestion des pressings: prise en charge, suivi des commandes, notifications client et facturation.',
     features: [
       'Prise en charge et étiquetage QR',
       'Suivi des commandes en temps réel',
@@ -52,13 +52,13 @@ export const solutions: Solution[] = [
   },
   {
     id: '3',
-    name: 'StockMaster',
-    slug: 'stockmaster',
+    name: 'ModaStock',
+    slug: 'modastock',
     tagline: 'Gestion de stock et d\'inventaire cloud',
     problem: 'Les PME gèrent leurs stocks sur Excel, avec des écarts d\'inventaire réguliers et aucune visibilité en temps réel.',
     target: 'PME, commerces, entrepôts',
     description:
-      'StockMaster est une solution cloud de gestion de stock permettant de suivre les inventaires en temps réel, gérer les fournisseurs et automatiser les commandes.',
+      'ModaStock est une solution cloud de gestion de stock permettant de suivre les inventaires en temps réel, gérer les fournisseurs et automatiser les commandes.',
     features: [
       'Gestion multi-entrepôts',
       'Scan de codes-barres via mobile',
