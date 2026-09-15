@@ -1,15 +1,133 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Edit3, Trash2, X, Save, Users } from 'lucide-react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Plus, Edit3, Trash2, X, Save, Users, ArrowLeft, UserCircle } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { fetchTeam, insertTeamMember, updateTeamMember, deleteTeamMember } from '@/features/content/infrastructure/content_api';
-import { Button } from '@/shared/ui';
-import { FormDrawer, DrawerField, drawerInputClass } from '@/features/admin/presentation/components/form_drawer';
+import { Button, Input, Card, CardHeader, CardTitle, CardDescription } from '@/shared/ui';
+import { teamSchema, type TeamFormValues } from '../forms/team_schema';
 import type { TeamMember } from '@/features/content/domain/entities/content';
 
-interface FormData { name: string; role: string; image: string; tools: string; }
-function emptyForm(): FormData { return { name: '', role: '', image: '', tools: '' }; }
-function toFormData(m: TeamMember): FormData { return { name: m.name, role: m.role, image: m.image, tools: m.tools.join(', ') }; }
+type View = 'list' | 'edit';
+
+function toFormData(m: TeamMember): TeamFormValues {
+  return {
+    name: m.name,
+    role: m.role,
+    image: m.image,
+    tools: m.tools.join(', '),
+  };
+}
+
+function emptyForm(): TeamFormValues {
+  return { name: '', role: '', image: '', tools: '' };
+}
+
+function fromCommaList(value: string): string[] {
+  return value
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean);
+}
+
+interface TeamMemberFormProps {
+  defaultValues: TeamFormValues;
+  onSubmit: (values: TeamFormValues) => void;
+  onCancel: () => void;
+  loading: boolean;
+  isEdit?: boolean;
+}
+
+function TeamMemberForm({ defaultValues, onSubmit, onCancel, loading, isEdit = false }: TeamMemberFormProps) {
+  const {
+    register,
+    handleSubmit,
+    watch,
+    formState: { errors },
+  } = useForm<TeamFormValues>({
+    resolver: zodResolver(teamSchema),
+    defaultValues,
+    mode: 'onChange',
+  });
+
+  const values = watch();
+
+  return (
+    <form onSubmit={handleSubmit(onSubmit)} className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+      <div className="space-y-5 lg:col-span-2">
+        <Card>
+          <CardHeader>
+            <div>
+              <CardTitle>
+                <UserCircle className="h-5 w-5 text-primary-600" /> Identité
+              </CardTitle>
+              <CardDescription>Informations du membre de l'équipe</CardDescription>
+            </div>
+          </CardHeader>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <Input label="Nom *" placeholder="Kouassi Aristide" error={errors.name?.message} {...register('name')} />
+            <Input label="Rôle *" placeholder="Lead Developer" error={errors.role?.message} {...register('role')} />
+            <Input
+              label="Photo (URL)"
+              placeholder="https://..."
+              className="sm:col-span-2"
+              error={errors.image?.message}
+              {...register('image')}
+            />
+            <Input
+              label="Outils (virgule)"
+              placeholder="React, TypeScript, Docker"
+              className="sm:col-span-2"
+              error={errors.tools?.message}
+              {...register('tools')}
+            />
+          </div>
+          {values.image && (
+            <div className="mt-4 rounded-xl overflow-hidden border border-ink-100 max-h-48">
+              <img src={values.image} alt="Aperçu" className="w-full h-full object-cover" />
+            </div>
+          )}
+        </Card>
+      </div>
+
+      <div className="lg:col-span-1">
+        <Card className="lg:sticky lg:top-24">
+          <CardHeader>
+            <div>
+              <CardTitle>Récapitulatif</CardTitle>
+              <CardDescription>{isEdit ? 'Modification du membre' : 'Nouveau membre'}</CardDescription>
+            </div>
+          </CardHeader>
+
+          <dl className="space-y-2 text-sm">
+            {[
+              { label: 'Nom', value: values.name || null },
+              { label: 'Rôle', value: values.role || null },
+              { label: 'Outils', value: values.tools || null },
+            ].map(({ label, value }) => (
+              <div key={label} className="flex justify-between gap-3">
+                <dt className="text-ink-500">{label}</dt>
+                <dd className="max-w-[60%] truncate text-right font-medium text-ink-900">
+                  {value ?? <span className="text-ink-300">-</span>}
+                </dd>
+              </div>
+            ))}
+          </dl>
+
+          <div className="mt-5 space-y-2">
+            <Button type="submit" variant="primary" size="md" fullWidth loading={loading} leftIcon={!loading ? <Save className="h-4 w-4" /> : undefined}>
+              Enregistrer
+            </Button>
+            <Button type="button" variant="outline" size="md" fullWidth onClick={onCancel}>
+              Annuler
+            </Button>
+          </div>
+        </Card>
+      </div>
+    </form>
+  );
+}
 
 export function AdminTeamPage() {
   const queryClient = useQueryClient();
@@ -21,19 +139,56 @@ export function AdminTeamPage() {
   });
   const deleteMutation = useMutation({ mutationFn: deleteTeamMember, onSuccess: () => queryClient.invalidateQueries({ queryKey: ['team'] }) });
 
-  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [view, setView] = useState<View>('list');
   const [editing, setEditing] = useState<TeamMember | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<TeamMember | null>(null);
-  const [formData, setFormData] = useState<FormData>(emptyForm());
 
-  function handleEdit(m: TeamMember) { setEditing(m); setFormData(toFormData(m)); setDrawerOpen(true); }
-  function handleCreate() { setEditing(null); setFormData(emptyForm()); setDrawerOpen(true); }
-  function handleSave(e: React.FormEvent) {
-    e.preventDefault();
-    const payload = { name: formData.name, role: formData.role, image: formData.image, tools: formData.tools.split(',').map((t) => t.trim()).filter(Boolean) };
+  function handleEdit(m: TeamMember) {
+    setEditing(m);
+    setView('edit');
+  }
+
+  function handleCreate() {
+    setEditing(null);
+    setView('edit');
+  }
+
+  function handleSave(values: TeamFormValues) {
+    const payload = {
+      name: values.name,
+      role: values.role,
+      image: values.image ?? '',
+      tools: fromCommaList(values.tools ?? ''),
+    };
     if (editing) updateMutation.mutate({ id: editing.id, ...payload });
     else insertMutation.mutate(payload);
-    setDrawerOpen(false);
+    setView('list');
+  }
+
+  if (view === 'edit') {
+    return (
+      <div>
+        <button
+          onClick={() => setView('list')}
+          className="inline-flex items-center gap-2 text-sm text-ink-500 hover:text-ink-900 transition-colors mb-6"
+        >
+          <ArrowLeft className="h-4 w-4" /> Retour à la liste
+        </button>
+
+        <div className="mb-6">
+          <h2 className="text-2xl font-bold text-ink-900">{editing ? 'Modifier le membre' : 'Nouveau membre'}</h2>
+          <p className="text-sm text-ink-500 mt-1">{editing ? editing.name : "Ajoutez un membre à l'équipe"}</p>
+        </div>
+
+        <TeamMemberForm
+          defaultValues={editing ? toFormData(editing) : emptyForm()}
+          onSubmit={handleSave}
+          onCancel={() => setView('list')}
+          loading={insertMutation.isPending || updateMutation.isPending}
+          isEdit={!!editing}
+        />
+      </div>
+    );
   }
 
   return (
@@ -63,31 +218,6 @@ export function AdminTeamPage() {
           ))}
         </div>
       )}
-
-      <FormDrawer
-        open={drawerOpen}
-        onClose={() => setDrawerOpen(false)}
-        title={editing ? 'Modifier le membre' : 'Nouveau membre'}
-        subtitle={editing ? editing.name : 'Ajoutez un membre à l\'équipe'}
-        footer={
-          <>
-            <Button type="submit" form="team-form" variant="primary" size="md" leftIcon={<Save className="h-4 w-4" />}>Enregistrer</Button>
-            <Button type="button" variant="outline" size="md" onClick={() => setDrawerOpen(false)}>Annuler</Button>
-          </>
-        }
-      >
-        <form id="team-form" onSubmit={handleSave} className="space-y-5">
-          <div className="rounded-2xl border border-ink-100 bg-white p-5 space-y-5">
-            <DrawerField label="Nom" required><input type="text" required value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} placeholder="Kouassi Aristide" className={drawerInputClass} /></DrawerField>
-            <DrawerField label="Rôle" required><input type="text" required value={formData.role} onChange={(e) => setFormData({ ...formData, role: e.target.value })} placeholder="Lead Developer" className={drawerInputClass} /></DrawerField>
-            <DrawerField label="Photo (URL)">
-              <input type="url" value={formData.image} onChange={(e) => setFormData({ ...formData, image: e.target.value })} placeholder="https://..." className={drawerInputClass} />
-              {formData.image && <div className="mt-3 rounded-xl overflow-hidden border border-ink-100 max-h-48"><img src={formData.image} alt="Aperçu" className="w-full h-full object-cover" /></div>}
-            </DrawerField>
-            <DrawerField label="Outils (séparés par des virgules)"><input type="text" value={formData.tools} onChange={(e) => setFormData({ ...formData, tools: e.target.value })} placeholder="React, TypeScript, Docker" className={drawerInputClass} /></DrawerField>
-          </div>
-        </form>
-      </FormDrawer>
 
       <AnimatePresence>
         {deleteConfirm && (

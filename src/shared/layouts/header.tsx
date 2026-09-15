@@ -1,6 +1,6 @@
 import { Link, NavLink, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X, ArrowRight } from 'lucide-react';
+import { Menu, X, ArrowRight, ShieldCheck } from 'lucide-react';
 import { NAV_LINKS, APP_CONFIG } from '@/core/config/app_config';
 import { useScrollPosition } from '@/shared/hooks/use_ui';
 import { useUiStore } from '@/shared/hooks/use_ui_store';
@@ -53,6 +53,15 @@ export function Header() {
             </nav>
 
             <div className="hidden lg:flex items-center gap-3">
+              <Button
+                to="/admin"
+                variant="ghost"
+                size="sm"
+                leftIcon={<ShieldCheck className="h-4 w-4" />}
+                aria-label="Accéder à l'espace admin"
+              >
+                Admin
+              </Button>
               <Button to="/quotation" variant="primary" size="sm" rightIcon={<ArrowRight className="h-4 w-4" />}>
                 Démarrer un projet
               </Button>
@@ -111,9 +120,19 @@ export function Header() {
                   </NavLink>
                 ))}
               </nav>
-              <div className="p-5 border-t border-ink-100">
+              <div className="p-5 border-t border-ink-100 space-y-2.5">
                 <Button to="/quotation" fullWidth size="lg" rightIcon={<ArrowRight className="h-4 w-4" />} onClick={closeMobileMenu}>
                   Démarrer un projet
+                </Button>
+                <Button
+                  to="/admin"
+                  variant="outline"
+                  fullWidth
+                  size="lg"
+                  leftIcon={<ShieldCheck className="h-4 w-4" />}
+                  onClick={closeMobileMenu}
+                >
+                  Espace Admin
                 </Button>
               </div>
             </motion.div>

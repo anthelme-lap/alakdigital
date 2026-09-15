@@ -1,59 +1,178 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Edit3, Trash2, X, Save, ArrowLeft, Target } from 'lucide-react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Plus, Edit3, Trash2, X, Save, ArrowLeft, Target, Info } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   fetchExpertise, insertExpertise, updateExpertise as updateExpertiseApi, deleteExpertise as deleteExpertiseApi,
 } from '@/features/content/infrastructure/content_api';
-import { Button } from '@/shared/ui';
+import { Button, Input, Textarea, Select, Card, CardHeader, CardTitle, CardDescription } from '@/shared/ui';
+import { expertiseSchema, type ExpertiseFormValues } from '../forms/expertise_schema';
 import type { ExpertiseDomain } from '@/features/content/domain/entities/content';
 
-const inputClass = 'w-full h-11 px-4 rounded-xl border border-ink-200 bg-white text-sm text-ink-900 placeholder:text-ink-400 focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20';
-const iconOptions = ['Code2', 'Smartphone', 'Server', 'Database', 'Cloud', 'GitBranch', 'Shield', 'Cpu', 'Layers', 'Globe'];
+type View = 'list' | 'edit';
 
-interface FormData { icon: string; label: string; description: string; technologies: string; }
-const emptyForm: FormData = { icon: 'Code2', label: '', description: '', technologies: '' };
-const toFormData = (e: ExpertiseDomain): FormData => ({ icon: e.icon, label: e.label, description: e.description, technologies: e.technologies.join(', ') });
+const iconOptions = ['Code2', 'Smartphone', 'Server', 'Database', 'Cloud', 'GitBranch', 'Shield', 'Cpu', 'Layers', 'Globe'];
+const iconSelectOptions = iconOptions.map((ic) => ({ value: ic, label: ic }));
+
+function toFormData(e: ExpertiseDomain): ExpertiseFormValues {
+  return { icon: e.icon, label: e.label, description: e.description, technologies: e.technologies.join(', ') };
+}
+
+function emptyForm(): ExpertiseFormValues {
+  return { icon: 'Code2', label: '', description: '', technologies: '' };
+}
+
+function fromCommaList(value: string): string[] {
+  return value.split(',').map((s) => s.trim()).filter(Boolean);
+}
+
+interface ExpertiseFormProps {
+  defaultValues: ExpertiseFormValues;
+  onSubmit: (values: ExpertiseFormValues) => void;
+  onCancel: () => void;
+  loading: boolean;
+  isEdit?: boolean;
+}
+
+function ExpertiseForm({ defaultValues, onSubmit, onCancel, loading, isEdit = false }: ExpertiseFormProps) {
+  const {
+    register,
+    handleSubmit,
+    watch,
+    formState: { errors },
+  } = useForm<ExpertiseFormValues>({
+    resolver: zodResolver(expertiseSchema),
+    defaultValues,
+    mode: 'onChange',
+  });
+
+  const values = watch();
+
+  return (
+    <form onSubmit={handleSubmit(onSubmit)} className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+      <div className="space-y-5 lg:col-span-2">
+        <Card>
+          <CardHeader>
+            <div>
+              <CardTitle>
+                <Info className="h-5 w-5 text-primary-600" /> Identité
+              </CardTitle>
+              <CardDescription>Informations du domaine d'expertise</CardDescription>
+            </div>
+          </CardHeader>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <Select label="Icône" options={iconSelectOptions} error={errors.icon?.message} {...register('icon')} />
+            <Input label="Label *" placeholder="Frontend" error={errors.label?.message} {...register('label')} />
+            <Input
+              label="Technologies (virgule)"
+              placeholder="React, TypeScript, Vite"
+              className="sm:col-span-2"
+              error={errors.technologies?.message}
+              {...register('technologies')}
+            />
+          </div>
+          <div className="mt-4">
+            <Textarea label="Description *" rows={2} placeholder="Description courte" error={errors.description?.message} {...register('description')} />
+          </div>
+        </Card>
+      </div>
+
+      <div className="lg:col-span-1">
+        <Card className="lg:sticky lg:top-24">
+          <CardHeader>
+            <div>
+              <CardTitle>Récapitulatif</CardTitle>
+              <CardDescription>{isEdit ? 'Modification du domaine' : 'Nouveau domaine'}</CardDescription>
+            </div>
+          </CardHeader>
+
+          <dl className="space-y-2 text-sm">
+            {[
+              { label: 'Label', value: values.label || null },
+              { label: 'Icône', value: values.icon || null },
+              { label: 'Technologies', value: values.technologies || null },
+            ].map(({ label, value }) => (
+              <div key={label} className="flex justify-between gap-3">
+                <dt className="text-ink-500">{label}</dt>
+                <dd className="max-w-[60%] truncate text-right font-medium text-ink-900">
+                  {value ?? <span className="text-ink-300">-</span>}
+                </dd>
+              </div>
+            ))}
+          </dl>
+
+          <div className="mt-5 space-y-2">
+            <Button type="submit" variant="primary" size="md" fullWidth loading={loading} leftIcon={!loading ? <Save className="h-4 w-4" /> : undefined}>
+              Enregistrer
+            </Button>
+            <Button type="button" variant="outline" size="md" fullWidth onClick={onCancel}>
+              Annuler
+            </Button>
+          </div>
+        </Card>
+      </div>
+    </form>
+  );
+}
 
 export function AdminExpertiseContentPage() {
   const queryClient = useQueryClient();
   const { data: expertise = [] } = useQuery({ queryKey: ['expertise'], queryFn: fetchExpertise });
-  const addExpertise = useMutation({
+  const insertMutation = useMutation({
     mutationFn: (e: { icon: string; label: string; description: string; technologies: string[] }) => insertExpertise(e),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['expertise'] }),
-  }).mutate;
-  const updateExpertiseMutation = useMutation({
+  });
+  const updateMutation = useMutation({
     mutationFn: ({ id, data }: { id: string; data: Partial<ExpertiseDomain> }) => updateExpertiseApi(id, data),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['expertise'] }),
   });
-  const updateExpertise = (id: string, data: Partial<ExpertiseDomain>) => updateExpertiseMutation.mutate({ id, data });
   const deleteExpertise = useMutation({
     mutationFn: (id: string) => deleteExpertiseApi(id),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['expertise'] }),
   }).mutate;
-  const [view, setView] = useState<'list' | 'edit'>('list');
+  const [view, setView] = useState<View>('list');
   const [editing, setEditing] = useState<ExpertiseDomain | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<ExpertiseDomain | null>(null);
-  const [formData, setFormData] = useState<FormData>(emptyForm);
 
-  function handleEdit(e: ExpertiseDomain) { setEditing(e); setFormData(toFormData(e)); setView('edit'); }
-  function handleCreate() { setEditing(null); setFormData(emptyForm); setView('edit'); }
-  function handleSave(e: React.FormEvent) { e.preventDefault(); const payload = { icon: formData.icon, label: formData.label, description: formData.description, technologies: formData.technologies.split(',').map((t) => t.trim()).filter(Boolean) }; if (editing) updateExpertise(editing.id, payload); else addExpertise(payload); setView('list'); }
+  function handleEdit(e: ExpertiseDomain) { setEditing(e); setView('edit'); }
+  function handleCreate() { setEditing(null); setView('edit'); }
+
+  function handleSave(values: ExpertiseFormValues) {
+    const payload = {
+      icon: values.icon,
+      label: values.label,
+      description: values.description,
+      technologies: fromCommaList(values.technologies ?? ''),
+    };
+    if (editing) {
+      updateMutation.mutate({ id: editing.id, data: payload });
+    } else {
+      insertMutation.mutate(payload);
+    }
+    setView('list');
+  }
 
   if (view === 'edit') {
     return (
-      <div className="max-w-2xl mx-auto">
-        <button onClick={() => setView('list')} className="inline-flex items-center gap-2 text-sm text-ink-500 hover:text-ink-900 transition-colors mb-6"><ArrowLeft className="h-4 w-4" /> Retour</button>
-        <h2 className="text-2xl font-bold text-ink-900 mb-6">{editing ? 'Modifier le domaine' : 'Nouveau domaine'}</h2>
-        <form onSubmit={handleSave} className="space-y-5">
-          <div className="rounded-2xl border border-ink-100 bg-white p-6 space-y-5">
-            <div><label className="block text-sm font-medium text-ink-700 mb-2">Icône</label><select value={formData.icon} onChange={(e) => setFormData({ ...formData, icon: e.target.value })} className={inputClass}>{iconOptions.map((ic) => <option key={ic} value={ic}>{ic}</option>)}</select></div>
-            <div><label className="block text-sm font-medium text-ink-700 mb-2">Label *</label><input type="text" required value={formData.label} onChange={(e) => setFormData({ ...formData, label: e.target.value })} placeholder="Frontend" className={inputClass} /></div>
-            <div><label className="block text-sm font-medium text-ink-700 mb-2">Description *</label><textarea required rows={2} value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} placeholder="Description courte" className={inputClass.replace('h-11', '')} /></div>
-            <div><label className="block text-sm font-medium text-ink-700 mb-2">Technologies (virgule)</label><input type="text" value={formData.technologies} onChange={(e) => setFormData({ ...formData, technologies: e.target.value })} placeholder="React, TypeScript, Vite" className={inputClass} /></div>
-          </div>
-          <div className="flex gap-3"><Button type="submit" variant="primary" size="md" leftIcon={<Save className="h-4 w-4" />}>Enregistrer</Button><Button type="button" variant="outline" size="md" onClick={() => setView('list')}>Annuler</Button></div>
-        </form>
+      <div>
+        <button onClick={() => setView('list')} className="inline-flex items-center gap-2 text-sm text-ink-500 hover:text-ink-900 transition-colors mb-6">
+          <ArrowLeft className="h-4 w-4" /> Retour à la liste
+        </button>
+
+        <div className="mb-6">
+          <h2 className="text-2xl font-bold text-ink-900">{editing ? 'Modifier le domaine' : 'Nouveau domaine'}</h2>
+          <p className="text-sm text-ink-500 mt-1">{editing ? editing.label : "Ajoutez un nouveau domaine d'expertise"}</p>
+        </div>
+
+        <ExpertiseForm
+          defaultValues={editing ? toFormData(editing) : emptyForm()}
+          onSubmit={handleSave}
+          onCancel={() => setView('list')}
+          loading={insertMutation.isPending || updateMutation.isPending}
+          isEdit={!!editing}
+        />
       </div>
     );
   }

@@ -1,6 +1,8 @@
 import { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import {
   Search,
   Plus,
@@ -14,10 +16,14 @@ import {
   ArrowLeft,
   Save,
   FileText,
+  Info,
+  FileEdit,
+  Tag,
 } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { fetchArticles, insertArticle, updateArticle, deleteArticle } from '@/features/content/infrastructure/content_api';
-import { Button } from '@/shared/ui';
+import { Button, Input, Textarea, Card, CardHeader, CardTitle, CardDescription } from '@/shared/ui';
+import { articleSchema, type ArticleFormValues } from '../forms/article_schema';
 import type { BlogArticle } from '@/features/blog/domain/entities/article';
 
 function formatDate(date: string) {
@@ -26,21 +32,7 @@ function formatDate(date: string) {
 
 type View = 'list' | 'edit';
 
-interface EditFormData {
-  title: string;
-  slug: string;
-  excerpt: string;
-  category: string;
-  author: string;
-  authorRole: string;
-  readingTime: string;
-  coverImage: string;
-  featured: boolean;
-  content: string;
-  tags: string;
-}
-
-function toFormData(article: BlogArticle): EditFormData {
+function toFormData(article: BlogArticle): ArticleFormValues {
   return {
     title: article.title,
     slug: article.slug,
@@ -56,7 +48,7 @@ function toFormData(article: BlogArticle): EditFormData {
   };
 }
 
-function emptyForm(): EditFormData {
+function emptyForm(): ArticleFormValues {
   return {
     title: '',
     slug: '',
@@ -70,6 +62,152 @@ function emptyForm(): EditFormData {
     content: '',
     tags: '',
   };
+}
+
+function fromCommaList(value: string): string[] {
+  return value
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean);
+}
+
+interface ArticleFormProps {
+  defaultValues: ArticleFormValues;
+  onSubmit: (values: ArticleFormValues) => void;
+  onCancel: () => void;
+  loading: boolean;
+  isEdit?: boolean;
+}
+
+function ArticleForm({ defaultValues, onSubmit, onCancel, loading, isEdit = false }: ArticleFormProps) {
+  const {
+    register,
+    handleSubmit,
+    watch,
+    setValue,
+    formState: { errors },
+  } = useForm<ArticleFormValues>({
+    resolver: zodResolver(articleSchema),
+    defaultValues,
+    mode: 'onChange',
+  });
+
+  const values = watch();
+
+  return (
+    <form onSubmit={handleSubmit(onSubmit)} className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+      <div className="space-y-5 lg:col-span-2">
+        <Card>
+          <CardHeader>
+            <div>
+              <CardTitle>
+                <Info className="h-5 w-5 text-primary-600" /> Identite
+              </CardTitle>
+              <CardDescription>Titre, slug et resume de l'article</CardDescription>
+            </div>
+          </CardHeader>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <Input label="Titre *" placeholder="Titre de l'article" className="sm:col-span-2" error={errors.title?.message} {...register('title')} />
+            <Input label="Slug *" placeholder="mon-article" className="font-mono" error={errors.slug?.message} {...register('slug')} />
+            <Input label="Categorie *" placeholder="Developpement Web" error={errors.category?.message} {...register('category')} />
+          </div>
+          <div className="mt-4">
+            <Textarea label="Extrait *" rows={3} placeholder="Resume court de l'article" error={errors.excerpt?.message} {...register('excerpt')} />
+          </div>
+          <div className="mt-4">
+            <Input label="Image de couverture" type="url" placeholder="https://images.pexels.com/..." error={errors.coverImage?.message} {...register('coverImage')} />
+            {values.coverImage && (
+              <div className="mt-3 rounded-xl overflow-hidden border border-ink-100 max-h-48">
+                <img src={values.coverImage} alt="Preview" className="w-full h-full object-cover" />
+              </div>
+            )}
+          </div>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <div>
+              <CardTitle>
+                <FileEdit className="h-5 w-5 text-primary-600" /> Contenu
+              </CardTitle>
+              <CardDescription>Corps de l'article au format HTML</CardDescription>
+            </div>
+          </CardHeader>
+          <div className="space-y-4">
+            <Textarea label="Contenu HTML *" rows={12} placeholder="<p>Votre contenu...</p>" className="font-mono" error={errors.content?.message} {...register('content')} />
+          </div>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <div>
+              <CardTitle>
+                <Tag className="h-5 w-5 text-primary-600" /> Metadonnees
+              </CardTitle>
+              <CardDescription>Auteur, temps de lecture, tags et mise en avant</CardDescription>
+            </div>
+          </CardHeader>
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <Input label="Auteur *" placeholder="Konan A." error={errors.author?.message} {...register('author')} />
+              <Input label="Role" placeholder="Lead Developer" error={errors.authorRole?.message} {...register('authorRole')} />
+            </div>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <Input label="Temps de lecture" placeholder="6 min" error={errors.readingTime?.message} {...register('readingTime')} />
+              <Input label="Tags (virgule)" placeholder="TypeScript, Web, Qualite" error={errors.tags?.message} {...register('tags')} />
+            </div>
+            <label className="flex items-center gap-3 cursor-pointer">
+              <button
+                type="button"
+                onClick={() => setValue('featured', !values.featured, { shouldValidate: true })}
+                className={`relative h-6 w-11 rounded-full transition-colors duration-300 ${values.featured ? 'bg-primary-600' : 'bg-ink-200'}`}
+              >
+                <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform duration-300 ${values.featured ? 'translate-x-5' : 'translate-x-0.5'}`} />
+              </button>
+              <span className="text-sm font-medium text-ink-700">Mettre a la une</span>
+            </label>
+          </div>
+        </Card>
+      </div>
+
+      <div className="lg:col-span-1">
+        <Card className="lg:sticky lg:top-24">
+          <CardHeader>
+            <div>
+              <CardTitle>Recapitulatif</CardTitle>
+              <CardDescription>{isEdit ? "Modification de l'article" : 'Nouvel article'}</CardDescription>
+            </div>
+          </CardHeader>
+
+          <dl className="space-y-2 text-sm">
+            {[
+              { label: 'Titre', value: values.title || null },
+              { label: 'Categorie', value: values.category || null },
+              { label: 'Auteur', value: values.author || null },
+              { label: 'Lecture', value: values.readingTime || null },
+              { label: 'A la une', value: values.featured ? 'Oui' : 'Non' },
+            ].map(({ label, value }) => (
+              <div key={label} className="flex justify-between gap-3">
+                <dt className="text-ink-500">{label}</dt>
+                <dd className="max-w-[60%] truncate text-right font-medium text-ink-900">
+                  {value ?? <span className="text-ink-300">-</span>}
+                </dd>
+              </div>
+            ))}
+          </dl>
+
+          <div className="mt-5 space-y-2">
+            <Button type="submit" variant="primary" size="md" fullWidth loading={loading} leftIcon={!loading ? <Save className="h-4 w-4" /> : undefined}>
+              Enregistrer
+            </Button>
+            <Button type="button" variant="outline" size="md" fullWidth onClick={onCancel}>
+              Annuler
+            </Button>
+          </div>
+        </Card>
+      </div>
+    </form>
+  );
 }
 
 export function AdminArticlesPage() {
@@ -92,7 +230,6 @@ export function AdminArticlesPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState('Tous');
   const [deleteConfirm, setDeleteConfirm] = useState<BlogArticle | null>(null);
-  const [formData, setFormData] = useState<EditFormData>(emptyForm());
 
   const categories = useMemo(() => {
     return ['Tous', ...Array.from(new Set(articles.map((a) => a.category)))];
@@ -114,34 +251,27 @@ export function AdminArticlesPage() {
 
   function handleEdit(article: BlogArticle) {
     setEditingArticle(article);
-    setFormData(toFormData(article));
     setView('edit');
   }
 
   function handleCreate() {
     setEditingArticle(null);
-    setFormData(emptyForm());
     setView('edit');
   }
 
-  function handleSave(e: React.FormEvent) {
-    e.preventDefault();
-    const tags = formData.tags
-      .split(',')
-      .map((t) => t.trim())
-      .filter(Boolean);
+  function handleSave(values: ArticleFormValues) {
     const payload = {
-      title: formData.title,
-      slug: formData.slug,
-      excerpt: formData.excerpt,
-      category: formData.category,
-      author: formData.author,
-      authorRole: formData.authorRole,
-      readingTime: formData.readingTime,
-      coverImage: formData.coverImage,
-      featured: formData.featured,
-      content: formData.content,
-      tags,
+      title: values.title,
+      slug: values.slug,
+      excerpt: values.excerpt,
+      category: values.category,
+      author: values.author,
+      authorRole: values.authorRole ?? '',
+      readingTime: values.readingTime ?? '',
+      coverImage: values.coverImage ?? '',
+      featured: values.featured,
+      content: values.content,
+      tags: fromCommaList(values.tags ?? ''),
       date: editingArticle ? editingArticle.date : new Date().toISOString().split('T')[0],
       authorBio: editingArticle ? editingArticle.authorBio : '',
     };
@@ -162,7 +292,7 @@ export function AdminArticlesPage() {
 
   if (view === 'edit') {
     return (
-      <div className="max-w-4xl mx-auto">
+      <div>
         <button
           onClick={() => setView('list')}
           className="inline-flex items-center gap-2 text-sm text-ink-500 hover:text-ink-900 transition-colors mb-6"
@@ -170,175 +300,22 @@ export function AdminArticlesPage() {
           <ArrowLeft className="h-4 w-4" /> Retour à la liste
         </button>
 
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h2 className="text-2xl font-bold text-ink-900">
-              {editingArticle ? 'Modifier l\'article' : 'Nouvel article'}
-            </h2>
-            <p className="text-sm text-ink-500 mt-1">
-              {editingArticle ? editingArticle.title : 'Créez un nouvel article pour le blog'}
-            </p>
-          </div>
+        <div className="mb-6">
+          <h2 className="text-2xl font-bold text-ink-900">
+            {editingArticle ? "Modifier l'article" : 'Nouvel article'}
+          </h2>
+          <p className="text-sm text-ink-500 mt-1">
+            {editingArticle ? editingArticle.title : 'Créez un nouvel article pour le blog'}
+          </p>
         </div>
 
-        <form onSubmit={handleSave} className="space-y-5">
-          <div className="rounded-2xl border border-ink-100 bg-white p-6 space-y-5">
-            <div>
-              <label className="block text-sm font-medium text-ink-700 mb-2">Titre *</label>
-              <input
-                type="text"
-                required
-                value={formData.title}
-                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                placeholder="Titre de l'article"
-                className="w-full h-11 px-4 rounded-xl border border-ink-200 bg-white text-sm text-ink-900 placeholder:text-ink-400 focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20"
-              />
-            </div>
-
-            <div className="grid sm:grid-cols-2 gap-5">
-              <div>
-                <label className="block text-sm font-medium text-ink-700 mb-2">Slug *</label>
-                <input
-                  type="text"
-                  required
-                  value={formData.slug}
-                  onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
-                  placeholder="mon-article"
-                  className="w-full h-11 px-4 rounded-xl border border-ink-200 bg-white text-sm text-ink-900 placeholder:text-ink-400 focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 font-mono"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-ink-700 mb-2">Catégorie *</label>
-                <input
-                  type="text"
-                  required
-                  value={formData.category}
-                  onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                  placeholder="Développement Web"
-                  className="w-full h-11 px-4 rounded-xl border border-ink-200 bg-white text-sm text-ink-900 placeholder:text-ink-400 focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-ink-700 mb-2">Extrait *</label>
-              <textarea
-                required
-                rows={3}
-                value={formData.excerpt}
-                onChange={(e) => setFormData({ ...formData, excerpt: e.target.value })}
-                placeholder="Résumé court de l'article"
-                className="w-full px-4 py-3 rounded-xl border border-ink-200 bg-white text-sm text-ink-900 placeholder:text-ink-400 focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-ink-700 mb-2">Image de couverture</label>
-              <input
-                type="url"
-                value={formData.coverImage}
-                onChange={(e) => setFormData({ ...formData, coverImage: e.target.value })}
-                placeholder="https://images.pexels.com/..."
-                className="w-full h-11 px-4 rounded-xl border border-ink-200 bg-white text-sm text-ink-900 placeholder:text-ink-400 focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20"
-              />
-              {formData.coverImage && (
-                <div className="mt-3 rounded-xl overflow-hidden border border-ink-100 max-h-48">
-                  <img src={formData.coverImage} alt="Preview" className="w-full h-full object-cover" />
-                </div>
-              )}
-            </div>
-          </div>
-
-          <div className="rounded-2xl border border-ink-100 bg-white p-6 space-y-5">
-            <h3 className="font-semibold text-ink-900">Informations auteur</h3>
-            <div className="grid sm:grid-cols-2 gap-5">
-              <div>
-                <label className="block text-sm font-medium text-ink-700 mb-2">Auteur *</label>
-                <input
-                  type="text"
-                  required
-                  value={formData.author}
-                  onChange={(e) => setFormData({ ...formData, author: e.target.value })}
-                  placeholder="Konan A."
-                  className="w-full h-11 px-4 rounded-xl border border-ink-200 bg-white text-sm text-ink-900 placeholder:text-ink-400 focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-ink-700 mb-2">Rôle</label>
-                <input
-                  type="text"
-                  value={formData.authorRole}
-                  onChange={(e) => setFormData({ ...formData, authorRole: e.target.value })}
-                  placeholder="Lead Developer"
-                  className="w-full h-11 px-4 rounded-xl border border-ink-200 bg-white text-sm text-ink-900 placeholder:text-ink-400 focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20"
-                />
-              </div>
-            </div>
-            <div className="grid sm:grid-cols-2 gap-5">
-              <div>
-                <label className="block text-sm font-medium text-ink-700 mb-2">Temps de lecture</label>
-                <input
-                  type="text"
-                  value={formData.readingTime}
-                  onChange={(e) => setFormData({ ...formData, readingTime: e.target.value })}
-                  placeholder="6 min"
-                  className="w-full h-11 px-4 rounded-xl border border-ink-200 bg-white text-sm text-ink-900 placeholder:text-ink-400 focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-ink-700 mb-2">Tags (séparés par des virgules)</label>
-                <input
-                  type="text"
-                  value={formData.tags}
-                  onChange={(e) => setFormData({ ...formData, tags: e.target.value })}
-                  placeholder="TypeScript, Web, Qualité"
-                  className="w-full h-11 px-4 rounded-xl border border-ink-200 bg-white text-sm text-ink-900 placeholder:text-ink-400 focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20"
-                />
-              </div>
-            </div>
-          </div>
-
-          <div className="rounded-2xl border border-ink-100 bg-white p-6 space-y-5">
-            <h3 className="font-semibold text-ink-900">Contenu</h3>
-            <div>
-              <label className="block text-sm font-medium text-ink-700 mb-2">Contenu HTML *</label>
-              <textarea
-                required
-                rows={12}
-                value={formData.content}
-                onChange={(e) => setFormData({ ...formData, content: e.target.value })}
-                placeholder="<p>Votre contenu...</p>"
-                className="w-full px-4 py-3 rounded-xl border border-ink-200 bg-white text-sm text-ink-900 placeholder:text-ink-400 focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 font-mono"
-              />
-            </div>
-
-            <label className="flex items-center gap-3 cursor-pointer">
-              <button
-                type="button"
-                onClick={() => setFormData({ ...formData, featured: !formData.featured })}
-                className={`relative h-6 w-11 rounded-full transition-colors duration-300 ${
-                  formData.featured ? 'bg-primary-600' : 'bg-ink-200'
-                }`}
-              >
-                <span
-                  className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform duration-300 ${
-                    formData.featured ? 'translate-x-5' : 'translate-x-0.5'
-                  }`}
-                />
-              </button>
-              <span className="text-sm font-medium text-ink-700">Mettre à la une</span>
-            </label>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <Button type="submit" variant="primary" size="md" leftIcon={<Save className="h-4 w-4" />}>
-              Enregistrer
-            </Button>
-            <Button type="button" variant="outline" size="md" onClick={() => setView('list')}>
-              Annuler
-            </Button>
-          </div>
-        </form>
+        <ArticleForm
+          defaultValues={editingArticle ? toFormData(editingArticle) : emptyForm()}
+          onSubmit={handleSave}
+          onCancel={() => setView('list')}
+          loading={insertMutation.isPending || updateMutation.isPending}
+          isEdit={!!editingArticle}
+        />
       </div>
     );
   }

@@ -1,6 +1,8 @@
 import { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import {
   Search,
   Plus,
@@ -13,32 +15,19 @@ import {
   Save,
   Star,
   FolderKanban,
+  Info,
+  Target,
+  Layers,
 } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { fetchProjects, insertProject, updateProject, deleteProject } from '@/features/content/infrastructure/content_api';
-import { Button } from '@/shared/ui';
+import { Button, Input, Textarea, Card, CardHeader, CardTitle, CardDescription } from '@/shared/ui';
+import { projectSchema, type ProjectFormValues } from '../forms/project_schema';
 import type { Project } from '@/features/projects/domain/entities/project';
 
 type View = 'list' | 'edit';
 
-interface ProjectFormData {
-  name: string;
-  slug: string;
-  sector: string;
-  tagline: string;
-  description: string;
-  problem: string;
-  solution: string;
-  technologies: string;
-  services: string;
-  featured: boolean;
-  year: string;
-  client: string;
-  duration: string;
-  features: string;
-}
-
-function toFormData(p: Project): ProjectFormData {
+function toFormData(p: Project): ProjectFormValues {
   return {
     name: p.name,
     slug: p.slug,
@@ -57,7 +46,7 @@ function toFormData(p: Project): ProjectFormData {
   };
 }
 
-function emptyForm(): ProjectFormData {
+function emptyForm(): ProjectFormValues {
   return {
     name: '',
     slug: '',
@@ -76,10 +65,6 @@ function emptyForm(): ProjectFormData {
   };
 }
 
-const inputClass =
-  'w-full h-11 px-4 rounded-xl border border-ink-200 bg-white text-sm text-ink-900 placeholder:text-ink-400 focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20';
-const textareaClass = inputClass.replace('h-11', '');
-
 function toCommaList(arr: string[]): string {
   return arr.join(', ');
 }
@@ -89,6 +74,141 @@ function fromCommaList(value: string): string[] {
     .split(',')
     .map((s) => s.trim())
     .filter(Boolean);
+}
+
+interface ProjectFormProps {
+  defaultValues: ProjectFormValues;
+  onSubmit: (values: ProjectFormValues) => void;
+  onCancel: () => void;
+  loading: boolean;
+  isEdit?: boolean;
+}
+
+function ProjectForm({ defaultValues, onSubmit, onCancel, loading, isEdit = false }: ProjectFormProps) {
+  const {
+    register,
+    handleSubmit,
+    watch,
+    setValue,
+    formState: { errors },
+  } = useForm<ProjectFormValues>({
+    resolver: zodResolver(projectSchema),
+    defaultValues,
+    mode: 'onChange',
+  });
+
+  const values = watch();
+
+  return (
+    <form onSubmit={handleSubmit(onSubmit)} className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+      <div className="space-y-5 lg:col-span-2">
+        <Card>
+          <CardHeader>
+            <div>
+              <CardTitle>
+                <Info className="h-5 w-5 text-primary-600" /> Identite
+              </CardTitle>
+              <CardDescription>Informations generales du projet</CardDescription>
+            </div>
+          </CardHeader>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <Input label="Nom *" placeholder="EventFlow" error={errors.name?.message} {...register('name')} />
+            <Input label="Slug *" placeholder="eventflow" className="font-mono" error={errors.slug?.message} {...register('slug')} />
+            <Input label="Secteur *" placeholder="Evenementiel" error={errors.sector?.message} {...register('sector')} />
+            <Input label="Client *" placeholder="EventFlow CI" error={errors.client?.message} {...register('client')} />
+            <Input label="Slogan *" placeholder="Plateforme de gestion d'evenements" className="sm:col-span-2" error={errors.tagline?.message} {...register('tagline')} />
+          </div>
+          <div className="mt-4">
+            <Textarea label="Description *" rows={3} placeholder="Description du projet" error={errors.description?.message} {...register('description')} />
+          </div>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <div>
+              <CardTitle>
+                <Target className="h-5 w-5 text-primary-600" /> Contexte
+              </CardTitle>
+              <CardDescription>Le probleme resolu et la solution apportee</CardDescription>
+            </div>
+          </CardHeader>
+          <div className="space-y-4">
+            <Textarea label="Probleme *" rows={2} placeholder="Quel probleme le projet resout-il ?" error={errors.problem?.message} {...register('problem')} />
+            <Textarea label="Solution *" rows={2} placeholder="Quelle solution a ete apportee ?" error={errors.solution?.message} {...register('solution')} />
+          </div>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <div>
+              <CardTitle>
+                <Layers className="h-5 w-5 text-primary-600" /> Details techniques
+              </CardTitle>
+              <CardDescription>Stack, perimetre et duree de la mission</CardDescription>
+            </div>
+          </CardHeader>
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <Input label="Technologies (virgule)" placeholder="React, FastAPI, PostgreSQL" error={errors.technologies?.message} {...register('technologies')} />
+              <Input label="Services (virgule)" placeholder="Web, Mobile, Backend" error={errors.services?.message} {...register('services')} />
+            </div>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <Input label="Annee" placeholder="2024" error={errors.year?.message} {...register('year')} />
+              <Input label="Duree" placeholder="5 mois" error={errors.duration?.message} {...register('duration')} />
+            </div>
+            <Input label="Fonctionnalites (virgule)" placeholder="Billetterie, Check-in QR, Dashboard" error={errors.features?.message} {...register('features')} />
+            <label className="flex items-center gap-3 cursor-pointer">
+              <button
+                type="button"
+                onClick={() => setValue('featured', !values.featured, { shouldValidate: true })}
+                className={`relative h-6 w-11 rounded-full transition-colors duration-300 ${values.featured ? 'bg-primary-600' : 'bg-ink-200'}`}
+              >
+                <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform duration-300 ${values.featured ? 'translate-x-5' : 'translate-x-0.5'}`} />
+              </button>
+              <span className="text-sm font-medium text-ink-700">Mettre en avant</span>
+            </label>
+          </div>
+        </Card>
+      </div>
+
+      <div className="lg:col-span-1">
+        <Card className="lg:sticky lg:top-24">
+          <CardHeader>
+            <div>
+              <CardTitle>Recapitulatif</CardTitle>
+              <CardDescription>{isEdit ? 'Modification du projet' : 'Nouveau projet'}</CardDescription>
+            </div>
+          </CardHeader>
+
+          <dl className="space-y-2 text-sm">
+            {[
+              { label: 'Nom', value: values.name || null },
+              { label: 'Client', value: values.client || null },
+              { label: 'Secteur', value: values.sector || null },
+              { label: 'Annee', value: values.year || null },
+              { label: 'Mis en avant', value: values.featured ? 'Oui' : 'Non' },
+            ].map(({ label, value }) => (
+              <div key={label} className="flex justify-between gap-3">
+                <dt className="text-ink-500">{label}</dt>
+                <dd className="max-w-[60%] truncate text-right font-medium text-ink-900">
+                  {value ?? <span className="text-ink-300">-</span>}
+                </dd>
+              </div>
+            ))}
+          </dl>
+
+          <div className="mt-5 space-y-2">
+            <Button type="submit" variant="primary" size="md" fullWidth loading={loading} leftIcon={!loading ? <Save className="h-4 w-4" /> : undefined}>
+              Enregistrer
+            </Button>
+            <Button type="button" variant="outline" size="md" fullWidth onClick={onCancel}>
+              Annuler
+            </Button>
+          </div>
+        </Card>
+      </div>
+    </form>
+  );
 }
 
 export function AdminProjectsPage() {
@@ -111,7 +231,6 @@ export function AdminProjectsPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeSector, setActiveSector] = useState('Tous');
   const [deleteConfirm, setDeleteConfirm] = useState<Project | null>(null);
-  const [formData, setFormData] = useState<ProjectFormData>(emptyForm());
 
   const sectors = useMemo(() => {
     return ['Tous', ...Array.from(new Set(projects.map((p) => p.sector)))];
@@ -131,33 +250,30 @@ export function AdminProjectsPage() {
 
   function handleEdit(project: Project) {
     setEditingProject(project);
-    setFormData(toFormData(project));
     setView('edit');
   }
 
   function handleCreate() {
     setEditingProject(null);
-    setFormData(emptyForm());
     setView('edit');
   }
 
-  function handleSave(e: React.FormEvent) {
-    e.preventDefault();
+  function handleSave(values: ProjectFormValues) {
     const payload = {
-      name: formData.name,
-      slug: formData.slug,
-      sector: formData.sector,
-      tagline: formData.tagline,
-      description: formData.description,
-      problem: formData.problem,
-      solution: formData.solution,
-      technologies: fromCommaList(formData.technologies),
-      services: fromCommaList(formData.services),
-      featured: formData.featured,
-      year: formData.year,
-      client: formData.client,
-      duration: formData.duration,
-      features: fromCommaList(formData.features),
+      name: values.name,
+      slug: values.slug,
+      sector: values.sector,
+      tagline: values.tagline,
+      description: values.description,
+      problem: values.problem,
+      solution: values.solution,
+      technologies: fromCommaList(values.technologies ?? ''),
+      services: fromCommaList(values.services ?? ''),
+      featured: values.featured,
+      year: values.year,
+      client: values.client,
+      duration: values.duration ?? '',
+      features: fromCommaList(values.features ?? ''),
       results: editingProject ? editingProject.results : [],
     };
     if (editingProject) {
@@ -170,7 +286,7 @@ export function AdminProjectsPage() {
 
   if (view === 'edit') {
     return (
-      <div className="max-w-4xl mx-auto">
+      <div>
         <button
           onClick={() => setView('list')}
           className="inline-flex items-center gap-2 text-sm text-ink-500 hover:text-ink-900 transition-colors mb-6"
@@ -187,97 +303,13 @@ export function AdminProjectsPage() {
           </p>
         </div>
 
-        <form onSubmit={handleSave} className="space-y-5">
-          <div className="rounded-2xl border border-ink-100 bg-white p-6 space-y-5">
-            <div className="grid sm:grid-cols-2 gap-5">
-              <div>
-                <label className="block text-sm font-medium text-ink-700 mb-2">Nom *</label>
-                <input type="text" required value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} placeholder="EventFlow" className={inputClass} />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-ink-700 mb-2">Slug *</label>
-                <input type="text" required value={formData.slug} onChange={(e) => setFormData({ ...formData, slug: e.target.value })} placeholder="eventflow" className={`${inputClass} font-mono`} />
-              </div>
-            </div>
-            <div className="grid sm:grid-cols-2 gap-5">
-              <div>
-                <label className="block text-sm font-medium text-ink-700 mb-2">Secteur *</label>
-                <input type="text" required value={formData.sector} onChange={(e) => setFormData({ ...formData, sector: e.target.value })} placeholder="Evenementiel" className={inputClass} />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-ink-700 mb-2">Client *</label>
-                <input type="text" required value={formData.client} onChange={(e) => setFormData({ ...formData, client: e.target.value })} placeholder="EventFlow CI" className={inputClass} />
-              </div>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-ink-700 mb-2">Slogan *</label>
-              <input type="text" required value={formData.tagline} onChange={(e) => setFormData({ ...formData, tagline: e.target.value })} placeholder="Plateforme de gestion d'evenements" className={inputClass} />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-ink-700 mb-2">Description *</label>
-              <textarea required rows={3} value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} placeholder="Description du projet" className={textareaClass} />
-            </div>
-          </div>
-
-          <div className="rounded-2xl border border-ink-100 bg-white p-6 space-y-5">
-            <h3 className="font-semibold text-ink-900">Contexte</h3>
-            <div>
-              <label className="block text-sm font-medium text-ink-700 mb-2">Probleme *</label>
-              <textarea required rows={2} value={formData.problem} onChange={(e) => setFormData({ ...formData, problem: e.target.value })} placeholder="Quel probleme le projet resout-il ?" className={textareaClass} />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-ink-700 mb-2">Solution *</label>
-              <textarea required rows={2} value={formData.solution} onChange={(e) => setFormData({ ...formData, solution: e.target.value })} placeholder="Quelle solution a ete apportee ?" className={textareaClass} />
-            </div>
-          </div>
-
-          <div className="rounded-2xl border border-ink-100 bg-white p-6 space-y-5">
-            <h3 className="font-semibold text-ink-900">Details techniques</h3>
-            <div className="grid sm:grid-cols-2 gap-5">
-              <div>
-                <label className="block text-sm font-medium text-ink-700 mb-2">Technologies (virgule)</label>
-                <input type="text" value={formData.technologies} onChange={(e) => setFormData({ ...formData, technologies: e.target.value })} placeholder="React, FastAPI, PostgreSQL" className={inputClass} />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-ink-700 mb-2">Services (virgule)</label>
-                <input type="text" value={formData.services} onChange={(e) => setFormData({ ...formData, services: e.target.value })} placeholder="Web, Mobile, Backend" className={inputClass} />
-              </div>
-            </div>
-            <div className="grid sm:grid-cols-2 gap-5">
-              <div>
-                <label className="block text-sm font-medium text-ink-700 mb-2">Annee</label>
-                <input type="text" value={formData.year} onChange={(e) => setFormData({ ...formData, year: e.target.value })} placeholder="2024" className={inputClass} />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-ink-700 mb-2">Duree</label>
-                <input type="text" value={formData.duration} onChange={(e) => setFormData({ ...formData, duration: e.target.value })} placeholder="5 mois" className={inputClass} />
-              </div>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-ink-700 mb-2">Fonctionnalites (virgule)</label>
-              <input type="text" value={formData.features} onChange={(e) => setFormData({ ...formData, features: e.target.value })} placeholder="Billetterie, Check-in QR, Dashboard" className={inputClass} />
-            </div>
-            <label className="flex items-center gap-3 cursor-pointer">
-              <button
-                type="button"
-                onClick={() => setFormData({ ...formData, featured: !formData.featured })}
-                className={`relative h-6 w-11 rounded-full transition-colors duration-300 ${formData.featured ? 'bg-primary-600' : 'bg-ink-200'}`}
-              >
-                <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform duration-300 ${formData.featured ? 'translate-x-5' : 'translate-x-0.5'}`} />
-              </button>
-              <span className="text-sm font-medium text-ink-700">Mettre en avant</span>
-            </label>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <Button type="submit" variant="primary" size="md" leftIcon={<Save className="h-4 w-4" />}>
-              Enregistrer
-            </Button>
-            <Button type="button" variant="outline" size="md" onClick={() => setView('list')}>
-              Annuler
-            </Button>
-          </div>
-        </form>
+        <ProjectForm
+          defaultValues={editingProject ? toFormData(editingProject) : emptyForm()}
+          onSubmit={handleSave}
+          onCancel={() => setView('list')}
+          loading={insertMutation.isPending || updateMutation.isPending}
+          isEdit={!!editingProject}
+        />
       </div>
     );
   }

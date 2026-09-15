@@ -1,26 +1,182 @@
 import { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import {
-  Search, Plus, Edit3, Trash2, Eye, X, Save, Lightbulb,
+  Search,
+  Plus,
+  Edit3,
+  Trash2,
+  Eye,
+  X,
+  ArrowLeft,
+  Save,
+  Lightbulb,
+  Info,
+  Target,
+  Layers,
 } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { fetchSolutions, insertSolution, updateSolution, deleteSolution } from '@/features/content/infrastructure/content_api';
-import { Button } from '@/shared/ui';
-import { FormDrawer, DrawerField, drawerInputClass, drawerTextareaClass } from '@/features/admin/presentation/components/form_drawer';
+import { Button, Input, Textarea, Card, CardHeader, CardTitle, CardDescription } from '@/shared/ui';
+import { solutionSchema, type SolutionFormValues } from '../forms/solution_schema';
 import type { Solution } from '@/features/solutions/domain/entities/solution';
 
-interface SolutionFormData {
-  name: string; slug: string; tagline: string; category: string;
-  problem: string; target: string; description: string;
-  features: string; technologies: string;
+type View = 'list' | 'edit';
+
+function toFormData(s: Solution): SolutionFormValues {
+  return {
+    name: s.name,
+    slug: s.slug,
+    tagline: s.tagline,
+    category: s.category,
+    problem: s.problem,
+    target: s.target,
+    description: s.description,
+    features: toCommaList(s.features),
+    technologies: toCommaList(s.technologies),
+  };
 }
 
-function toFormData(s: Solution): SolutionFormData {
-  return { name: s.name, slug: s.slug, tagline: s.tagline, category: s.category, problem: s.problem, target: s.target, description: s.description, features: s.features.join(', '), technologies: s.technologies.join(', ') };
+function emptyForm(): SolutionFormValues {
+  return {
+    name: '',
+    slug: '',
+    tagline: '',
+    category: '',
+    problem: '',
+    target: '',
+    description: '',
+    features: '',
+    technologies: '',
+  };
 }
-function emptyForm(): SolutionFormData {
-  return { name: '', slug: '', tagline: '', category: '', problem: '', target: '', description: '', features: '', technologies: '' };
+
+function toCommaList(arr: string[]): string {
+  return arr.join(', ');
+}
+
+function fromCommaList(value: string): string[] {
+  return value
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean);
+}
+
+interface SolutionFormProps {
+  defaultValues: SolutionFormValues;
+  onSubmit: (values: SolutionFormValues) => void;
+  onCancel: () => void;
+  loading: boolean;
+  isEdit?: boolean;
+}
+
+function SolutionForm({ defaultValues, onSubmit, onCancel, loading, isEdit = false }: SolutionFormProps) {
+  const {
+    register,
+    handleSubmit,
+    watch,
+    formState: { errors },
+  } = useForm<SolutionFormValues>({
+    resolver: zodResolver(solutionSchema),
+    defaultValues,
+    mode: 'onChange',
+  });
+
+  const values = watch();
+
+  return (
+    <form onSubmit={handleSubmit(onSubmit)} className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+      <div className="space-y-5 lg:col-span-2">
+        <Card>
+          <CardHeader>
+            <div>
+              <CardTitle>
+                <Info className="h-5 w-5 text-primary-600" /> Identite
+              </CardTitle>
+              <CardDescription>Informations generales de la solution</CardDescription>
+            </div>
+          </CardHeader>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <Input label="Nom *" placeholder="GaragePro" error={errors.name?.message} {...register('name')} />
+            <Input label="Slug *" placeholder="garagepro" className="font-mono" error={errors.slug?.message} {...register('slug')} />
+            <Input label="Categorie *" placeholder="SaaS Automotive" error={errors.category?.message} {...register('category')} />
+            <Input label="Cible *" placeholder="Garages automobiles" error={errors.target?.message} {...register('target')} />
+            <Input label="Slogan *" placeholder="SaaS de gestion de garage" className="sm:col-span-2" error={errors.tagline?.message} {...register('tagline')} />
+          </div>
+          <div className="mt-4">
+            <Textarea label="Description *" rows={3} placeholder="Description de la solution" error={errors.description?.message} {...register('description')} />
+          </div>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <div>
+              <CardTitle>
+                <Target className="h-5 w-5 text-primary-600" /> Contexte
+              </CardTitle>
+              <CardDescription>Le probleme resolu par la solution</CardDescription>
+            </div>
+          </CardHeader>
+          <div className="space-y-4">
+            <Textarea label="Probleme *" rows={2} placeholder="Quel probleme la solution resout-elle ?" error={errors.problem?.message} {...register('problem')} />
+          </div>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <div>
+              <CardTitle>
+                <Layers className="h-5 w-5 text-primary-600" /> Details techniques
+              </CardTitle>
+              <CardDescription>Fonctionnalites et stack utilisees</CardDescription>
+            </div>
+          </CardHeader>
+          <div className="space-y-4">
+            <Input label="Fonctionnalites (virgule)" placeholder="Gestion des reparations, Facturation, Stock" error={errors.features?.message} {...register('features')} />
+            <Input label="Technologies (virgule)" placeholder="React, Laravel, MySQL" error={errors.technologies?.message} {...register('technologies')} />
+          </div>
+        </Card>
+      </div>
+
+      <div className="lg:col-span-1">
+        <Card className="lg:sticky lg:top-24">
+          <CardHeader>
+            <div>
+              <CardTitle>Recapitulatif</CardTitle>
+              <CardDescription>{isEdit ? 'Modification de la solution' : 'Nouvelle solution'}</CardDescription>
+            </div>
+          </CardHeader>
+
+          <dl className="space-y-2 text-sm">
+            {[
+              { label: 'Nom', value: values.name || null },
+              { label: 'Categorie', value: values.category || null },
+              { label: 'Cible', value: values.target || null },
+              { label: 'Slug', value: values.slug || null },
+            ].map(({ label, value }) => (
+              <div key={label} className="flex justify-between gap-3">
+                <dt className="text-ink-500">{label}</dt>
+                <dd className="max-w-[60%] truncate text-right font-medium text-ink-900">
+                  {value ?? <span className="text-ink-300">-</span>}
+                </dd>
+              </div>
+            ))}
+          </dl>
+
+          <div className="mt-5 space-y-2">
+            <Button type="submit" variant="primary" size="md" fullWidth loading={loading} leftIcon={!loading ? <Save className="h-4 w-4" /> : undefined}>
+              Enregistrer
+            </Button>
+            <Button type="button" variant="outline" size="md" fullWidth onClick={onCancel}>
+              Annuler
+            </Button>
+          </div>
+        </Card>
+      </div>
+    </form>
+  );
 }
 
 export function AdminSolutionsPage() {
@@ -33,12 +189,11 @@ export function AdminSolutionsPage() {
   });
   const deleteMutation = useMutation({ mutationFn: deleteSolution, onSuccess: () => queryClient.invalidateQueries({ queryKey: ['solutions'] }) });
 
-  const [drawerOpen, setDrawerOpen] = useState(false);
-  const [editing, setEditing] = useState<Solution | null>(null);
+  const [view, setView] = useState<View>('list');
+  const [editingSolution, setEditingSolution] = useState<Solution | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState('Tous');
   const [deleteConfirm, setDeleteConfirm] = useState<Solution | null>(null);
-  const [formData, setFormData] = useState<SolutionFormData>(emptyForm());
 
   const categories = useMemo(() => {
     if (!solutions) return ['Tous'];
@@ -55,21 +210,64 @@ export function AdminSolutionsPage() {
     return result;
   }, [solutions, activeCategory, searchQuery]);
 
-  function handleEdit(s: Solution) { setEditing(s); setFormData(toFormData(s)); setDrawerOpen(true); }
-  function handleCreate() { setEditing(null); setFormData(emptyForm()); setDrawerOpen(true); }
+  function handleEdit(solution: Solution) {
+    setEditingSolution(solution);
+    setView('edit');
+  }
 
-  function handleSave(e: React.FormEvent) {
-    e.preventDefault();
+  function handleCreate() {
+    setEditingSolution(null);
+    setView('edit');
+  }
+
+  function handleSave(values: SolutionFormValues) {
     const payload = {
-      name: formData.name, slug: formData.slug, tagline: formData.tagline,
-      category: formData.category, problem: formData.problem, target: formData.target,
-      description: formData.description,
-      features: formData.features.split(',').map((f) => f.trim()).filter(Boolean),
-      technologies: formData.technologies.split(',').map((t) => t.trim()).filter(Boolean),
+      name: values.name,
+      slug: values.slug,
+      tagline: values.tagline,
+      category: values.category,
+      problem: values.problem,
+      target: values.target,
+      description: values.description,
+      features: fromCommaList(values.features ?? ''),
+      technologies: fromCommaList(values.technologies ?? ''),
     };
-    if (editing) updateMutation.mutate({ id: editing.id, ...payload });
-    else insertMutation.mutate(payload);
-    setDrawerOpen(false);
+    if (editingSolution) {
+      updateMutation.mutate({ id: editingSolution.id, ...payload });
+    } else {
+      insertMutation.mutate(payload);
+    }
+    setView('list');
+  }
+
+  if (view === 'edit') {
+    return (
+      <div>
+        <button
+          onClick={() => setView('list')}
+          className="inline-flex items-center gap-2 text-sm text-ink-500 hover:text-ink-900 transition-colors mb-6"
+        >
+          <ArrowLeft className="h-4 w-4" /> Retour a la liste
+        </button>
+
+        <div className="mb-6">
+          <h2 className="text-2xl font-bold text-ink-900">
+            {editingSolution ? 'Modifier la solution' : 'Nouvelle solution'}
+          </h2>
+          <p className="text-sm text-ink-500 mt-1">
+            {editingSolution ? editingSolution.name : 'Ajoutez une nouvelle solution metier'}
+          </p>
+        </div>
+
+        <SolutionForm
+          defaultValues={editingSolution ? toFormData(editingSolution) : emptyForm()}
+          onSubmit={handleSave}
+          onCancel={() => setView('list')}
+          loading={insertMutation.isPending || updateMutation.isPending}
+          isEdit={!!editingSolution}
+        />
+      </div>
+    );
   }
 
   return (
@@ -117,43 +315,6 @@ export function AdminSolutionsPage() {
           ))}
         </div>
       )}
-
-      <FormDrawer
-        open={drawerOpen}
-        onClose={() => setDrawerOpen(false)}
-        title={editing ? 'Modifier la solution' : 'Nouvelle solution'}
-        subtitle={editing ? editing.name : 'Ajoutez une nouvelle solution métier'}
-        footer={
-          <>
-            <Button type="submit" form="solution-form" variant="primary" size="md" leftIcon={<Save className="h-4 w-4" />}>Enregistrer</Button>
-            <Button type="button" variant="outline" size="md" onClick={() => setDrawerOpen(false)}>Annuler</Button>
-          </>
-        }
-      >
-        <form id="solution-form" onSubmit={handleSave} className="space-y-5">
-          <div className="rounded-2xl border border-ink-100 bg-white p-5 space-y-5">
-            <div className="grid sm:grid-cols-2 gap-5">
-              <DrawerField label="Nom" required><input type="text" required value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} placeholder="GaragePro" className={drawerInputClass} /></DrawerField>
-              <DrawerField label="Slug" required><input type="text" required value={formData.slug} onChange={(e) => setFormData({ ...formData, slug: e.target.value })} placeholder="garagepro" className={`${drawerInputClass} font-mono`} /></DrawerField>
-            </div>
-            <div className="grid sm:grid-cols-2 gap-5">
-              <DrawerField label="Catégorie" required><input type="text" required value={formData.category} onChange={(e) => setFormData({ ...formData, category: e.target.value })} placeholder="SaaS Automotive" className={drawerInputClass} /></DrawerField>
-              <DrawerField label="Cible" required><input type="text" required value={formData.target} onChange={(e) => setFormData({ ...formData, target: e.target.value })} placeholder="Garages automobiles" className={drawerInputClass} /></DrawerField>
-            </div>
-            <DrawerField label="Slogan" required><input type="text" required value={formData.tagline} onChange={(e) => setFormData({ ...formData, tagline: e.target.value })} placeholder="SaaS de gestion de garage" className={drawerInputClass} /></DrawerField>
-            <DrawerField label="Description" required><textarea required rows={4} value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} placeholder="Description de la solution" className={drawerTextareaClass} /></DrawerField>
-          </div>
-          <div className="rounded-2xl border border-ink-100 bg-white p-5 space-y-5">
-            <h3 className="font-semibold text-ink-900">Contexte</h3>
-            <DrawerField label="Problème" required><textarea required rows={2} value={formData.problem} onChange={(e) => setFormData({ ...formData, problem: e.target.value })} placeholder="Quel problème la solution résout-elle ?" className={drawerTextareaClass} /></DrawerField>
-          </div>
-          <div className="rounded-2xl border border-ink-100 bg-white p-5 space-y-5">
-            <h3 className="font-semibold text-ink-900">Détails techniques</h3>
-            <DrawerField label="Fonctionnalités (séparées par des virgules)"><input type="text" value={formData.features} onChange={(e) => setFormData({ ...formData, features: e.target.value })} placeholder="Gestion des réparations, Facturation, Stock" className={drawerInputClass} /></DrawerField>
-            <DrawerField label="Technologies (séparées par des virgules)"><input type="text" value={formData.technologies} onChange={(e) => setFormData({ ...formData, technologies: e.target.value })} placeholder="React, Laravel, MySQL" className={drawerInputClass} /></DrawerField>
-          </div>
-        </form>
-      </FormDrawer>
 
       <AnimatePresence>
         {deleteConfirm && (

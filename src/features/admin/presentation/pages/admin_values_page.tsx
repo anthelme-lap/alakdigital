@@ -1,17 +1,107 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Edit3, Trash2, X, Save, Award } from 'lucide-react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Plus, Edit3, Trash2, X, Save, Award, ArrowLeft, Info } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { fetchValues, insertValue, updateValue, deleteValue } from '@/features/content/infrastructure/content_api';
-import { Button } from '@/shared/ui';
-import { FormDrawer, DrawerField, drawerInputClass, drawerTextareaClass } from '@/features/admin/presentation/components/form_drawer';
+import { Button, Input, Textarea, Select, Card, CardHeader, CardTitle, CardDescription } from '@/shared/ui';
+import { valueSchema, type ValueFormValues } from '../forms/value_schema';
 import type { Value } from '@/features/content/domain/entities/content';
 
-const iconOptions = ['Award', 'Zap', 'Shield', 'Target', 'Heart', 'Compass', 'Star', 'Sparkles', 'CheckCircle2', 'Rocket'];
+type View = 'list' | 'edit';
 
-interface FormData { icon: string; title: string; description: string; }
-const emptyForm: FormData = { icon: 'Award', title: '', description: '' };
-const toFormData = (v: Value): FormData => ({ icon: v.icon, title: v.title, description: v.description });
+const iconOptions = ['Award', 'Zap', 'Shield', 'Target', 'Heart', 'Compass', 'Star', 'Sparkles', 'CheckCircle2', 'Rocket'];
+const iconSelectOptions = iconOptions.map((ic) => ({ value: ic, label: ic }));
+
+function toFormData(v: Value): ValueFormValues {
+  return { icon: v.icon, title: v.title, description: v.description };
+}
+
+function emptyForm(): ValueFormValues {
+  return { icon: 'Award', title: '', description: '' };
+}
+
+interface ValueFormProps {
+  defaultValues: ValueFormValues;
+  onSubmit: (values: ValueFormValues) => void;
+  onCancel: () => void;
+  loading: boolean;
+  isEdit?: boolean;
+}
+
+function ValueForm({ defaultValues, onSubmit, onCancel, loading, isEdit = false }: ValueFormProps) {
+  const {
+    register,
+    handleSubmit,
+    watch,
+    formState: { errors },
+  } = useForm<ValueFormValues>({
+    resolver: zodResolver(valueSchema),
+    defaultValues,
+    mode: 'onChange',
+  });
+
+  const values = watch();
+
+  return (
+    <form onSubmit={handleSubmit(onSubmit)} className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+      <div className="space-y-5 lg:col-span-2">
+        <Card>
+          <CardHeader>
+            <div>
+              <CardTitle>
+                <Info className="h-5 w-5 text-primary-600" /> Identité
+              </CardTitle>
+              <CardDescription>Informations générales de la valeur</CardDescription>
+            </div>
+          </CardHeader>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <Select label="Icône *" options={iconSelectOptions} error={errors.icon?.message} {...register('icon')} />
+            <Input label="Titre *" placeholder="Excellence" error={errors.title?.message} {...register('title')} />
+          </div>
+          <div className="mt-4">
+            <Textarea label="Description *" rows={3} placeholder="Description de la valeur" error={errors.description?.message} {...register('description')} />
+          </div>
+        </Card>
+      </div>
+
+      <div className="lg:col-span-1">
+        <Card className="lg:sticky lg:top-24">
+          <CardHeader>
+            <div>
+              <CardTitle>Récapitulatif</CardTitle>
+              <CardDescription>{isEdit ? 'Modification de la valeur' : 'Nouvelle valeur'}</CardDescription>
+            </div>
+          </CardHeader>
+
+          <dl className="space-y-2 text-sm">
+            {[
+              { label: 'Icône', value: values.icon || null },
+              { label: 'Titre', value: values.title || null },
+            ].map(({ label, value }) => (
+              <div key={label} className="flex justify-between gap-3">
+                <dt className="text-ink-500">{label}</dt>
+                <dd className="max-w-[60%] truncate text-right font-medium text-ink-900">
+                  {value ?? <span className="text-ink-300">-</span>}
+                </dd>
+              </div>
+            ))}
+          </dl>
+
+          <div className="mt-5 space-y-2">
+            <Button type="submit" variant="primary" size="md" fullWidth loading={loading} leftIcon={!loading ? <Save className="h-4 w-4" /> : undefined}>
+              Enregistrer
+            </Button>
+            <Button type="button" variant="outline" size="md" fullWidth onClick={onCancel}>
+              Annuler
+            </Button>
+          </div>
+        </Card>
+      </div>
+    </form>
+  );
+}
 
 export function AdminValuesPage() {
   const queryClient = useQueryClient();
@@ -23,19 +113,55 @@ export function AdminValuesPage() {
   });
   const deleteMutation = useMutation({ mutationFn: deleteValue, onSuccess: () => queryClient.invalidateQueries({ queryKey: ['values'] }) });
 
-  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [view, setView] = useState<View>('list');
   const [editing, setEditing] = useState<Value | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<Value | null>(null);
-  const [formData, setFormData] = useState<FormData>(emptyForm);
 
-  function handleEdit(v: Value) { setEditing(v); setFormData(toFormData(v)); setDrawerOpen(true); }
-  function handleCreate() { setEditing(null); setFormData(emptyForm); setDrawerOpen(true); }
-  function handleSave(e: React.FormEvent) {
-    e.preventDefault();
-    const payload = { icon: formData.icon, title: formData.title, description: formData.description };
+  function handleEdit(v: Value) {
+    setEditing(v);
+    setView('edit');
+  }
+
+  function handleCreate() {
+    setEditing(null);
+    setView('edit');
+  }
+
+  function handleSave(values: ValueFormValues) {
+    const payload = { icon: values.icon, title: values.title, description: values.description };
     if (editing) updateMutation.mutate({ id: editing.id, ...payload });
     else insertMutation.mutate(payload);
-    setDrawerOpen(false);
+    setView('list');
+  }
+
+  if (view === 'edit') {
+    return (
+      <div>
+        <button
+          onClick={() => setView('list')}
+          className="inline-flex items-center gap-2 text-sm text-ink-500 hover:text-ink-900 transition-colors mb-6"
+        >
+          <ArrowLeft className="h-4 w-4" /> Retour à la liste
+        </button>
+
+        <div className="mb-6">
+          <h2 className="text-2xl font-bold text-ink-900">
+            {editing ? 'Modifier la valeur' : 'Nouvelle valeur'}
+          </h2>
+          <p className="text-sm text-ink-500 mt-1">
+            {editing ? editing.title : 'Ajoutez une nouvelle valeur'}
+          </p>
+        </div>
+
+        <ValueForm
+          defaultValues={editing ? toFormData(editing) : emptyForm()}
+          onSubmit={handleSave}
+          onCancel={() => setView('list')}
+          loading={insertMutation.isPending || updateMutation.isPending}
+          isEdit={!!editing}
+        />
+      </div>
+    );
   }
 
   return (
@@ -58,27 +184,6 @@ export function AdminValuesPage() {
           ))}
         </div>
       )}
-
-      <FormDrawer
-        open={drawerOpen}
-        onClose={() => setDrawerOpen(false)}
-        title={editing ? 'Modifier la valeur' : 'Nouvelle valeur'}
-        subtitle={editing ? editing.title : 'Ajoutez une nouvelle valeur'}
-        footer={
-          <>
-            <Button type="submit" form="value-form" variant="primary" size="md" leftIcon={<Save className="h-4 w-4" />}>Enregistrer</Button>
-            <Button type="button" variant="outline" size="md" onClick={() => setDrawerOpen(false)}>Annuler</Button>
-          </>
-        }
-      >
-        <form id="value-form" onSubmit={handleSave} className="space-y-5">
-          <div className="rounded-2xl border border-ink-100 bg-white p-5 space-y-5">
-            <DrawerField label="Icône"><select value={formData.icon} onChange={(e) => setFormData({ ...formData, icon: e.target.value })} className={drawerInputClass}>{iconOptions.map((ic) => <option key={ic} value={ic}>{ic}</option>)}</select></DrawerField>
-            <DrawerField label="Titre" required><input type="text" required value={formData.title} onChange={(e) => setFormData({ ...formData, title: e.target.value })} placeholder="Excellence" className={drawerInputClass} /></DrawerField>
-            <DrawerField label="Description" required><textarea required rows={3} value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} placeholder="Description de la valeur" className={drawerTextareaClass} /></DrawerField>
-          </div>
-        </form>
-      </FormDrawer>
 
       <AnimatePresence>
         {deleteConfirm && (

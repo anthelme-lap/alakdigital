@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Edit3, Trash2, X, Save, ArrowLeft, BarChart3, Image, TrendingUp, Users, Sparkles } from 'lucide-react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Plus, Edit3, Trash2, X, Save, ArrowLeft, BarChart3, Image, TrendingUp, Users, Sparkles, Layout } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   fetchHeroSlides, insertHeroSlide, updateHeroSlide as updateHeroSlideApi, deleteHeroSlide as deleteHeroSlideApi,
@@ -8,11 +10,14 @@ import {
   fetchClients, insertClient, updateClient as updateClientApi, deleteClient as deleteClientApi,
   fetchWhyUs, insertWhyUs, updateWhyUs as updateWhyUsApi, deleteWhyUs as deleteWhyUsApi,
 } from '@/features/content/infrastructure/content_api';
-import { Button } from '@/shared/ui';
+import { Button, Input, Textarea, Select, Card, CardHeader, CardTitle, CardDescription } from '@/shared/ui';
+import {
+  heroSlideSchema, type HeroSlideFormValues,
+  statSchema, type StatFormValues, type StatFormInput,
+  clientSchema, type ClientFormValues,
+  whyUsSchema, type WhyUsFormValues,
+} from '../forms/homepage_schema';
 import type { HeroSlide, Stat, Client, WhyUsReason } from '@/features/content/domain/entities/content';
-
-const inputClass = 'w-full h-11 px-4 rounded-xl border border-ink-200 bg-white text-sm text-ink-900 placeholder:text-ink-400 focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20';
-const textareaClass = inputClass.replace('h-11', '');
 
 type Tab = 'hero' | 'stats' | 'clients' | 'whyUs';
 
@@ -43,18 +48,137 @@ export function AdminHomepagePage() {
   );
 }
 
+interface HeroSlideFormProps {
+  defaultValues: HeroSlideFormValues;
+  onSubmit: (values: HeroSlideFormValues) => void;
+  onCancel: () => void;
+  loading: boolean;
+  isEdit?: boolean;
+}
+
+function HeroSlideForm({ defaultValues, onSubmit, onCancel, loading, isEdit = false }: HeroSlideFormProps) {
+  const {
+    register,
+    handleSubmit,
+    watch,
+    formState: { errors },
+  } = useForm<HeroSlideFormValues>({
+    resolver: zodResolver(heroSlideSchema),
+    defaultValues,
+    mode: 'onChange',
+  });
+
+  const values = watch();
+
+  return (
+    <form onSubmit={handleSubmit(onSubmit)} className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+      <div className="space-y-5 lg:col-span-2">
+        <Card>
+          <CardHeader>
+            <div>
+              <CardTitle>
+                <Image className="h-5 w-5 text-primary-600" /> Contenu
+              </CardTitle>
+              <CardDescription>Textes du slide affiché en Hero</CardDescription>
+            </div>
+          </CardHeader>
+          <div className="space-y-4">
+            <Input label="Sur-titre *" placeholder="Applications Web" error={errors.eyebrow?.message} {...register('eyebrow')} />
+            <Input label="Titre *" placeholder="Nous concevons les" error={errors.title?.message} {...register('title')} />
+            <Input label="Texte mis en avant *" placeholder="solutions digitales" error={errors.highlight?.message} {...register('highlight')} />
+            <Textarea label="Sous-titre *" rows={2} placeholder="Description..." error={errors.subtitle?.message} {...register('subtitle')} />
+          </div>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <div>
+              <CardTitle>
+                <Layout className="h-5 w-5 text-primary-600" /> Apparence
+              </CardTitle>
+              <CardDescription>Bouton d'action et rendu visuel</CardDescription>
+            </div>
+          </CardHeader>
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <Input label="Label du bouton" placeholder="Voir nos réalisations" error={errors.cta_label?.message} {...register('cta_label')} />
+              <Input label="Lien du bouton" placeholder="/projects" error={errors.cta_to?.message} {...register('cta_to')} />
+            </div>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <Select
+                label="Couleur d'accent"
+                options={[
+                  { value: 'primary', label: 'Primary' },
+                  { value: 'secondary', label: 'Secondary' },
+                ]}
+                error={errors.accent?.message}
+                {...register('accent')}
+              />
+              <Select
+                label="Mockup"
+                options={[
+                  { value: 'dashboard', label: 'Dashboard' },
+                  { value: 'mobile', label: 'Mobile' },
+                  { value: 'saas', label: 'SaaS' },
+                ]}
+                error={errors.mockup?.message}
+                {...register('mockup')}
+              />
+            </div>
+          </div>
+        </Card>
+      </div>
+
+      <div className="lg:col-span-1">
+        <Card className="lg:sticky lg:top-24">
+          <CardHeader>
+            <div>
+              <CardTitle>Récapitulatif</CardTitle>
+              <CardDescription>{isEdit ? 'Modification du slide' : 'Nouveau slide'}</CardDescription>
+            </div>
+          </CardHeader>
+
+          <dl className="space-y-2 text-sm">
+            {[
+              { label: 'Sur-titre', value: values.eyebrow || null },
+              { label: 'Titre', value: values.title || null },
+              { label: 'Accent', value: values.accent || null },
+              { label: 'Mockup', value: values.mockup || null },
+            ].map(({ label, value }) => (
+              <div key={label} className="flex justify-between gap-3">
+                <dt className="text-ink-500">{label}</dt>
+                <dd className="max-w-[60%] truncate text-right font-medium text-ink-900">
+                  {value ?? <span className="text-ink-300">-</span>}
+                </dd>
+              </div>
+            ))}
+          </dl>
+
+          <div className="mt-5 space-y-2">
+            <Button type="submit" variant="primary" size="md" fullWidth loading={loading} leftIcon={!loading ? <Save className="h-4 w-4" /> : undefined}>
+              Enregistrer
+            </Button>
+            <Button type="button" variant="outline" size="md" fullWidth onClick={onCancel}>
+              Annuler
+            </Button>
+          </div>
+        </Card>
+      </div>
+    </form>
+  );
+}
+
 function HeroTab() {
   const queryClient = useQueryClient();
   const { data: heroSlides = [] } = useQuery({ queryKey: ['heroSlides'], queryFn: fetchHeroSlides });
   const addHeroSlide = useMutation({
     mutationFn: (h: Omit<HeroSlide, 'id' | 'sort_order'>) => insertHeroSlide(h),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['heroSlides'] }),
-  }).mutate;
+  });
   const updateHeroSlideMutation = useMutation({
     mutationFn: ({ id, data }: { id: string; data: Partial<HeroSlide> }) => updateHeroSlideApi(id, data),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['heroSlides'] }),
   });
-  const updateHeroSlide = (id: string, data: Partial<HeroSlide>) => updateHeroSlideMutation.mutate({ id, data });
   const deleteHeroSlide = useMutation({
     mutationFn: (id: string) => deleteHeroSlideApi(id),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['heroSlides'] }),
@@ -62,36 +186,42 @@ function HeroTab() {
   const [view, setView] = useState<'list' | 'edit'>('list');
   const [editing, setEditing] = useState<HeroSlide | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<HeroSlide | null>(null);
-  const [formData, setFormData] = useState({
-    eyebrow: '', title: '', highlight: '', subtitle: '', cta_label: '', cta_to: '', accent: 'primary', mockup: 'dashboard',
-  });
 
-  function handleEdit(s: HeroSlide) { setEditing(s); setFormData({ eyebrow: s.eyebrow, title: s.title, highlight: s.highlight, subtitle: s.subtitle, cta_label: s.cta_label, cta_to: s.cta_to, accent: s.accent, mockup: s.mockup }); setView('edit'); }
-  function handleCreate() { setEditing(null); setFormData({ eyebrow: '', title: '', highlight: '', subtitle: '', cta_label: '', cta_to: '/', accent: 'primary', mockup: 'dashboard' }); setView('edit'); }
-  function handleSave(e: React.FormEvent) { e.preventDefault(); const payload = { ...formData }; if (editing) updateHeroSlide(editing.id, payload); else addHeroSlide(payload); setView('list'); }
+  function handleEdit(s: HeroSlide) { setEditing(s); setView('edit'); }
+  function handleCreate() { setEditing(null); setView('edit'); }
+  function handleSave(values: HeroSlideFormValues) {
+    const payload = {
+      eyebrow: values.eyebrow,
+      title: values.title,
+      highlight: values.highlight,
+      subtitle: values.subtitle,
+      cta_label: values.cta_label ?? '',
+      cta_to: values.cta_to ?? '',
+      accent: values.accent,
+      mockup: values.mockup,
+    };
+    if (editing) updateHeroSlideMutation.mutate({ id: editing.id, data: payload });
+    else addHeroSlide.mutate(payload);
+    setView('list');
+  }
 
   if (view === 'edit') {
     return (
-      <div className="max-w-2xl mx-auto">
+      <div>
         <button onClick={() => setView('list')} className="inline-flex items-center gap-2 text-sm text-ink-500 hover:text-ink-900 transition-colors mb-6"><ArrowLeft className="h-4 w-4" /> Retour</button>
-        <h3 className="text-xl font-bold text-ink-900 mb-6">{editing ? 'Modifier le slide' : 'Nouveau slide'}</h3>
-        <form onSubmit={handleSave} className="space-y-5">
-          <div className="rounded-2xl border border-ink-100 bg-white p-6 space-y-5">
-            <div><label className="block text-sm font-medium text-ink-700 mb-2">Sur-titre *</label><input type="text" required value={formData.eyebrow} onChange={(e) => setFormData({ ...formData, eyebrow: e.target.value })} placeholder="Applications Web" className={inputClass} /></div>
-            <div><label className="block text-sm font-medium text-ink-700 mb-2">Titre *</label><input type="text" required value={formData.title} onChange={(e) => setFormData({ ...formData, title: e.target.value })} placeholder="Nous concevons les" className={inputClass} /></div>
-            <div><label className="block text-sm font-medium text-ink-700 mb-2">Texte mis en avant *</label><input type="text" required value={formData.highlight} onChange={(e) => setFormData({ ...formData, highlight: e.target.value })} placeholder="solutions digitales" className={inputClass} /></div>
-            <div><label className="block text-sm font-medium text-ink-700 mb-2">Sous-titre *</label><textarea required rows={2} value={formData.subtitle} onChange={(e) => setFormData({ ...formData, subtitle: e.target.value })} placeholder="Description..." className={textareaClass} /></div>
-            <div className="grid sm:grid-cols-2 gap-5">
-              <div><label className="block text-sm font-medium text-ink-700 mb-2">Label du bouton</label><input type="text" value={formData.cta_label} onChange={(e) => setFormData({ ...formData, cta_label: e.target.value })} placeholder="Voir nos réalisations" className={inputClass} /></div>
-              <div><label className="block text-sm font-medium text-ink-700 mb-2">Lien du bouton</label><input type="text" value={formData.cta_to} onChange={(e) => setFormData({ ...formData, cta_to: e.target.value })} placeholder="/projects" className={inputClass} /></div>
-            </div>
-            <div className="grid sm:grid-cols-2 gap-5">
-              <div><label className="block text-sm font-medium text-ink-700 mb-2">Couleur d'accent</label><select value={formData.accent} onChange={(e) => setFormData({ ...formData, accent: e.target.value })} className={inputClass}><option value="primary">Primary</option><option value="secondary">Secondary</option></select></div>
-              <div><label className="block text-sm font-medium text-ink-700 mb-2">Mockup</label><select value={formData.mockup} onChange={(e) => setFormData({ ...formData, mockup: e.target.value })} className={inputClass}><option value="dashboard">Dashboard</option><option value="mobile">Mobile</option><option value="saas">SaaS</option></select></div>
-            </div>
-          </div>
-          <div className="flex gap-3"><Button type="submit" variant="primary" size="md" leftIcon={<Save className="h-4 w-4" />}>Enregistrer</Button><Button type="button" variant="outline" size="md" onClick={() => setView('list')}>Annuler</Button></div>
-        </form>
+        <div className="mb-6">
+          <h3 className="text-xl font-bold text-ink-900">{editing ? 'Modifier le slide' : 'Nouveau slide'}</h3>
+        </div>
+        <HeroSlideForm
+          defaultValues={editing ? {
+            eyebrow: editing.eyebrow, title: editing.title, highlight: editing.highlight, subtitle: editing.subtitle,
+            cta_label: editing.cta_label, cta_to: editing.cta_to, accent: editing.accent, mockup: editing.mockup,
+          } : { eyebrow: '', title: '', highlight: '', subtitle: '', cta_label: '', cta_to: '/', accent: 'primary', mockup: 'dashboard' }}
+          onSubmit={handleSave}
+          onCancel={() => setView('list')}
+          loading={addHeroSlide.isPending || updateHeroSlideMutation.isPending}
+          isEdit={!!editing}
+        />
       </div>
     );
   }
@@ -114,18 +244,96 @@ function HeroTab() {
   );
 }
 
+interface StatFormProps {
+  defaultValues: StatFormInput;
+  onSubmit: (values: StatFormValues) => void;
+  onCancel: () => void;
+  loading: boolean;
+  isEdit?: boolean;
+}
+
+function StatForm({ defaultValues, onSubmit, onCancel, loading, isEdit = false }: StatFormProps) {
+  const {
+    register,
+    handleSubmit,
+    watch,
+    formState: { errors },
+  } = useForm<StatFormInput, unknown, StatFormValues>({
+    resolver: zodResolver(statSchema),
+    defaultValues,
+    mode: 'onChange',
+  });
+
+  const values = watch();
+
+  return (
+    <form onSubmit={handleSubmit(onSubmit)} className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+      <div className="space-y-5 lg:col-span-2">
+        <Card>
+          <CardHeader>
+            <div>
+              <CardTitle>
+                <TrendingUp className="h-5 w-5 text-primary-600" /> Statistique
+              </CardTitle>
+              <CardDescription>Chiffre clé affiché sur la page d'accueil</CardDescription>
+            </div>
+          </CardHeader>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <Input label="Valeur *" type="number" error={errors.value?.message} {...register('value')} />
+            <Input label="Suffixe" placeholder="+" error={errors.suffix?.message} {...register('suffix')} />
+            <Input label="Label *" placeholder="Projets livrés" className="sm:col-span-2" error={errors.label?.message} {...register('label')} />
+          </div>
+        </Card>
+      </div>
+
+      <div className="lg:col-span-1">
+        <Card className="lg:sticky lg:top-24">
+          <CardHeader>
+            <div>
+              <CardTitle>Récapitulatif</CardTitle>
+              <CardDescription>{isEdit ? 'Modification de la stat' : 'Nouvelle stat'}</CardDescription>
+            </div>
+          </CardHeader>
+
+          <dl className="space-y-2 text-sm">
+            {[
+              { label: 'Valeur', value: values.value !== '' && values.value != null ? `${values.value}${values.suffix || ''}` : null },
+              { label: 'Label', value: values.label || null },
+            ].map(({ label, value }) => (
+              <div key={label} className="flex justify-between gap-3">
+                <dt className="text-ink-500">{label}</dt>
+                <dd className="max-w-[60%] truncate text-right font-medium text-ink-900">
+                  {value ?? <span className="text-ink-300">-</span>}
+                </dd>
+              </div>
+            ))}
+          </dl>
+
+          <div className="mt-5 space-y-2">
+            <Button type="submit" variant="primary" size="md" fullWidth loading={loading} leftIcon={!loading ? <Save className="h-4 w-4" /> : undefined}>
+              Enregistrer
+            </Button>
+            <Button type="button" variant="outline" size="md" fullWidth onClick={onCancel}>
+              Annuler
+            </Button>
+          </div>
+        </Card>
+      </div>
+    </form>
+  );
+}
+
 function StatsTab() {
   const queryClient = useQueryClient();
   const { data: stats = [] } = useQuery({ queryKey: ['stats'], queryFn: fetchStats });
   const addStat = useMutation({
     mutationFn: (stat: { value: number; suffix: string; label: string }) => insertStat(stat),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['stats'] }),
-  }).mutate;
+  });
   const updateStatMutation = useMutation({
     mutationFn: ({ id, data }: { id: string; data: Partial<Stat> }) => updateStatApi(id, data),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['stats'] }),
   });
-  const updateStat = (id: string, data: Partial<Stat>) => updateStatMutation.mutate({ id, data });
   const deleteStat = useMutation({
     mutationFn: (id: string) => deleteStatApi(id),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['stats'] }),
@@ -133,25 +341,30 @@ function StatsTab() {
   const [view, setView] = useState<'list' | 'edit'>('list');
   const [editing, setEditing] = useState<Stat | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<Stat | null>(null);
-  const [formData, setFormData] = useState({ value: 0, suffix: '', label: '' });
 
-  function handleEdit(s: Stat) { setEditing(s); setFormData({ value: s.value, suffix: s.suffix, label: s.label }); setView('edit'); }
-  function handleCreate() { setEditing(null); setFormData({ value: 0, suffix: '+', label: '' }); setView('edit'); }
-  function handleSave(e: React.FormEvent) { e.preventDefault(); const payload = { value: Number(formData.value), suffix: formData.suffix, label: formData.label }; if (editing) updateStat(editing.id, payload); else addStat(payload); setView('list'); }
+  function handleEdit(s: Stat) { setEditing(s); setView('edit'); }
+  function handleCreate() { setEditing(null); setView('edit'); }
+  function handleSave(values: StatFormValues) {
+    const payload = { value: values.value, suffix: values.suffix ?? '', label: values.label };
+    if (editing) updateStatMutation.mutate({ id: editing.id, data: payload });
+    else addStat.mutate(payload);
+    setView('list');
+  }
 
   if (view === 'edit') {
     return (
-      <div className="max-w-md mx-auto">
+      <div>
         <button onClick={() => setView('list')} className="inline-flex items-center gap-2 text-sm text-ink-500 hover:text-ink-900 transition-colors mb-6"><ArrowLeft className="h-4 w-4" /> Retour</button>
-        <h3 className="text-xl font-bold text-ink-900 mb-6">{editing ? 'Modifier la stat' : 'Nouvelle stat'}</h3>
-        <form onSubmit={handleSave} className="space-y-5">
-          <div className="rounded-2xl border border-ink-100 bg-white p-6 space-y-5">
-            <div><label className="block text-sm font-medium text-ink-700 mb-2">Valeur *</label><input type="number" required value={formData.value} onChange={(e) => setFormData({ ...formData, value: Number(e.target.value) })} className={inputClass} /></div>
-            <div><label className="block text-sm font-medium text-ink-700 mb-2">Suffixe</label><input type="text" value={formData.suffix} onChange={(e) => setFormData({ ...formData, suffix: e.target.value })} placeholder="+" className={inputClass} /></div>
-            <div><label className="block text-sm font-medium text-ink-700 mb-2">Label *</label><input type="text" required value={formData.label} onChange={(e) => setFormData({ ...formData, label: e.target.value })} placeholder="Projets livrés" className={inputClass} /></div>
-          </div>
-          <div className="flex gap-3"><Button type="submit" variant="primary" size="md" leftIcon={<Save className="h-4 w-4" />}>Enregistrer</Button><Button type="button" variant="outline" size="md" onClick={() => setView('list')}>Annuler</Button></div>
-        </form>
+        <div className="mb-6">
+          <h3 className="text-xl font-bold text-ink-900">{editing ? 'Modifier la stat' : 'Nouvelle stat'}</h3>
+        </div>
+        <StatForm
+          defaultValues={editing ? { value: editing.value, suffix: editing.suffix, label: editing.label } : { value: 0, suffix: '+', label: '' }}
+          onSubmit={handleSave}
+          onCancel={() => setView('list')}
+          loading={addStat.isPending || updateStatMutation.isPending}
+          isEdit={!!editing}
+        />
       </div>
     );
   }
@@ -173,18 +386,89 @@ function StatsTab() {
   );
 }
 
+interface ClientFormProps {
+  defaultValues: ClientFormValues;
+  onSubmit: (values: ClientFormValues) => void;
+  onCancel: () => void;
+  loading: boolean;
+  isEdit?: boolean;
+}
+
+function ClientForm({ defaultValues, onSubmit, onCancel, loading, isEdit = false }: ClientFormProps) {
+  const {
+    register,
+    handleSubmit,
+    watch,
+    formState: { errors },
+  } = useForm<ClientFormValues>({
+    resolver: zodResolver(clientSchema),
+    defaultValues,
+    mode: 'onChange',
+  });
+
+  const values = watch();
+
+  return (
+    <form onSubmit={handleSubmit(onSubmit)} className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+      <div className="space-y-5 lg:col-span-2">
+        <Card>
+          <CardHeader>
+            <div>
+              <CardTitle>
+                <Users className="h-5 w-5 text-primary-600" /> Client
+              </CardTitle>
+              <CardDescription>Logo/nom affiché dans la liste des clients</CardDescription>
+            </div>
+          </CardHeader>
+          <Input label="Nom *" placeholder="EventFlow CI" error={errors.name?.message} {...register('name')} />
+        </Card>
+      </div>
+
+      <div className="lg:col-span-1">
+        <Card className="lg:sticky lg:top-24">
+          <CardHeader>
+            <div>
+              <CardTitle>Récapitulatif</CardTitle>
+              <CardDescription>{isEdit ? 'Modification du client' : 'Nouveau client'}</CardDescription>
+            </div>
+          </CardHeader>
+
+          <dl className="space-y-2 text-sm">
+            {[{ label: 'Nom', value: values.name || null }].map(({ label, value }) => (
+              <div key={label} className="flex justify-between gap-3">
+                <dt className="text-ink-500">{label}</dt>
+                <dd className="max-w-[60%] truncate text-right font-medium text-ink-900">
+                  {value ?? <span className="text-ink-300">-</span>}
+                </dd>
+              </div>
+            ))}
+          </dl>
+
+          <div className="mt-5 space-y-2">
+            <Button type="submit" variant="primary" size="md" fullWidth loading={loading} leftIcon={!loading ? <Save className="h-4 w-4" /> : undefined}>
+              Enregistrer
+            </Button>
+            <Button type="button" variant="outline" size="md" fullWidth onClick={onCancel}>
+              Annuler
+            </Button>
+          </div>
+        </Card>
+      </div>
+    </form>
+  );
+}
+
 function ClientsTab() {
   const queryClient = useQueryClient();
   const { data: clients = [] } = useQuery({ queryKey: ['clients'], queryFn: fetchClients });
   const addClient = useMutation({
     mutationFn: (c: { name: string }) => insertClient(c),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['clients'] }),
-  }).mutate;
+  });
   const updateClientMutation = useMutation({
     mutationFn: ({ id, data }: { id: string; data: Partial<Client> }) => updateClientApi(id, data),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['clients'] }),
   });
-  const updateClient = (id: string, data: Partial<Client>) => updateClientMutation.mutate({ id, data });
   const deleteClient = useMutation({
     mutationFn: (id: string) => deleteClientApi(id),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['clients'] }),
@@ -192,21 +476,30 @@ function ClientsTab() {
   const [view, setView] = useState<'list' | 'edit'>('list');
   const [editing, setEditing] = useState<Client | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<Client | null>(null);
-  const [formData, setFormData] = useState({ name: '' });
 
-  function handleEdit(c: Client) { setEditing(c); setFormData({ name: c.name }); setView('edit'); }
-  function handleCreate() { setEditing(null); setFormData({ name: '' }); setView('edit'); }
-  function handleSave(e: React.FormEvent) { e.preventDefault(); const payload = { name: formData.name }; if (editing) updateClient(editing.id, payload); else addClient(payload); setView('list'); }
+  function handleEdit(c: Client) { setEditing(c); setView('edit'); }
+  function handleCreate() { setEditing(null); setView('edit'); }
+  function handleSave(values: ClientFormValues) {
+    const payload = { name: values.name };
+    if (editing) updateClientMutation.mutate({ id: editing.id, data: payload });
+    else addClient.mutate(payload);
+    setView('list');
+  }
 
   if (view === 'edit') {
     return (
-      <div className="max-w-md mx-auto">
+      <div>
         <button onClick={() => setView('list')} className="inline-flex items-center gap-2 text-sm text-ink-500 hover:text-ink-900 transition-colors mb-6"><ArrowLeft className="h-4 w-4" /> Retour</button>
-        <h3 className="text-xl font-bold text-ink-900 mb-6">{editing ? 'Modifier le client' : 'Nouveau client'}</h3>
-        <form onSubmit={handleSave} className="space-y-5">
-          <div className="rounded-2xl border border-ink-100 bg-white p-6 space-y-5"><div><label className="block text-sm font-medium text-ink-700 mb-2">Nom *</label><input type="text" required value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} placeholder="EventFlow CI" className={inputClass} /></div></div>
-          <div className="flex gap-3"><Button type="submit" variant="primary" size="md" leftIcon={<Save className="h-4 w-4" />}>Enregistrer</Button><Button type="button" variant="outline" size="md" onClick={() => setView('list')}>Annuler</Button></div>
-        </form>
+        <div className="mb-6">
+          <h3 className="text-xl font-bold text-ink-900">{editing ? 'Modifier le client' : 'Nouveau client'}</h3>
+        </div>
+        <ClientForm
+          defaultValues={editing ? { name: editing.name } : { name: '' }}
+          onSubmit={handleSave}
+          onCancel={() => setView('list')}
+          loading={addClient.isPending || updateClientMutation.isPending}
+          isEdit={!!editing}
+        />
       </div>
     );
   }
@@ -227,18 +520,103 @@ function ClientsTab() {
   );
 }
 
+const iconOptions = ['Layers', 'TrendingUp', 'Target', 'Sparkles', 'LifeBuoy', 'Award', 'Zap', 'Shield', 'Heart', 'Compass'];
+
+interface WhyUsFormProps {
+  defaultValues: WhyUsFormValues;
+  onSubmit: (values: WhyUsFormValues) => void;
+  onCancel: () => void;
+  loading: boolean;
+  isEdit?: boolean;
+}
+
+function WhyUsForm({ defaultValues, onSubmit, onCancel, loading, isEdit = false }: WhyUsFormProps) {
+  const {
+    register,
+    handleSubmit,
+    watch,
+    formState: { errors },
+  } = useForm<WhyUsFormValues>({
+    resolver: zodResolver(whyUsSchema),
+    defaultValues,
+    mode: 'onChange',
+  });
+
+  const values = watch();
+
+  return (
+    <form onSubmit={handleSubmit(onSubmit)} className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+      <div className="space-y-5 lg:col-span-2">
+        <Card>
+          <CardHeader>
+            <div>
+              <CardTitle>
+                <Sparkles className="h-5 w-5 text-primary-600" /> Raison
+              </CardTitle>
+              <CardDescription>Argument affiché dans la section "Pourquoi nous"</CardDescription>
+            </div>
+          </CardHeader>
+          <div className="space-y-4">
+            <Select
+              label="Icône"
+              options={iconOptions.map((ic) => ({ value: ic, label: ic }))}
+              error={errors.icon?.message}
+              {...register('icon')}
+            />
+            <Input label="Titre *" placeholder="Expertise complète" error={errors.title?.message} {...register('title')} />
+            <Textarea label="Description *" rows={3} placeholder="Description..." error={errors.description?.message} {...register('description')} />
+          </div>
+        </Card>
+      </div>
+
+      <div className="lg:col-span-1">
+        <Card className="lg:sticky lg:top-24">
+          <CardHeader>
+            <div>
+              <CardTitle>Récapitulatif</CardTitle>
+              <CardDescription>{isEdit ? 'Modification de la raison' : 'Nouvelle raison'}</CardDescription>
+            </div>
+          </CardHeader>
+
+          <dl className="space-y-2 text-sm">
+            {[
+              { label: 'Icône', value: values.icon || null },
+              { label: 'Titre', value: values.title || null },
+            ].map(({ label, value }) => (
+              <div key={label} className="flex justify-between gap-3">
+                <dt className="text-ink-500">{label}</dt>
+                <dd className="max-w-[60%] truncate text-right font-medium text-ink-900">
+                  {value ?? <span className="text-ink-300">-</span>}
+                </dd>
+              </div>
+            ))}
+          </dl>
+
+          <div className="mt-5 space-y-2">
+            <Button type="submit" variant="primary" size="md" fullWidth loading={loading} leftIcon={!loading ? <Save className="h-4 w-4" /> : undefined}>
+              Enregistrer
+            </Button>
+            <Button type="button" variant="outline" size="md" fullWidth onClick={onCancel}>
+              Annuler
+            </Button>
+          </div>
+        </Card>
+      </div>
+    </form>
+  );
+}
+
 function WhyUsTab() {
   const queryClient = useQueryClient();
   const { data: whyUs = [] } = useQuery({ queryKey: ['whyUs'], queryFn: fetchWhyUs });
   const addWhyUs = useMutation({
     mutationFn: (w: { icon: string; title: string; description: string }) => insertWhyUs(w),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['whyUs'] }),
-  }).mutate;
+  });
   const updateWhyUsMutation = useMutation({
     mutationFn: ({ id, data }: { id: string; data: Partial<WhyUsReason> }) => updateWhyUsApi(id, data),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['whyUs'] }),
   });
-  const updateWhyUs = (id: string, data: Partial<WhyUsReason>) => updateWhyUsMutation.mutate({ id, data });
   const deleteWhyUs = useMutation({
     mutationFn: (id: string) => deleteWhyUsApi(id),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['whyUs'] }),
@@ -246,26 +624,30 @@ function WhyUsTab() {
   const [view, setView] = useState<'list' | 'edit'>('list');
   const [editing, setEditing] = useState<WhyUsReason | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<WhyUsReason | null>(null);
-  const [formData, setFormData] = useState({ icon: 'Layers', title: '', description: '' });
-  const iconOptions = ['Layers', 'TrendingUp', 'Target', 'Sparkles', 'LifeBuoy', 'Award', 'Zap', 'Shield', 'Heart', 'Compass'];
 
-  function handleEdit(w: WhyUsReason) { setEditing(w); setFormData({ icon: w.icon, title: w.title, description: w.description }); setView('edit'); }
-  function handleCreate() { setEditing(null); setFormData({ icon: 'Layers', title: '', description: '' }); setView('edit'); }
-  function handleSave(e: React.FormEvent) { e.preventDefault(); const payload = { icon: formData.icon, title: formData.title, description: formData.description }; if (editing) updateWhyUs(editing.id, payload); else addWhyUs(payload); setView('list'); }
+  function handleEdit(w: WhyUsReason) { setEditing(w); setView('edit'); }
+  function handleCreate() { setEditing(null); setView('edit'); }
+  function handleSave(values: WhyUsFormValues) {
+    const payload = { icon: values.icon, title: values.title, description: values.description };
+    if (editing) updateWhyUsMutation.mutate({ id: editing.id, data: payload });
+    else addWhyUs.mutate(payload);
+    setView('list');
+  }
 
   if (view === 'edit') {
     return (
-      <div className="max-w-2xl mx-auto">
+      <div>
         <button onClick={() => setView('list')} className="inline-flex items-center gap-2 text-sm text-ink-500 hover:text-ink-900 transition-colors mb-6"><ArrowLeft className="h-4 w-4" /> Retour</button>
-        <h3 className="text-xl font-bold text-ink-900 mb-6">{editing ? 'Modifier la raison' : 'Nouvelle raison'}</h3>
-        <form onSubmit={handleSave} className="space-y-5">
-          <div className="rounded-2xl border border-ink-100 bg-white p-6 space-y-5">
-            <div><label className="block text-sm font-medium text-ink-700 mb-2">Icône</label><select value={formData.icon} onChange={(e) => setFormData({ ...formData, icon: e.target.value })} className={inputClass}>{iconOptions.map((ic) => <option key={ic} value={ic}>{ic}</option>)}</select></div>
-            <div><label className="block text-sm font-medium text-ink-700 mb-2">Titre *</label><input type="text" required value={formData.title} onChange={(e) => setFormData({ ...formData, title: e.target.value })} placeholder="Expertise complète" className={inputClass} /></div>
-            <div><label className="block text-sm font-medium text-ink-700 mb-2">Description *</label><textarea required rows={3} value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} placeholder="Description..." className={textareaClass} /></div>
-          </div>
-          <div className="flex gap-3"><Button type="submit" variant="primary" size="md" leftIcon={<Save className="h-4 w-4" />}>Enregistrer</Button><Button type="button" variant="outline" size="md" onClick={() => setView('list')}>Annuler</Button></div>
-        </form>
+        <div className="mb-6">
+          <h3 className="text-xl font-bold text-ink-900">{editing ? 'Modifier la raison' : 'Nouvelle raison'}</h3>
+        </div>
+        <WhyUsForm
+          defaultValues={editing ? { icon: editing.icon, title: editing.title, description: editing.description } : { icon: 'Layers', title: '', description: '' }}
+          onSubmit={handleSave}
+          onCancel={() => setView('list')}
+          loading={addWhyUs.isPending || updateWhyUsMutation.isPending}
+          isEdit={!!editing}
+        />
       </div>
     );
   }

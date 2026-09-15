@@ -1,17 +1,19 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Edit3, Trash2, X, Save, ArrowLeft, Award, Target, Eye } from 'lucide-react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Plus, Edit3, Trash2, X, Save, ArrowLeft, Award, Target } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   fetchMissionVision, updateMissionVision as updateMissionVisionApi,
   fetchPillars, insertPillar, updatePillar as updatePillarApi, deletePillar as deletePillarApi,
 } from '@/features/content/infrastructure/content_api';
-import { Button } from '@/shared/ui';
+import { Button, Input, Textarea, Select, Card, CardHeader, CardTitle, CardDescription } from '@/shared/ui';
+import { missionVisionSchema, type MissionVisionFormValues, pillarSchema, type PillarFormValues } from '../forms/about_content_schema';
 import type { MissionVision, AboutPillar } from '@/features/content/domain/entities/content';
 
-const inputClass = 'w-full h-11 px-4 rounded-xl border border-ink-200 bg-white text-sm text-ink-900 placeholder:text-ink-400 focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20';
-const textareaClass = inputClass.replace('h-11', '');
 const iconOptions = ['Target', 'Eye', 'Award', 'Rocket', 'Compass', 'Star', 'Shield', 'Zap', 'Heart', 'Sparkles'];
+const iconSelectOptions = iconOptions.map((ic) => ({ value: ic, label: ic }));
 
 type Tab = 'mission' | 'pillars';
 
@@ -30,6 +32,97 @@ export function AdminAboutContentPage() {
   );
 }
 
+interface MissionVisionFormProps {
+  defaultValues: MissionVisionFormValues;
+  onSubmit: (values: MissionVisionFormValues) => void;
+  onCancel: () => void;
+  loading: boolean;
+}
+
+function MissionVisionForm({ defaultValues, onSubmit, onCancel, loading }: MissionVisionFormProps) {
+  const {
+    register,
+    handleSubmit,
+    watch,
+    formState: { errors },
+  } = useForm<MissionVisionFormValues>({
+    resolver: zodResolver(missionVisionSchema),
+    defaultValues,
+    mode: 'onChange',
+  });
+
+  const values = watch();
+
+  return (
+    <form onSubmit={handleSubmit(onSubmit)} className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+      <div className="space-y-5 lg:col-span-2">
+        <Card>
+          <CardHeader>
+            <div>
+              <CardTitle>
+                <Target className="h-5 w-5 text-primary-600" /> Contenu
+              </CardTitle>
+              <CardDescription>Informations de la section mission / vision</CardDescription>
+            </div>
+          </CardHeader>
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <Select label="Icône" options={iconSelectOptions} error={errors.icon?.message} {...register('icon')} />
+              <Input label="Label *" placeholder="Notre mission" error={errors.label?.message} {...register('label')} />
+            </div>
+            <Input label="Titre *" error={errors.title?.message} {...register('title')} />
+            <Textarea label="Description *" rows={3} error={errors.description?.message} {...register('description')} />
+            <Textarea
+              label="Points"
+              rows={4}
+              placeholder={'Point 1\nPoint 2'}
+              hint="Un point par ligne"
+              error={errors.points?.message}
+              {...register('points')}
+            />
+          </div>
+        </Card>
+      </div>
+
+      <div className="lg:col-span-1">
+        <Card className="lg:sticky lg:top-24">
+          <CardHeader>
+            <div>
+              <CardTitle>Récapitulatif</CardTitle>
+              <CardDescription>Modification de la section</CardDescription>
+            </div>
+          </CardHeader>
+
+          <dl className="space-y-2 text-sm">
+            {[
+              { label: 'Label', value: values.label || null },
+              { label: 'Titre', value: values.title || null },
+              { label: 'Icône', value: values.icon || null },
+              { label: 'Points', value: values.points ? String(values.points.split('\n').filter((p) => p.trim()).length) : null },
+            ].map(({ label, value }) => (
+              <div key={label} className="flex justify-between gap-3">
+                <dt className="text-ink-500">{label}</dt>
+                <dd className="max-w-[60%] truncate text-right font-medium text-ink-900">
+                  {value ?? <span className="text-ink-300">-</span>}
+                </dd>
+              </div>
+            ))}
+          </dl>
+
+          <div className="mt-5 space-y-2">
+            <Button type="submit" variant="primary" size="md" fullWidth loading={loading} leftIcon={!loading ? <Save className="h-4 w-4" /> : undefined}>
+              Enregistrer
+            </Button>
+            <Button type="button" variant="outline" size="md" fullWidth onClick={onCancel}>
+              Annuler
+            </Button>
+          </div>
+        </Card>
+      </div>
+    </form>
+  );
+}
+
 function MissionTab() {
   const queryClient = useQueryClient();
   const { data: missionVision = [] } = useQuery({ queryKey: ['missionVision'], queryFn: fetchMissionVision });
@@ -37,28 +130,52 @@ function MissionTab() {
     mutationFn: ({ id, data }: { id: string; data: Partial<MissionVision> }) => updateMissionVisionApi(id, data),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['missionVision'] }),
   });
-  const updateMissionVision = (id: string, data: Partial<MissionVision>) => updateMissionVisionMutation.mutate({ id, data });
   const [editing, setEditing] = useState<MissionVision | null>(null);
-  const [formData, setFormData] = useState({ icon: '', label: '', title: '', description: '', points: '' });
 
-  function handleEdit(mv: MissionVision) { setEditing(mv); setFormData({ icon: mv.icon, label: mv.label, title: mv.title, description: mv.description, points: mv.points.join('\n') }); }
-  function handleSave(e: React.FormEvent) { e.preventDefault(); if (!editing) return; updateMissionVision(editing.id, { icon: formData.icon, label: formData.label, title: formData.title, description: formData.description, points: formData.points.split('\n').map((p) => p.trim()).filter(Boolean) }); setEditing(null); }
+  function handleEdit(mv: MissionVision) { setEditing(mv); }
+
+  function handleSave(values: MissionVisionFormValues) {
+    if (!editing) return;
+    updateMissionVisionMutation.mutate({
+      id: editing.id,
+      data: {
+        icon: values.icon,
+        label: values.label,
+        title: values.title,
+        description: values.description,
+        points: (values.points ?? '').split('\n').map((p) => p.trim()).filter(Boolean),
+      },
+    });
+    setEditing(null);
+  }
 
   if (editing) {
     return (
-      <div className="max-w-2xl mx-auto">
-        <button onClick={() => setEditing(null)} className="inline-flex items-center gap-2 text-sm text-ink-500 hover:text-ink-900 transition-colors mb-6"><ArrowLeft className="h-4 w-4" /> Retour</button>
-        <h3 className="text-xl font-bold text-ink-900 mb-6">Modifier « {editing.label} »</h3>
-        <form onSubmit={handleSave} className="space-y-5">
-          <div className="rounded-2xl border border-ink-100 bg-white p-6 space-y-5">
-            <div><label className="block text-sm font-medium text-ink-700 mb-2">Icône</label><select value={formData.icon} onChange={(e) => setFormData({ ...formData, icon: e.target.value })} className={inputClass}>{iconOptions.map((ic) => <option key={ic} value={ic}>{ic}</option>)}</select></div>
-            <div><label className="block text-sm font-medium text-ink-700 mb-2">Label *</label><input type="text" required value={formData.label} onChange={(e) => setFormData({ ...formData, label: e.target.value })} placeholder="Notre mission" className={inputClass} /></div>
-            <div><label className="block text-sm font-medium text-ink-700 mb-2">Titre *</label><input type="text" required value={formData.title} onChange={(e) => setFormData({ ...formData, title: e.target.value })} className={inputClass} /></div>
-            <div><label className="block text-sm font-medium text-ink-700 mb-2">Description *</label><textarea required rows={3} value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} className={textareaClass} /></div>
-            <div><label className="block text-sm font-medium text-ink-700 mb-2">Points (un par ligne)</label><textarea rows={4} value={formData.points} onChange={(e) => setFormData({ ...formData, points: e.target.value })} placeholder="Point 1&#10;Point 2" className={textareaClass} /></div>
-          </div>
-          <div className="flex gap-3"><Button type="submit" variant="primary" size="md" leftIcon={<Save className="h-4 w-4" />}>Enregistrer</Button><Button type="button" variant="outline" size="md" onClick={() => setEditing(null)}>Annuler</Button></div>
-        </form>
+      <div>
+        <button
+          onClick={() => setEditing(null)}
+          className="inline-flex items-center gap-2 text-sm text-ink-500 hover:text-ink-900 transition-colors mb-6"
+        >
+          <ArrowLeft className="h-4 w-4" /> Retour
+        </button>
+
+        <div className="mb-6">
+          <h3 className="text-2xl font-bold text-ink-900">Modifier « {editing.label} »</h3>
+          <p className="text-sm text-ink-500 mt-1">{editing.title}</p>
+        </div>
+
+        <MissionVisionForm
+          defaultValues={{
+            icon: editing.icon,
+            label: editing.label,
+            title: editing.title,
+            description: editing.description,
+            points: editing.points.join('\n'),
+          }}
+          onSubmit={handleSave}
+          onCancel={() => setEditing(null)}
+          loading={updateMissionVisionMutation.isPending}
+        />
       </div>
     );
   }
@@ -78,44 +195,138 @@ function MissionTab() {
   );
 }
 
+interface PillarFormProps {
+  defaultValues: PillarFormValues;
+  onSubmit: (values: PillarFormValues) => void;
+  onCancel: () => void;
+  loading: boolean;
+  isEdit?: boolean;
+}
+
+function PillarForm({ defaultValues, onSubmit, onCancel, loading, isEdit = false }: PillarFormProps) {
+  const {
+    register,
+    handleSubmit,
+    watch,
+    formState: { errors },
+  } = useForm<PillarFormValues>({
+    resolver: zodResolver(pillarSchema),
+    defaultValues,
+    mode: 'onChange',
+  });
+
+  const values = watch();
+
+  return (
+    <form onSubmit={handleSubmit(onSubmit)} className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+      <div className="space-y-5 lg:col-span-2">
+        <Card>
+          <CardHeader>
+            <div>
+              <CardTitle>
+                <Award className="h-5 w-5 text-primary-600" /> Pilier
+              </CardTitle>
+              <CardDescription>Informations du pilier</CardDescription>
+            </div>
+          </CardHeader>
+          <div className="space-y-4">
+            <Select label="Icône" options={iconSelectOptions} error={errors.icon?.message} {...register('icon')} />
+            <Input label="Titre *" placeholder="Expertise" error={errors.title?.message} {...register('title')} />
+            <Textarea label="Description *" rows={3} error={errors.description?.message} {...register('description')} />
+          </div>
+        </Card>
+      </div>
+
+      <div className="lg:col-span-1">
+        <Card className="lg:sticky lg:top-24">
+          <CardHeader>
+            <div>
+              <CardTitle>Récapitulatif</CardTitle>
+              <CardDescription>{isEdit ? 'Modification du pilier' : 'Nouveau pilier'}</CardDescription>
+            </div>
+          </CardHeader>
+
+          <dl className="space-y-2 text-sm">
+            {[
+              { label: 'Titre', value: values.title || null },
+              { label: 'Icône', value: values.icon || null },
+            ].map(({ label, value }) => (
+              <div key={label} className="flex justify-between gap-3">
+                <dt className="text-ink-500">{label}</dt>
+                <dd className="max-w-[60%] truncate text-right font-medium text-ink-900">
+                  {value ?? <span className="text-ink-300">-</span>}
+                </dd>
+              </div>
+            ))}
+          </dl>
+
+          <div className="mt-5 space-y-2">
+            <Button type="submit" variant="primary" size="md" fullWidth loading={loading} leftIcon={!loading ? <Save className="h-4 w-4" /> : undefined}>
+              Enregistrer
+            </Button>
+            <Button type="button" variant="outline" size="md" fullWidth onClick={onCancel}>
+              Annuler
+            </Button>
+          </div>
+        </Card>
+      </div>
+    </form>
+  );
+}
+
 function PillarsTab() {
   const queryClient = useQueryClient();
   const { data: pillars = [] } = useQuery({ queryKey: ['pillars'], queryFn: fetchPillars });
-  const addPillar = useMutation({
+  const addPillarMutation = useMutation({
     mutationFn: (p: { icon: string; title: string; description: string }) => insertPillar(p),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['pillars'] }),
-  }).mutate;
+  });
   const updatePillarMutation = useMutation({
     mutationFn: ({ id, data }: { id: string; data: Partial<AboutPillar> }) => updatePillarApi(id, data),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['pillars'] }),
   });
-  const updatePillar = (id: string, data: Partial<AboutPillar>) => updatePillarMutation.mutate({ id, data });
-  const deletePillar = useMutation({
+  const deletePillarMutation = useMutation({
     mutationFn: (id: string) => deletePillarApi(id),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['pillars'] }),
-  }).mutate;
+  });
   const [view, setView] = useState<'list' | 'edit'>('list');
   const [editing, setEditing] = useState<AboutPillar | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<AboutPillar | null>(null);
-  const [formData, setFormData] = useState({ icon: 'Target', title: '', description: '' });
 
-  function handleEdit(p: AboutPillar) { setEditing(p); setFormData({ icon: p.icon, title: p.title, description: p.description }); setView('edit'); }
-  function handleCreate() { setEditing(null); setFormData({ icon: 'Target', title: '', description: '' }); setView('edit'); }
-  function handleSave(e: React.FormEvent) { e.preventDefault(); const payload = { icon: formData.icon, title: formData.title, description: formData.description }; if (editing) updatePillar(editing.id, payload); else addPillar(payload); setView('list'); }
+  function handleEdit(p: AboutPillar) { setEditing(p); setView('edit'); }
+  function handleCreate() { setEditing(null); setView('edit'); }
+  function handleSave(values: PillarFormValues) {
+    const payload = { icon: values.icon, title: values.title, description: values.description };
+    if (editing) {
+      updatePillarMutation.mutate({ id: editing.id, data: payload });
+    } else {
+      addPillarMutation.mutate(payload);
+    }
+    setView('list');
+  }
 
   if (view === 'edit') {
     return (
-      <div className="max-w-2xl mx-auto">
-        <button onClick={() => setView('list')} className="inline-flex items-center gap-2 text-sm text-ink-500 hover:text-ink-900 transition-colors mb-6"><ArrowLeft className="h-4 w-4" /> Retour</button>
-        <h3 className="text-xl font-bold text-ink-900 mb-6">{editing ? 'Modifier le pilier' : 'Nouveau pilier'}</h3>
-        <form onSubmit={handleSave} className="space-y-5">
-          <div className="rounded-2xl border border-ink-100 bg-white p-6 space-y-5">
-            <div><label className="block text-sm font-medium text-ink-700 mb-2">Icône</label><select value={formData.icon} onChange={(e) => setFormData({ ...formData, icon: e.target.value })} className={inputClass}>{iconOptions.map((ic) => <option key={ic} value={ic}>{ic}</option>)}</select></div>
-            <div><label className="block text-sm font-medium text-ink-700 mb-2">Titre *</label><input type="text" required value={formData.title} onChange={(e) => setFormData({ ...formData, title: e.target.value })} placeholder="Expertise" className={inputClass} /></div>
-            <div><label className="block text-sm font-medium text-ink-700 mb-2">Description *</label><textarea required rows={3} value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} className={textareaClass} /></div>
-          </div>
-          <div className="flex gap-3"><Button type="submit" variant="primary" size="md" leftIcon={<Save className="h-4 w-4" />}>Enregistrer</Button><Button type="button" variant="outline" size="md" onClick={() => setView('list')}>Annuler</Button></div>
-        </form>
+      <div>
+        <button
+          onClick={() => setView('list')}
+          className="inline-flex items-center gap-2 text-sm text-ink-500 hover:text-ink-900 transition-colors mb-6"
+        >
+          <ArrowLeft className="h-4 w-4" /> Retour
+        </button>
+
+        <div className="mb-6">
+          <h3 className="text-2xl font-bold text-ink-900">{editing ? 'Modifier le pilier' : 'Nouveau pilier'}</h3>
+          <p className="text-sm text-ink-500 mt-1">{editing ? editing.title : 'Ajoutez un nouveau pilier'}</p>
+        </div>
+
+        <PillarForm
+          defaultValues={editing ? { icon: editing.icon, title: editing.title, description: editing.description } : { icon: 'Target', title: '', description: '' }}
+          onSubmit={handleSave}
+          onCancel={() => setView('list')}
+          loading={addPillarMutation.isPending || updatePillarMutation.isPending}
+          isEdit={!!editing}
+        />
       </div>
     );
   }
@@ -138,7 +349,7 @@ function PillarsTab() {
             <div className="absolute inset-0 bg-ink-950/50 backdrop-blur-sm" onClick={() => setDeleteConfirm(null)} />
             <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className="relative w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
               <div className="flex items-start gap-4"><div className="flex h-12 w-12 items-center justify-center rounded-xl bg-red-50 text-red-500"><Trash2 className="h-6 w-6" /></div><div className="flex-1"><h3 className="text-lg font-bold text-ink-900 mb-1">Supprimer ?</h3><p className="text-sm text-ink-500">Supprimer « {deleteConfirm.title} » ?</p></div><button onClick={() => setDeleteConfirm(null)} className="p-1 rounded-lg hover:bg-ink-100 text-ink-400"><X className="h-5 w-5" /></button></div>
-              <div className="flex gap-3 mt-6"><Button variant="primary" size="md" onClick={() => { deletePillar(deleteConfirm.id); setDeleteConfirm(null); }} className="!bg-red-600 hover:!bg-red-700">Supprimer</Button><Button variant="outline" size="md" onClick={() => setDeleteConfirm(null)}>Annuler</Button></div>
+              <div className="flex gap-3 mt-6"><Button variant="primary" size="md" onClick={() => { deletePillarMutation.mutate(deleteConfirm.id); setDeleteConfirm(null); }} className="!bg-red-600 hover:!bg-red-700">Supprimer</Button><Button variant="outline" size="md" onClick={() => setDeleteConfirm(null)}>Annuler</Button></div>
             </motion.div>
           </motion.div>
         )}

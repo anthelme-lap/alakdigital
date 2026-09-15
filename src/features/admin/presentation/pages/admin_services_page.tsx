@@ -1,19 +1,18 @@
 import { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import {
-  Search, Plus, Edit3, Trash2, Eye, X, Save, Wrench,
+  Search, Plus, Edit3, Trash2, Eye, X, Save, Wrench, ArrowLeft, Info, Layers,
 } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { fetchServices, insertService, updateService, deleteService } from '@/features/content/infrastructure/content_api';
-import { Button } from '@/shared/ui';
-import { FormDrawer, DrawerField, drawerInputClass, drawerTextareaClass } from '@/features/admin/presentation/components/form_drawer';
+import { Button, Input, Textarea, Select, Card, CardHeader, CardTitle, CardDescription } from '@/shared/ui';
+import { serviceSchema, type ServiceFormValues } from '../forms/service_schema';
 import type { Service } from '@/features/services/domain/entities/service';
 
-interface ServiceFormData {
-  name: string; slug: string; tagline: string; description: string;
-  icon: string; features: string; technologies: string;
-}
+type View = 'list' | 'edit';
 
 const iconOptions = [
   { value: 'web', label: 'Web (Code2)' },
@@ -24,11 +23,130 @@ const iconOptions = [
   { value: 'design', label: 'Design (Palette)' },
 ];
 
-function toFormData(s: Service): ServiceFormData {
-  return { name: s.name, slug: s.slug, tagline: s.tagline, description: s.description, icon: s.icon, features: s.features.join(', '), technologies: s.technologies.join(', ') };
+function toFormData(s: Service): ServiceFormValues {
+  return {
+    name: s.name,
+    slug: s.slug,
+    tagline: s.tagline,
+    description: s.description,
+    icon: s.icon,
+    features: toCommaList(s.features),
+    technologies: toCommaList(s.technologies),
+  };
 }
-function emptyForm(): ServiceFormData {
+
+function emptyForm(): ServiceFormValues {
   return { name: '', slug: '', tagline: '', description: '', icon: 'web', features: '', technologies: '' };
+}
+
+function toCommaList(arr: string[]): string {
+  return arr.join(', ');
+}
+
+function fromCommaList(value: string): string[] {
+  return value
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean);
+}
+
+interface ServiceFormProps {
+  defaultValues: ServiceFormValues;
+  onSubmit: (values: ServiceFormValues) => void;
+  onCancel: () => void;
+  loading: boolean;
+  isEdit?: boolean;
+}
+
+function ServiceForm({ defaultValues, onSubmit, onCancel, loading, isEdit = false }: ServiceFormProps) {
+  const {
+    register,
+    handleSubmit,
+    watch,
+    formState: { errors },
+  } = useForm<ServiceFormValues>({
+    resolver: zodResolver(serviceSchema),
+    defaultValues,
+    mode: 'onChange',
+  });
+
+  const values = watch();
+
+  return (
+    <form onSubmit={handleSubmit(onSubmit)} className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+      <div className="space-y-5 lg:col-span-2">
+        <Card>
+          <CardHeader>
+            <div>
+              <CardTitle>
+                <Info className="h-5 w-5 text-primary-600" /> Identité
+              </CardTitle>
+              <CardDescription>Informations générales du service</CardDescription>
+            </div>
+          </CardHeader>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <Input label="Nom *" placeholder="Développement Web" error={errors.name?.message} {...register('name')} />
+            <Input label="Slug *" placeholder="developpement-web" className="font-mono" error={errors.slug?.message} {...register('slug')} />
+            <Input label="Slogan *" placeholder="Sites corporate, applications web" className="sm:col-span-2" error={errors.tagline?.message} {...register('tagline')} />
+            <Select label="Icône" options={iconOptions} error={errors.icon?.message} {...register('icon')} />
+          </div>
+          <div className="mt-4">
+            <Textarea label="Description *" rows={4} placeholder="Description du service" error={errors.description?.message} {...register('description')} />
+          </div>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <div>
+              <CardTitle>
+                <Layers className="h-5 w-5 text-primary-600" /> Détails
+              </CardTitle>
+              <CardDescription>Fonctionnalités et technologies associées</CardDescription>
+            </div>
+          </CardHeader>
+          <div className="space-y-4">
+            <Input label="Fonctionnalités (virgule)" placeholder="Sites corporate, Dashboards, Marketplaces" error={errors.features?.message} {...register('features')} />
+            <Input label="Technologies (virgule)" placeholder="React, TypeScript, Vite, Tailwind" error={errors.technologies?.message} {...register('technologies')} />
+          </div>
+        </Card>
+      </div>
+
+      <div className="lg:col-span-1">
+        <Card className="lg:sticky lg:top-24">
+          <CardHeader>
+            <div>
+              <CardTitle>Récapitulatif</CardTitle>
+              <CardDescription>{isEdit ? 'Modification du service' : 'Nouveau service'}</CardDescription>
+            </div>
+          </CardHeader>
+
+          <dl className="space-y-2 text-sm">
+            {[
+              { label: 'Nom', value: values.name || null },
+              { label: 'Slug', value: values.slug || null },
+              { label: 'Icône', value: values.icon || null },
+            ].map(({ label, value }) => (
+              <div key={label} className="flex justify-between gap-3">
+                <dt className="text-ink-500">{label}</dt>
+                <dd className="max-w-[60%] truncate text-right font-medium text-ink-900">
+                  {value ?? <span className="text-ink-300">-</span>}
+                </dd>
+              </div>
+            ))}
+          </dl>
+
+          <div className="mt-5 space-y-2">
+            <Button type="submit" variant="primary" size="md" fullWidth loading={loading} leftIcon={!loading ? <Save className="h-4 w-4" /> : undefined}>
+              Enregistrer
+            </Button>
+            <Button type="button" variant="outline" size="md" fullWidth onClick={onCancel}>
+              Annuler
+            </Button>
+          </div>
+        </Card>
+      </div>
+    </form>
+  );
 }
 
 export function AdminServicesPage() {
@@ -41,11 +159,10 @@ export function AdminServicesPage() {
   });
   const deleteMutation = useMutation({ mutationFn: deleteService, onSuccess: () => queryClient.invalidateQueries({ queryKey: ['services'] }) });
 
-  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [view, setView] = useState<View>('list');
   const [editing, setEditing] = useState<Service | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [deleteConfirm, setDeleteConfirm] = useState<Service | null>(null);
-  const [formData, setFormData] = useState<ServiceFormData>(emptyForm());
 
   const filtered = useMemo(() => {
     if (!searchQuery.trim()) return services;
@@ -53,20 +170,59 @@ export function AdminServicesPage() {
     return services.filter((s) => s.name.toLowerCase().includes(q) || s.tagline.toLowerCase().includes(q));
   }, [services, searchQuery]);
 
-  function handleEdit(service: Service) { setEditing(service); setFormData(toFormData(service)); setDrawerOpen(true); }
-  function handleCreate() { setEditing(null); setFormData(emptyForm()); setDrawerOpen(true); }
+  function handleEdit(service: Service) {
+    setEditing(service);
+    setView('edit');
+  }
 
-  function handleSave(e: React.FormEvent) {
-    e.preventDefault();
+  function handleCreate() {
+    setEditing(null);
+    setView('edit');
+  }
+
+  function handleSave(values: ServiceFormValues) {
     const payload = {
-      name: formData.name, slug: formData.slug, tagline: formData.tagline,
-      description: formData.description, icon: formData.icon,
-      features: formData.features.split(',').map((f) => f.trim()).filter(Boolean),
-      technologies: formData.technologies.split(',').map((t) => t.trim()).filter(Boolean),
+      name: values.name,
+      slug: values.slug,
+      tagline: values.tagline,
+      description: values.description,
+      icon: values.icon,
+      features: fromCommaList(values.features ?? ''),
+      technologies: fromCommaList(values.technologies ?? ''),
     };
     if (editing) updateMutation.mutate({ id: editing.id, ...payload });
     else insertMutation.mutate(payload);
-    setDrawerOpen(false);
+    setView('list');
+  }
+
+  if (view === 'edit') {
+    return (
+      <div>
+        <button
+          onClick={() => setView('list')}
+          className="inline-flex items-center gap-2 text-sm text-ink-500 hover:text-ink-900 transition-colors mb-6"
+        >
+          <ArrowLeft className="h-4 w-4" /> Retour à la liste
+        </button>
+
+        <div className="mb-6">
+          <h2 className="text-2xl font-bold text-ink-900">
+            {editing ? 'Modifier le service' : 'Nouveau service'}
+          </h2>
+          <p className="text-sm text-ink-500 mt-1">
+            {editing ? editing.name : 'Ajoutez un nouveau service au catalogue'}
+          </p>
+        </div>
+
+        <ServiceForm
+          defaultValues={editing ? toFormData(editing) : emptyForm()}
+          onSubmit={handleSave}
+          onCancel={() => setView('list')}
+          loading={insertMutation.isPending || updateMutation.isPending}
+          isEdit={!!editing}
+        />
+      </div>
+    );
   }
 
   return (
@@ -109,36 +265,6 @@ export function AdminServicesPage() {
           ))}
         </div>
       )}
-
-      <FormDrawer
-        open={drawerOpen}
-        onClose={() => setDrawerOpen(false)}
-        title={editing ? 'Modifier le service' : 'Nouveau service'}
-        subtitle={editing ? editing.name : 'Ajoutez un nouveau service au catalogue'}
-        footer={
-          <>
-            <Button type="submit" form="service-form" variant="primary" size="md" leftIcon={<Save className="h-4 w-4" />}>Enregistrer</Button>
-            <Button type="button" variant="outline" size="md" onClick={() => setDrawerOpen(false)}>Annuler</Button>
-          </>
-        }
-      >
-        <form id="service-form" onSubmit={handleSave} className="space-y-5">
-          <div className="rounded-2xl border border-ink-100 bg-white p-5 space-y-5">
-            <div className="grid sm:grid-cols-2 gap-5">
-              <DrawerField label="Nom" required><input type="text" required value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} placeholder="Développement Web" className={drawerInputClass} /></DrawerField>
-              <DrawerField label="Slug" required><input type="text" required value={formData.slug} onChange={(e) => setFormData({ ...formData, slug: e.target.value })} placeholder="developpement-web" className={`${drawerInputClass} font-mono`} /></DrawerField>
-            </div>
-            <DrawerField label="Slogan" required><input type="text" required value={formData.tagline} onChange={(e) => setFormData({ ...formData, tagline: e.target.value })} placeholder="Sites corporate, applications web" className={drawerInputClass} /></DrawerField>
-            <DrawerField label="Description" required><textarea required rows={4} value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} placeholder="Description du service" className={drawerTextareaClass} /></DrawerField>
-            <DrawerField label="Icône"><select value={formData.icon} onChange={(e) => setFormData({ ...formData, icon: e.target.value })} className={drawerInputClass}>{iconOptions.map((opt) => <option key={opt.value} value={opt.value}>{opt.label}</option>)}</select></DrawerField>
-          </div>
-          <div className="rounded-2xl border border-ink-100 bg-white p-5 space-y-5">
-            <h3 className="font-semibold text-ink-900">Détails</h3>
-            <DrawerField label="Fonctionnalités (séparées par des virgules)"><input type="text" value={formData.features} onChange={(e) => setFormData({ ...formData, features: e.target.value })} placeholder="Sites corporate, Dashboards, Marketplaces" className={drawerInputClass} /></DrawerField>
-            <DrawerField label="Technologies (séparées par des virgules)"><input type="text" value={formData.technologies} onChange={(e) => setFormData({ ...formData, technologies: e.target.value })} placeholder="React, TypeScript, Vite, Tailwind" className={drawerInputClass} /></DrawerField>
-          </div>
-        </form>
-      </FormDrawer>
 
       <AnimatePresence>
         {deleteConfirm && (
