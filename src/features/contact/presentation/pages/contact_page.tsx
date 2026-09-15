@@ -2,9 +2,11 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { motion } from 'framer-motion';
-import { Mail, Phone, MapPin, MessageCircle, Send, CheckCircle2, Linkedin, Facebook, Instagram, Github } from 'lucide-react';
-import { Container, Input, Textarea, Select, Button, Section } from '@/shared/ui';
+import { motion, AnimatePresence } from 'framer-motion';
+import {
+  Mail, Phone, MapPin, MessageCircle, Send, CheckCircle2, Linkedin, Facebook, Instagram, Github, Sparkles, Clock, ArrowUpRight,
+} from 'lucide-react';
+import { Container, Button, Section } from '@/shared/ui';
 import { APP_CONFIG } from '@/core/config/app_config';
 import { useContentStore } from '@/features/content/presentation/store/content_store';
 
@@ -36,16 +38,104 @@ const contactInfo = [
 ];
 
 const socials = [
-  { Icon: Linkedin, href: APP_CONFIG.social.linkedin },
-  { Icon: Facebook, href: APP_CONFIG.social.facebook },
-  { Icon: Instagram, href: APP_CONFIG.social.instagram },
-  { Icon: Github, href: APP_CONFIG.social.github },
+  { Icon: Linkedin, href: APP_CONFIG.social.linkedin, label: 'LinkedIn' },
+  { Icon: Facebook, href: APP_CONFIG.social.facebook, label: 'Facebook' },
+  { Icon: Instagram, href: APP_CONFIG.social.instagram, label: 'Instagram' },
+  { Icon: Github, href: APP_CONFIG.social.github, label: 'GitHub' },
 ];
+
+interface FloatingFieldProps {
+  id: string;
+  label: string;
+  type?: string;
+  value: string;
+  onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => void;
+  error?: string;
+  required?: boolean;
+  textarea?: boolean;
+  rows?: number;
+  options?: { value: string; label: string }[];
+  placeholder?: string;
+}
+
+function FloatingField({ id, label, type = 'text', value, onChange, error, required, textarea, rows = 4, options, placeholder }: FloatingFieldProps) {
+  const hasValue = value.length > 0;
+  const [focused, setFocused] = useState(false);
+  const active = focused || hasValue;
+
+  const sharedClass = `w-full rounded-2xl border bg-transparent text-sm text-white transition-all duration-300 focus:outline-none ${
+    error ? 'border-red-400/60' : active ? 'border-primary-500/60' : 'border-white/15 hover:border-white/25'
+  }`;
+
+  return (
+    <div className="relative">
+      <label htmlFor={id} className={`pointer-events-none absolute left-4 transition-all duration-200 z-10 ${
+        active
+          ? 'top-2.5 text-[10px] font-bold uppercase tracking-wider text-primary-400'
+          : 'top-1/2 -translate-y-1/2 text-sm text-ink-400'
+      }`}>
+        {label}{required && <span className="text-primary-500"> *</span>}
+      </label>
+
+      {textarea ? (
+        <textarea
+          id={id}
+          rows={rows}
+          value={value}
+          onChange={onChange}
+          onFocus={() => setFocused(true)}
+          onBlur={() => setFocused(false)}
+          placeholder={active ? placeholder : ''}
+          className={`${sharedClass} px-4 pt-8 pb-3 resize-none placeholder:text-ink-500`}
+        />
+      ) : options ? (
+        <select
+          id={id}
+          value={value}
+          onChange={onChange}
+          onFocus={() => setFocused(true)}
+          onBlur={() => setFocused(false)}
+          className={`${sharedClass} h-14 px-4 text-white appearance-none cursor-pointer [&>option]:bg-ink-900 [&>option]:text-white`}
+        >
+          <option value="">{active ? '' : ' '}</option>
+          {options.map((opt) => (
+            <option key={opt.value} value={opt.value}>{opt.label}</option>
+          ))}
+        </select>
+      ) : (
+        <input
+          id={id}
+          type={type}
+          value={value}
+          onChange={onChange}
+          onFocus={() => setFocused(true)}
+          onBlur={() => setFocused(false)}
+          placeholder={active ? placeholder : ''}
+          className={`${sharedClass} h-14 px-4 placeholder:text-ink-500`}
+        />
+      )}
+
+      {options && (
+        <svg className="absolute right-4 top-1/2 -translate-y-1/2 h-4 w-4 text-ink-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+        </svg>
+      )}
+
+      <AnimatePresence>
+        {error && (
+          <motion.p initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }} className="mt-1.5 flex items-center gap-1 text-xs text-red-400">
+            <span className="inline-block h-1 w-1 rounded-full bg-red-400" /> {error}
+          </motion.p>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
 
 export function ContactPage() {
   const [submitted, setSubmitted] = useState(false);
   const addMessage = useContentStore((s) => s.addMessage);
-  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<FormData>({
+  const { register, handleSubmit, formState: { errors, isSubmitting }, watch } = useForm<FormData>({
     resolver: zodResolver(schema),
   });
 
@@ -67,9 +157,13 @@ export function ContactPage() {
       <section className="relative overflow-hidden bg-ink-900 text-white pt-20 pb-24 lg:pt-28 lg:pb-32">
         <div className="absolute inset-0 grid-bg-dark opacity-20" />
         <div className="absolute top-0 right-0 h-[400px] w-[400px] rounded-full bg-primary-600/20 blur-[120px]" />
+        <div className="absolute bottom-0 left-0 h-[300px] w-[300px] rounded-full bg-secondary-600/10 blur-[100px]" />
         <Container>
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }} className="max-w-3xl">
-            <p className="text-sm font-semibold uppercase tracking-[0.2em] text-primary-400 mb-4">Contact</p>
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 mb-5">
+              <Sparkles className="h-3.5 w-3.5 text-primary-400" />
+              <span className="text-xs font-semibold uppercase tracking-wider text-ink-300">Contact</span>
+            </div>
             <h1 className="text-display-lg font-extrabold text-balance">Parlons de votre <span className="text-gradient-light">projet</span></h1>
             <p className="mt-6 text-lg text-ink-300 leading-relaxed max-w-2xl">
               Une idée, un besoin, un projet ? Écrivez-nous et recevez une réponse sous 24h.
@@ -78,73 +172,103 @@ export function ContactPage() {
         </Container>
       </section>
 
-      <Section>
-        <div className="grid lg:grid-cols-5 gap-12">
-          <div className="lg:col-span-2 space-y-6">
-            <h2 className="text-2xl font-bold text-ink-900 mb-2">Nos coordonnées</h2>
-            <p className="text-ink-500 leading-relaxed mb-8">
-              Notre équipe est disponible pour échanger sur vos projets et vous accompagner dans
-              votre transformation digitale.
-            </p>
-            <div className="space-y-4">
-              {contactInfo.map((info) => (
-                <div key={info.label} className="flex items-start gap-4 p-4 rounded-xl border border-ink-100 bg-white">
-                  <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl bg-primary-50 text-primary-600">
-                    <info.icon className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <div className="text-xs font-semibold uppercase tracking-wider text-ink-400 mb-1">{info.label}</div>
-                    {info.href ? (
-                      <a href={info.href} className="text-sm font-medium text-ink-900 hover:text-primary-600 transition-colors">{info.value}</a>
-                    ) : (
-                      <div className="text-sm font-medium text-ink-900">{info.value}</div>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-            <div className="flex items-center gap-3 pt-4">
-              {socials.map(({ Icon, href }, i) => (
-                <a key={i} href={href} target="_blank" rel="noopener noreferrer" className="flex h-10 w-10 items-center justify-center rounded-xl bg-ink-50 text-ink-600 hover:bg-primary-600 hover:text-white transition-all duration-300">
-                  <Icon className="h-5 w-5" />
-                </a>
-              ))}
-            </div>
-          </div>
+      <Section className="-mt-12 relative z-10">
+        <div className="grid lg:grid-cols-12 gap-6">
+          {/* Left: Contact info panel */}
+          <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5 }} className="lg:col-span-4">
+            <div className="rounded-3xl bg-ink-900 text-white p-8 h-full flex flex-col">
+              <h2 className="text-xl font-bold mb-2">Coordonnées</h2>
+              <p className="text-sm text-ink-400 leading-relaxed mb-8">
+                Notre équipe est disponible pour échanger sur vos projets.
+              </p>
 
-          <div className="lg:col-span-3">
+              <div className="space-y-3 flex-1">
+                {contactInfo.map((info, i) => (
+                  <motion.a
+                    key={info.label}
+                    href={info.href ?? undefined}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.1 + i * 0.08 }}
+                    className={`group flex items-center gap-4 p-4 rounded-2xl bg-white/5 border border-white/10 transition-all duration-300 ${info.href ? 'hover:bg-white/10 hover:border-primary-500/30' : 'cursor-default'}`}
+                  >
+                    <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-primary-500/10 text-primary-400 group-hover:bg-primary-500/20 group-hover:scale-110 transition-all duration-300">
+                      <info.icon className="h-4.5 w-4.5" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="text-[10px] font-bold uppercase tracking-wider text-ink-500 mb-0.5">{info.label}</div>
+                      <div className="text-sm font-medium text-white truncate">{info.value}</div>
+                    </div>
+                    {info.href && <ArrowUpRight className="h-4 w-4 text-ink-500 group-hover:text-primary-400 transition-colors flex-shrink-0" />}
+                  </motion.a>
+                ))}
+              </div>
+
+              <div className="pt-6 mt-6 border-t border-white/10">
+                <div className="flex items-center gap-2 mb-4">
+                  <Clock className="h-4 w-4 text-primary-400" />
+                  <span className="text-xs font-semibold uppercase tracking-wider text-ink-300">Suivez-nous</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  {socials.map(({ Icon, href, label }) => (
+                    <a key={label} href={href} target="_blank" rel="noopener noreferrer" aria-label={label}
+                      className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/5 text-ink-400 hover:bg-primary-600 hover:text-white hover:scale-110 transition-all duration-300">
+                      <Icon className="h-4.5 w-4.5" />
+                    </a>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Right: Form panel */}
+          <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5, delay: 0.1 }} className="lg:col-span-8">
             {submitted ? (
-              <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="p-12 rounded-2xl border border-green-100 bg-green-50 text-center">
-                <CheckCircle2 className="h-16 w-16 text-green-500 mx-auto mb-4" />
+              <div className="rounded-3xl border border-green-200 bg-gradient-to-br from-green-50 to-white p-12 text-center min-h-[400px] flex flex-col items-center justify-center">
+                <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring', stiffness: 200, damping: 15 }}>
+                  <div className="flex h-20 w-20 items-center justify-center rounded-full bg-green-100 mb-6">
+                    <CheckCircle2 className="h-10 w-10 text-green-500" />
+                  </div>
+                </motion.div>
                 <h3 className="text-2xl font-bold text-ink-900 mb-2">Message envoyé !</h3>
-                <p className="text-ink-500 mb-6">Merci pour votre message. Nous vous répondrons sous 24h.</p>
+                <p className="text-ink-500 mb-8 max-w-sm">Merci pour votre message. Nous vous répondrons sous 24h.</p>
                 <Button onClick={() => setSubmitted(false)} variant="outline" size="md">Envoyer un autre message</Button>
-              </motion.div>
+              </div>
             ) : (
-              <form onSubmit={handleSubmit(onSubmit)} className="p-8 rounded-2xl border border-ink-100 bg-white shadow-premium space-y-5">
-                <div className="grid sm:grid-cols-2 gap-5">
-                  <Input label="Nom *" placeholder="Votre nom" error={errors.name?.message} {...register('name')} />
-                  <Input label="Entreprise" placeholder="Nom de l'entreprise" {...register('company')} />
+              <form onSubmit={handleSubmit(onSubmit)} className="rounded-3xl bg-ink-900 text-white p-8 lg:p-10 shadow-premium relative overflow-hidden">
+                <div className="absolute top-0 right-0 h-[200px] w-[200px] rounded-full bg-primary-600/10 blur-[80px] pointer-events-none" />
+
+                <div className="relative mb-8">
+                  <h2 className="text-xl font-bold text-white mb-1">Envoyez-nous un message</h2>
+                  <p className="text-sm text-ink-400">Remplissez le formulaire ci-dessous</p>
                 </div>
-                <div className="grid sm:grid-cols-2 gap-5">
-                  <Input label="Email *" type="email" placeholder="vous@entreprise.com" error={errors.email?.message} {...register('email')} />
-                  <Input label="Téléphone" placeholder="+225 ..." {...register('phone')} />
+
+                <div className="relative space-y-4">
+                  <div className="grid sm:grid-cols-2 gap-4">
+                    <FloatingField id="name" label="Nom" required placeholder="Votre nom" value={watch('name') ?? ''} onChange={(e) => register('name').onChange(e)} error={errors.name?.message} />
+                    <FloatingField id="company" label="Entreprise" placeholder="Nom de l'entreprise" value={watch('company') ?? ''} onChange={(e) => register('company').onChange(e)} />
+                  </div>
+                  <div className="grid sm:grid-cols-2 gap-4">
+                    <FloatingField id="email" label="Email" type="email" required placeholder="vous@entreprise.com" value={watch('email') ?? ''} onChange={(e) => register('email').onChange(e)} error={errors.email?.message} />
+                    <FloatingField id="phone" label="Téléphone" type="tel" placeholder="+225 ..." value={watch('phone') ?? ''} onChange={(e) => register('phone').onChange(e)} />
+                  </div>
+                  <FloatingField id="projectType" label="Type de projet" required options={projectTypes} placeholder="Sélectionnez..." value={watch('projectType') ?? ''} onChange={(e) => register('projectType').onChange(e)} error={errors.projectType?.message} />
+                  <FloatingField id="message" label="Message" required textarea rows={5} placeholder="Décrivez votre projet en quelques lignes..." value={watch('message') ?? ''} onChange={(e) => register('message').onChange(e)} error={errors.message?.message} />
                 </div>
-                <Select label="Type de projet *" options={projectTypes} error={errors.projectType?.message} {...register('projectType')} />
-                <Textarea label="Message *" rows={5} placeholder="Décrivez votre projet en quelques lignes..." error={errors.message?.message} {...register('message')} />
-                <div className="flex flex-col sm:flex-row gap-3">
+
+                <div className="relative mt-8 flex flex-col sm:flex-row gap-3">
                   <Button type="submit" variant="primary" size="lg" loading={isSubmitting} leftIcon={<Send className="h-4 w-4" />}>
                     Envoyer ma demande
                   </Button>
                   <a href={`https://wa.me/${APP_CONFIG.whatsapp.replace(/\s/g, '')}`} target="_blank" rel="noopener noreferrer">
-                    <Button type="button" variant="outline" size="lg" leftIcon={<MessageCircle className="h-5 w-5" />}>
+                    <Button type="button" variant="outline" size="lg" leftIcon={<MessageCircle className="h-5 w-5" />} className="!border-white/20 !text-white hover:!bg-white/10">
                       Discuter sur WhatsApp
                     </Button>
                   </a>
                 </div>
               </form>
             )}
-          </div>
+          </motion.div>
         </div>
       </Section>
     </>
