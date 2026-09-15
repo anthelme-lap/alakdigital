@@ -1,12 +1,11 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Edit3, Trash2, X, Save, ArrowLeft, Users } from 'lucide-react';
+import { Plus, Edit3, Trash2, X, Save, Users } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { fetchTeam, insertTeamMember, updateTeamMember, deleteTeamMember } from '@/features/content/infrastructure/content_api';
 import { Button } from '@/shared/ui';
+import { FormDrawer, DrawerField, drawerInputClass } from '@/features/admin/presentation/components/form_drawer';
 import type { TeamMember } from '@/features/content/domain/entities/content';
-
-const inputClass = 'w-full h-11 px-4 rounded-xl border border-ink-200 bg-white text-sm text-ink-900 placeholder:text-ink-400 focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20';
 
 interface FormData { name: string; role: string; image: string; tools: string; }
 function emptyForm(): FormData { return { name: '', role: '', image: '', tools: '' }; }
@@ -15,49 +14,26 @@ function toFormData(m: TeamMember): FormData { return { name: m.name, role: m.ro
 export function AdminTeamPage() {
   const queryClient = useQueryClient();
   const { data: team = [] } = useQuery({ queryKey: ['team'], queryFn: fetchTeam });
-  const insertMutation = useMutation({
-    mutationFn: insertTeamMember,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['team'] }),
-  });
+  const insertMutation = useMutation({ mutationFn: insertTeamMember, onSuccess: () => queryClient.invalidateQueries({ queryKey: ['team'] }) });
   const updateMutation = useMutation({
     mutationFn: ({ id, ...payload }: { id: string } & Partial<TeamMember>) => updateTeamMember(id, payload),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['team'] }),
   });
-  const deleteMutation = useMutation({
-    mutationFn: deleteTeamMember,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['team'] }),
-  });
-  const [view, setView] = useState<'list' | 'edit'>('list');
+  const deleteMutation = useMutation({ mutationFn: deleteTeamMember, onSuccess: () => queryClient.invalidateQueries({ queryKey: ['team'] }) });
+
+  const [drawerOpen, setDrawerOpen] = useState(false);
   const [editing, setEditing] = useState<TeamMember | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<TeamMember | null>(null);
   const [formData, setFormData] = useState<FormData>(emptyForm());
 
-  function handleEdit(m: TeamMember) { setEditing(m); setFormData(toFormData(m)); setView('edit'); }
-  function handleCreate() { setEditing(null); setFormData(emptyForm()); setView('edit'); }
+  function handleEdit(m: TeamMember) { setEditing(m); setFormData(toFormData(m)); setDrawerOpen(true); }
+  function handleCreate() { setEditing(null); setFormData(emptyForm()); setDrawerOpen(true); }
   function handleSave(e: React.FormEvent) {
     e.preventDefault();
     const payload = { name: formData.name, role: formData.role, image: formData.image, tools: formData.tools.split(',').map((t) => t.trim()).filter(Boolean) };
-    if (editing) updateMutation.mutate({ id: editing.id, ...payload }); else insertMutation.mutate(payload);
-    setView('list');
-  }
-
-  if (view === 'edit') {
-    return (
-      <div className="max-w-2xl mx-auto">
-        <button onClick={() => setView('list')} className="inline-flex items-center gap-2 text-sm text-ink-500 hover:text-ink-900 transition-colors mb-6"><ArrowLeft className="h-4 w-4" /> Retour</button>
-        <h2 className="text-2xl font-bold text-ink-900 mb-6">{editing ? 'Modifier le membre' : 'Nouveau membre'}</h2>
-        <form onSubmit={handleSave} className="space-y-5">
-          <div className="rounded-2xl border border-ink-100 bg-white p-6 space-y-5">
-            <div><label className="block text-sm font-medium text-ink-700 mb-2">Nom *</label><input type="text" required value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} placeholder="Kouassi Aristide" className={inputClass} /></div>
-            <div><label className="block text-sm font-medium text-ink-700 mb-2">Rôle *</label><input type="text" required value={formData.role} onChange={(e) => setFormData({ ...formData, role: e.target.value })} placeholder="Lead Developer" className={inputClass} /></div>
-            <div><label className="block text-sm font-medium text-ink-700 mb-2">Photo (URL)</label><input type="url" value={formData.image} onChange={(e) => setFormData({ ...formData, image: e.target.value })} placeholder="https://..." className={inputClass} />
-              {formData.image && <div className="mt-3 rounded-xl overflow-hidden border border-ink-100 max-h-48"><img src={formData.image} alt="Preview" className="w-full h-full object-cover" /></div>}</div>
-            <div><label className="block text-sm font-medium text-ink-700 mb-2">Outils (virgule)</label><input type="text" value={formData.tools} onChange={(e) => setFormData({ ...formData, tools: e.target.value })} placeholder="React, TypeScript, Docker" className={inputClass} /></div>
-          </div>
-          <div className="flex gap-3"><Button type="submit" variant="primary" size="md" leftIcon={<Save className="h-4 w-4" />}>Enregistrer</Button><Button type="button" variant="outline" size="md" onClick={() => setView('list')}>Annuler</Button></div>
-        </form>
-      </div>
-    );
+    if (editing) updateMutation.mutate({ id: editing.id, ...payload });
+    else insertMutation.mutate(payload);
+    setDrawerOpen(false);
   }
 
   return (
@@ -66,6 +42,7 @@ export function AdminTeamPage() {
         <div><h2 className="text-2xl font-bold text-ink-900">Équipe</h2><p className="text-sm text-ink-500 mt-1">Gérez les membres de l'équipe</p></div>
         <Button variant="primary" size="md" leftIcon={<Plus className="h-4 w-4" />} onClick={handleCreate}>Nouveau membre</Button>
       </div>
+
       {team.length === 0 ? (
         <div className="text-center py-20 rounded-2xl border border-ink-100 bg-white"><Users className="h-12 w-12 text-ink-300 mx-auto mb-3" /><p className="text-ink-500 mb-4">Aucun membre</p><Button variant="primary" size="sm" leftIcon={<Plus className="h-4 w-4" />} onClick={handleCreate}>Ajouter</Button></div>
       ) : (
@@ -86,6 +63,32 @@ export function AdminTeamPage() {
           ))}
         </div>
       )}
+
+      <FormDrawer
+        open={drawerOpen}
+        onClose={() => setDrawerOpen(false)}
+        title={editing ? 'Modifier le membre' : 'Nouveau membre'}
+        subtitle={editing ? editing.name : 'Ajoutez un membre à l\'équipe'}
+        footer={
+          <>
+            <Button type="submit" form="team-form" variant="primary" size="md" leftIcon={<Save className="h-4 w-4" />}>Enregistrer</Button>
+            <Button type="button" variant="outline" size="md" onClick={() => setDrawerOpen(false)}>Annuler</Button>
+          </>
+        }
+      >
+        <form id="team-form" onSubmit={handleSave} className="space-y-5">
+          <div className="rounded-2xl border border-ink-100 bg-white p-5 space-y-5">
+            <DrawerField label="Nom" required><input type="text" required value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} placeholder="Kouassi Aristide" className={drawerInputClass} /></DrawerField>
+            <DrawerField label="Rôle" required><input type="text" required value={formData.role} onChange={(e) => setFormData({ ...formData, role: e.target.value })} placeholder="Lead Developer" className={drawerInputClass} /></DrawerField>
+            <DrawerField label="Photo (URL)">
+              <input type="url" value={formData.image} onChange={(e) => setFormData({ ...formData, image: e.target.value })} placeholder="https://..." className={drawerInputClass} />
+              {formData.image && <div className="mt-3 rounded-xl overflow-hidden border border-ink-100 max-h-48"><img src={formData.image} alt="Aperçu" className="w-full h-full object-cover" /></div>}
+            </DrawerField>
+            <DrawerField label="Outils (séparés par des virgules)"><input type="text" value={formData.tools} onChange={(e) => setFormData({ ...formData, tools: e.target.value })} placeholder="React, TypeScript, Docker" className={drawerInputClass} /></DrawerField>
+          </div>
+        </form>
+      </FormDrawer>
+
       <AnimatePresence>
         {deleteConfirm && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 flex items-center justify-center p-4">
