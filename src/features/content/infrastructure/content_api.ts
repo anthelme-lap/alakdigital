@@ -33,7 +33,7 @@ type ProjectRow = {
   description: string; problem: string; solution: string;
   technologies: string[]; services: string[]; featured: boolean;
   year: string; client: string; duration: string;
-  results: { label: string; value: string }[]; features: string[]; image: string;
+  results: { label: string; value: string }[]; features: string[]; image: string; link: string;
 };
 
 function mapProject(r: ProjectRow): Project {
@@ -42,7 +42,7 @@ function mapProject(r: ProjectRow): Project {
     description: r.description, problem: r.problem, solution: r.solution,
     technologies: r.technologies ?? [], services: r.services ?? [],
     featured: r.featured, year: r.year, client: r.client, duration: r.duration,
-    results: r.results ?? [], features: r.features ?? [], image: r.image ?? '',
+    results: r.results ?? [], features: r.features ?? [], image: r.image ?? '', link: r.link ?? '',
   };
 }
 
@@ -62,7 +62,7 @@ function mapService(r: ServiceRow): Service {
 type SolutionRow = {
   id: string; name: string; slug: string; tagline: string;
   problem: string; target: string; description: string;
-  features: string[]; technologies: string[]; category: string;
+  features: string[]; technologies: string[]; category: string; link: string;
 };
 
 function mapSolution(r: SolutionRow): Solution {
@@ -70,7 +70,7 @@ function mapSolution(r: SolutionRow): Solution {
     id: r.id, name: r.name, slug: r.slug, tagline: r.tagline,
     problem: r.problem, target: r.target, description: r.description,
     features: r.features ?? [], technologies: r.technologies ?? [],
-    category: r.category,
+    category: r.category, link: r.link ?? '',
   };
 }
 
@@ -271,7 +271,7 @@ export async function insertProject(p: Omit<Project, 'id'>): Promise<Project> {
     description: p.description, problem: p.problem, solution: p.solution,
     technologies: p.technologies, services: p.services, featured: p.featured,
     year: p.year, client: p.client, duration: p.duration,
-    results: p.results, features: p.features, image: p.image,
+    results: p.results, features: p.features, image: p.image, link: p.link,
   }).select('*').single();
   if (error) throw error;
   return mapProject(data);
@@ -295,6 +295,7 @@ export async function updateProject(id: string, p: Partial<Project>): Promise<Pr
   if (p.results !== undefined) update.results = p.results;
   if (p.features !== undefined) update.features = p.features;
   if (p.image !== undefined) update.image = p.image;
+  if (p.link !== undefined) update.link = p.link;
   const { data, error } = await supabase.from('projects').update(update).eq('id', id).select('*').single();
   if (error) throw error;
   return mapProject(data);
@@ -339,7 +340,7 @@ export async function insertSolution(s: Omit<Solution, 'id'>): Promise<Solution>
   const { data, error } = await supabase.from('solutions').insert({
     name: s.name, slug: s.slug, tagline: s.tagline, problem: s.problem,
     target: s.target, description: s.description, features: s.features,
-    technologies: s.technologies, category: s.category,
+    technologies: s.technologies, category: s.category, link: s.link,
   }).select('*').single();
   if (error) throw error;
   return mapSolution(data);
@@ -356,6 +357,7 @@ export async function updateSolution(id: string, s: Partial<Solution>): Promise<
   if (s.features !== undefined) update.features = s.features;
   if (s.technologies !== undefined) update.technologies = s.technologies;
   if (s.category !== undefined) update.category = s.category;
+  if (s.link !== undefined) update.link = s.link;
   const { data, error } = await supabase.from('solutions').update(update).eq('id', id).select('*').single();
   if (error) throw error;
   return mapSolution(data);

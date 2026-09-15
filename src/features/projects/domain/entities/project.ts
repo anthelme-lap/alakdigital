@@ -16,6 +16,7 @@ export interface Project {
   results: { label: string; value: string }[];
   features: string[];
   image: string;
+  link: string;
 }
 
 export const projects: Project[] = [
@@ -50,6 +51,7 @@ export const projects: Project[] = [
       'Notifications push automatiques',
     ],
     image: 'https://images.pexels.com/photos/11035471/pexels-photo-11035471.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
+    link: '',
   },
   {
     id: '2',
@@ -82,6 +84,7 @@ export const projects: Project[] = [
       'Tableau de bord de performance',
     ],
     image: 'https://images.pexels.com/photos/3184292/pexels-photo-3184292.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
+    link: '',
   },
   {
     id: '3',
@@ -114,6 +117,7 @@ export const projects: Project[] = [
       'Facturation et statistiques',
     ],
     image: 'https://images.pexels.com/photos/7376/startup-photos.jpg?auto=compress&cs=tinysrgb&h=650&w=940',
+    link: '',
   },
   {
     id: '4',
@@ -146,6 +150,7 @@ export const projects: Project[] = [
       'Intégration paiement mobile',
     ],
     image: 'https://images.pexels.com/photos/1966447/pexels-photo-1966447.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
+    link: '',
   },
   {
     id: '5',
@@ -178,6 +183,7 @@ export const projects: Project[] = [
       'Rapports analytiques avancés',
     ],
     image: 'https://images.pexels.com/photos/1181271/pexels-photo-1181271.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
+    link: '',
   },
   {
     id: '6',
@@ -210,5 +216,6 @@ export const projects: Project[] = [
       'Authentification à deux facteurs',
     ],
     image: 'https://images.pexels.com/photos/3184465/pexels-photo-3184465.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
+    link: '',
   },
 ];

@@ -21,6 +21,7 @@ import {
   ListChecks,
   BarChart3,
   Tag,
+  ExternalLink,
 } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { fetchProjects, insertProject, updateProject, deleteProject } from '@/features/content/infrastructure/content_api';
@@ -47,6 +48,7 @@ function toFormData(p: Project): ProjectFormValues {
     duration: p.duration,
     features: toCommaList(p.features),
     image: p.image,
+    link: p.link,
   };
 }
 
@@ -67,6 +69,7 @@ function emptyForm(): ProjectFormValues {
     duration: '',
     features: '',
     image: '',
+    link: '',
   };
 }
 
@@ -170,6 +173,7 @@ function ProjectForm({ defaultValues, onSubmit, onCancel, loading, isEdit = fals
               <Input label="Annee" placeholder="2024" error={errors.year?.message} {...register('year')} />
               <Input label="Duree" placeholder="5 mois" error={errors.duration?.message} {...register('duration')} />
             </div>
+            <Input label="Lien du site" type="url" placeholder="https://exemple.com" error={errors.link?.message} {...register('link')} />
             <Input label="Fonctionnalites (virgule)" placeholder="Billetterie, Check-in QR, Dashboard" error={errors.features?.message} {...register('features')} />
             <label className="flex items-center gap-3 cursor-pointer">
               <button
@@ -255,6 +259,13 @@ function ProjectDetailView({ project, onBack, onEdit, onDelete }: ProjectDetailV
           <p className="text-sm text-ink-500 mt-1">{project.tagline}</p>
         </div>
         <div className="flex items-center gap-2">
+          {project.link && (
+            <a href={project.link} target="_blank" rel="noopener noreferrer">
+              <Button variant="outline" size="md" leftIcon={<ExternalLink className="h-4 w-4" />}>
+                Voir le site
+              </Button>
+            </a>
+          )}
           <Button variant="primary" size="md" leftIcon={<Edit3 className="h-4 w-4" />} onClick={() => onEdit(project)}>
             Modifier
           </Button>
@@ -498,6 +509,7 @@ export function AdminProjectsPage() {
       duration: values.duration ?? '',
       features: fromCommaList(values.features ?? ''),
       image: values.image ?? '',
+      link: values.link ?? '',
       results: editingProject ? editingProject.results : [],
     };
     if (editingProject) {

@@ -9,6 +9,7 @@ export interface Solution {
   features: string[];
   technologies: string[];
   category: string;
+  link: string;
 }
 
 export const solutions: Solution[] = [
@@ -30,6 +31,7 @@ export const solutions: Solution[] = [
     ],
     technologies: ['React', 'Laravel', 'MySQL'],
     category: 'SaaS Automotive',
+    link: '',
   },
   {
     id: '2',
@@ -49,6 +51,7 @@ export const solutions: Solution[] = [
     ],
     technologies: ['React', 'FastAPI', 'PostgreSQL', 'Flutter'],
     category: 'SaaS Services',
+    link: '',
   },
   {
     id: '3',
@@ -68,6 +71,7 @@ export const solutions: Solution[] = [
     ],
     technologies: ['React', 'Laravel', 'MySQL', 'Flutter'],
     category: 'Logistique',
+    link: '',
   },
   {
     id: '4',
@@ -87,6 +91,7 @@ export const solutions: Solution[] = [
     ],
     technologies: ['React', 'FastAPI', 'PostgreSQL', 'Redis'],
     category: 'Fintech',
+    link: '',
   },
   {
     id: '5',
@@ -106,5 +111,6 @@ export const solutions: Solution[] = [
     ],
     technologies: ['React', 'FastAPI', 'PostgreSQL', 'Flutter'],
     category: 'Événementiel',
+    link: '',
   },
 ];

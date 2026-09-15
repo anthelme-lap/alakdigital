@@ -13,6 +13,7 @@ export const solutionSchema = z.object({
   problem: z.string().min(1, 'Problème requis'),
   features: z.string().optional().or(z.literal('')),
   technologies: z.string().optional().or(z.literal('')),
+  link: z.string().optional().or(z.literal('')),
 });
 
 export type SolutionFormValues = z.infer<typeof solutionSchema>;

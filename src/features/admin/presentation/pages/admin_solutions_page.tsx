@@ -16,6 +16,7 @@ import {
   Target,
   Layers,
   Hash,
+  ExternalLink,
 } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { fetchSolutions, insertSolution, updateSolution, deleteSolution } from '@/features/content/infrastructure/content_api';
@@ -36,6 +37,7 @@ function toFormData(s: Solution): SolutionFormValues {
     description: s.description,
     features: toCommaList(s.features),
     technologies: toCommaList(s.technologies),
+    link: s.link,
   };
 }
 
@@ -50,6 +52,7 @@ function emptyForm(): SolutionFormValues {
     description: '',
     features: '',
     technologies: '',
+    link: '',
   };
 }
 
@@ -136,6 +139,7 @@ function SolutionForm({ defaultValues, onSubmit, onCancel, loading, isEdit = fal
           <div className="space-y-4">
             <Input label="Fonctionnalites (virgule)" placeholder="Gestion des reparations, Facturation, Stock" error={errors.features?.message} {...register('features')} />
             <Input label="Technologies (virgule)" placeholder="React, Laravel, MySQL" error={errors.technologies?.message} {...register('technologies')} />
+            <Input label="Lien du site" type="url" placeholder="https://exemple.com" error={errors.link?.message} {...register('link')} />
           </div>
         </Card>
       </div>
@@ -202,6 +206,13 @@ function SolutionDetailView({ solution, onBack, onEdit, onDelete }: SolutionDeta
           <p className="text-sm text-ink-500 mt-1">{solution.tagline}</p>
         </div>
         <div className="flex items-center gap-2">
+          {solution.link && (
+            <a href={solution.link} target="_blank" rel="noopener noreferrer">
+              <Button variant="outline" size="md" leftIcon={<ExternalLink className="h-4 w-4" />}>
+                Voir le site
+              </Button>
+            </a>
+          )}
           <Button variant="primary" size="md" leftIcon={<Edit3 className="h-4 w-4" />} onClick={onEdit}>
             Modifier
           </Button>
@@ -382,6 +393,7 @@ export function AdminSolutionsPage() {
       description: values.description,
       features: fromCommaList(values.features ?? ''),
       technologies: fromCommaList(values.technologies ?? ''),
+      link: values.link ?? '',
     };
     if (editingSolution) {
       updateMutation.mutate({ id: editingSolution.id, ...payload });

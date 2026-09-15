@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { ArrowRight, Target, Users, Check } from 'lucide-react';
+import { ArrowRight, ExternalLink, Target, Users, Check } from 'lucide-react';
 import { Container, Button, Badge, Section, SectionHeading } from '@/shared/ui';
 import { CtaSection } from '@/shared/components/cta_section';
 import { useSolutions } from '@/features/solutions/presentation/queries/use_solutions';
@@ -60,9 +60,18 @@ export function SolutionsPage() {
                       </div>
                     </div>
                   </div>
-                  <Button to="/quotation" variant="primary" size="md" rightIcon={<ArrowRight className="h-4 w-4" />}>
-                    Demander une démo
-                  </Button>
+                  <div className="flex flex-wrap items-center gap-3">
+                    <Button to="/quotation" variant="primary" size="md" rightIcon={<ArrowRight className="h-4 w-4" />}>
+                      Demander une démo
+                    </Button>
+                    {solution.link && (
+                      <a href={solution.link} target="_blank" rel="noopener noreferrer">
+                        <Button variant="outline" size="md" rightIcon={<ExternalLink className="h-4 w-4" />}>
+                          Voir le site
+                        </Button>
+                      </a>
+                    )}
+                  </div>
                 </div>
                 <div className="space-y-4">
                   <div className="p-6 rounded-2xl bg-ink-50">

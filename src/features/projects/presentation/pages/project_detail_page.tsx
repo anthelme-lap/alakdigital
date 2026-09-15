@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { ArrowRight, Calendar, User, Building2, Clock } from 'lucide-react';
+import { ArrowRight, ExternalLink, Calendar, User, Building2, Clock } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useParams } from 'react-router-dom';
 import { Container, Button, Badge, Loader } from '@/shared/ui';
@@ -93,6 +93,13 @@ export function ProjectDetailPage() {
                     </li>
                   ))}
                 </ul>
+                {project.link && (
+                  <a href={project.link} target="_blank" rel="noopener noreferrer" className="block mb-3">
+                    <Button variant="outline" fullWidth size="md" rightIcon={<ExternalLink className="h-4 w-4" />}>
+                      Voir le site
+                    </Button>
+                  </a>
+                )}
                 <Button to="/quotation" fullWidth size="md" rightIcon={<ArrowRight className="h-4 w-4" />}>
                   Démarrer un projet similaire
                 </Button>

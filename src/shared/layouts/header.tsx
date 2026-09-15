@@ -5,12 +5,14 @@ import { NAV_LINKS, APP_CONFIG } from '@/core/config/app_config';
 import { useScrollPosition } from '@/shared/hooks/use_ui';
 import { useUiStore } from '@/shared/hooks/use_ui_store';
 import { Button } from '@/shared/ui';
+import { useAuth } from '@/features/auth/presentation/contexts/auth_context';
 import { Logo } from './logo';
 
 export function Header() {
   const scrolled = useScrollPosition(20);
   const { mobileMenuOpen, toggleMobileMenu, closeMobileMenu } = useUiStore();
   const location = useLocation();
+  const { user } = useAuth();
 
   const isActive = (path: string) => {
     if (path === '/') return location.pathname === '/';
@@ -53,15 +55,17 @@ export function Header() {
             </nav>
 
             <div className="hidden lg:flex items-center gap-3">
-              <Button
-                to="/admin"
-                variant="ghost"
-                size="sm"
-                leftIcon={<ShieldCheck className="h-4 w-4" />}
-                aria-label="Accéder à l'espace admin"
-              >
-                Admin
-              </Button>
+              {user && (
+                <Button
+                  to="/admin"
+                  variant="ghost"
+                  size="sm"
+                  leftIcon={<ShieldCheck className="h-4 w-4" />}
+                  aria-label="Accéder à l'espace admin"
+                >
+                  Admin
+                </Button>
+              )}
               <Button to="/quotation" variant="primary" size="sm" rightIcon={<ArrowRight className="h-4 w-4" />}>
                 Démarrer un projet
               </Button>
@@ -124,16 +128,18 @@ export function Header() {
                 <Button to="/quotation" fullWidth size="lg" rightIcon={<ArrowRight className="h-4 w-4" />} onClick={closeMobileMenu}>
                   Démarrer un projet
                 </Button>
-                <Button
-                  to="/admin"
-                  variant="outline"
-                  fullWidth
-                  size="lg"
-                  leftIcon={<ShieldCheck className="h-4 w-4" />}
-                  onClick={closeMobileMenu}
-                >
-                  Espace Admin
-                </Button>
+                {user && (
+                  <Button
+                    to="/admin"
+                    variant="outline"
+                    fullWidth
+                    size="lg"
+                    leftIcon={<ShieldCheck className="h-4 w-4" />}
+                    onClick={closeMobileMenu}
+                  >
+                    Espace Admin
+                  </Button>
+                )}
               </div>
             </motion.div>
           </motion.div>
