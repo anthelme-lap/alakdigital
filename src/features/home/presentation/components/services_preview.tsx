@@ -8,6 +8,8 @@ import { getServiceIcon } from '@/features/services/domain/entities/service';
 export function ServicesPreview() {
   const { data: services } = useServices();
 
+  if (!services || services.length === 0) return null;
+
   return (
     <Section>
       <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6 mb-14">

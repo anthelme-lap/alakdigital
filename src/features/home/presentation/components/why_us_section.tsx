@@ -7,6 +7,8 @@ import * as Icons from 'lucide-react';
 export function WhyUsSection() {
   const { data: reasons = [] } = useQuery({ queryKey: ['whyUs'], queryFn: fetchWhyUs });
 
+  if (reasons.length === 0) return null;
+
   return (
     <Section>
       <SectionHeading
@@ -17,7 +19,7 @@ export function WhyUsSection() {
 
       <StaggerContainer className="mt-14 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {reasons.map((reason) => {
-          const Icon = (Icons as Record<string, typeof Icons.Layers>)[reason.icon] ?? Icons.Layers;
+          const Icon = (Icons as unknown as Record<string, typeof Icons.Layers>)[reason.icon] ?? Icons.Layers;
           return (
             <StaggerItem key={reason.id}>
               <div className="group h-full p-8 rounded-2xl border border-ink-100 bg-white hover:shadow-premium transition-all duration-500">
