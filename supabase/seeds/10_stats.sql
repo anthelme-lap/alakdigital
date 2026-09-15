@@ -4,4 +4,4 @@ INSERT INTO stats (value, suffix, label, sort_order) VALUES
 (5, '+', 'Solutions SaaS', 1),
 (30, '+', 'Clients satisfaits', 2),
 (99, '%', 'Disponibilité', 3)
-ON CONFLICT DO NOTHING;
+ON CONFLICT (label) DO NOTHING;

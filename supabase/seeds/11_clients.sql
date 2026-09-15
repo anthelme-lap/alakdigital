@@ -8,4 +8,4 @@ INSERT INTO clients (name, sort_order) VALUES
 ('CorpWeb', 5),
 ('Ministère Digital', 6),
 ('AfriTech Hub', 7)
-ON CONFLICT DO NOTHING;
+ON CONFLICT (name) DO NOTHING;

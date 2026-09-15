@@ -8,4 +8,4 @@ INSERT INTO expertise_domains (icon, label, description, technologies, sort_orde
 ('GitBranch', 'CI/CD', 'Automatisation du build, test et déploiement.', ARRAY['GitHub Actions', 'CI/CD Pipelines', 'Automated Testing'], 5),
 ('Shield', 'Sécurité', 'Authentification, chiffrement et bonnes pratiques.', ARRAY['JWT', 'OAuth2', 'SSL/TLS', 'CORS', 'Rate Limiting'], 6),
 ('Cpu', 'Architecture', 'Clean Architecture, microservices et design patterns.', ARRAY['Clean Architecture', 'DDD', 'Microservices', 'API REST', 'SaaS Multi-tenant'], 7)
-ON CONFLICT DO NOTHING;
+ON CONFLICT (label) DO NOTHING;

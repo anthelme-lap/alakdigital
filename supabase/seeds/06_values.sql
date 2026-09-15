@@ -6,4 +6,4 @@ INSERT INTO values (icon, title, description, sort_order) VALUES
 ('Target', 'Performance', 'Nous mesurons et optimisons en continu pour des résultats concrets.', 3),
 ('Heart', 'Simplicité', 'La simplicité est notre marque de fabrique. Complexité masquée, usage fluide.', 4),
 ('Compass', 'Accompagnement', 'Nous sommes partenaires de nos clients sur le long terme.', 5)
-ON CONFLICT DO NOTHING;
+ON CONFLICT (title) DO NOTHING;
