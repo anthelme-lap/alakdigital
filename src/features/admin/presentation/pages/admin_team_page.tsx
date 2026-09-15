@@ -2,14 +2,14 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Plus, Edit3, Trash2, X, Save, Users, ArrowLeft, UserCircle } from 'lucide-react';
+import { Plus, Edit3, Trash2, Eye, X, Save, Users, ArrowLeft, UserCircle, Tag } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { fetchTeam, insertTeamMember, updateTeamMember, deleteTeamMember } from '@/features/content/infrastructure/content_api';
-import { Button, Input, Card, CardHeader, CardTitle, CardDescription } from '@/shared/ui';
+import { Button, Input, Card, CardHeader, CardTitle, CardDescription, Badge } from '@/shared/ui';
 import { teamSchema, type TeamFormValues } from '../forms/team_schema';
 import type { TeamMember } from '@/features/content/domain/entities/content';
 
-type View = 'list' | 'edit';
+type View = 'list' | 'edit' | 'detail';
 
 function toFormData(m: TeamMember): TeamFormValues {
   return {
@@ -129,6 +129,84 @@ function TeamMemberForm({ defaultValues, onSubmit, onCancel, loading, isEdit = f
   );
 }
 
+interface TeamMemberDetailViewProps {
+  member: TeamMember;
+  onBack: () => void;
+  onEdit: (member: TeamMember) => void;
+  onDelete: (member: TeamMember) => void;
+}
+
+function TeamMemberDetailView({ member, onBack, onEdit, onDelete }: TeamMemberDetailViewProps) {
+  return (
+    <div>
+      <button
+        onClick={onBack}
+        className="inline-flex items-center gap-2 text-sm text-ink-500 hover:text-ink-900 transition-colors mb-6"
+      >
+        <ArrowLeft className="h-4 w-4" /> Retour à la liste
+      </button>
+
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+        <div>
+          <h2 className="text-2xl font-bold text-ink-900">{member.name}</h2>
+          <p className="text-sm text-ink-500 mt-1">{member.role}</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button variant="primary" size="md" leftIcon={<Edit3 className="h-4 w-4" />} onClick={() => onEdit(member)}>
+            Modifier
+          </Button>
+          <Button variant="outline" size="md" leftIcon={<Trash2 className="h-4 w-4" />} onClick={() => onDelete(member)} className="!text-red-600 !border-red-200 hover:!bg-red-50">
+            Supprimer
+          </Button>
+        </div>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <div>
+            <CardTitle>
+              <UserCircle className="h-5 w-5 text-primary-600" /> Identité
+            </CardTitle>
+            <CardDescription>Informations du membre de l'équipe</CardDescription>
+          </div>
+        </CardHeader>
+
+        {member.image && (
+          <div className="mb-4 rounded-xl overflow-hidden border border-ink-100 max-h-80">
+            <img src={member.image} alt={member.name} className="w-full h-full object-cover" />
+          </div>
+        )}
+
+        <dl className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div>
+            <dt className="text-xs font-semibold uppercase tracking-wide text-ink-400">Nom</dt>
+            <dd className="text-sm font-medium text-ink-900 mt-1">{member.name}</dd>
+          </div>
+          <div>
+            <dt className="text-xs font-semibold uppercase tracking-wide text-ink-400">Rôle</dt>
+            <dd className="text-sm font-medium text-ink-900 mt-1">{member.role}</dd>
+          </div>
+        </dl>
+
+        <div className="mt-4">
+          <dt className="text-xs font-semibold uppercase tracking-wide text-ink-400 flex items-center gap-1.5 mb-2">
+            <Tag className="h-3.5 w-3.5" /> Outils
+          </dt>
+          <div className="flex flex-wrap gap-2">
+            {member.tools.length === 0 ? (
+              <span className="text-sm text-ink-300">-</span>
+            ) : (
+              member.tools.map((tool) => (
+                <Badge key={tool} variant="primary">{tool}</Badge>
+              ))
+            )}
+          </div>
+        </div>
+      </Card>
+    </div>
+  );
+}
+
 export function AdminTeamPage() {
   const queryClient = useQueryClient();
   const { data: team = [] } = useQuery({ queryKey: ['team'], queryFn: fetchTeam });
@@ -141,11 +219,17 @@ export function AdminTeamPage() {
 
   const [view, setView] = useState<View>('list');
   const [editing, setEditing] = useState<TeamMember | null>(null);
+  const [viewingMember, setViewingMember] = useState<TeamMember | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<TeamMember | null>(null);
 
   function handleEdit(m: TeamMember) {
     setEditing(m);
     setView('edit');
+  }
+
+  function handleView(m: TeamMember) {
+    setViewingMember(m);
+    setView('detail');
   }
 
   function handleCreate() {
@@ -163,6 +247,17 @@ export function AdminTeamPage() {
     if (editing) updateMutation.mutate({ id: editing.id, ...payload });
     else insertMutation.mutate(payload);
     setView('list');
+  }
+
+  if (view === 'detail' && viewingMember) {
+    return (
+      <TeamMemberDetailView
+        member={viewingMember}
+        onBack={() => setView('list')}
+        onEdit={handleEdit}
+        onDelete={(m) => setDeleteConfirm(m)}
+      />
+    );
   }
 
   if (view === 'edit') {
@@ -207,6 +302,7 @@ export function AdminTeamPage() {
               <div className="flex items-start justify-between mb-3">
                 <div className="h-16 w-16 rounded-xl overflow-hidden bg-ink-100 flex-shrink-0"><img src={m.image} alt={m.name} className="h-full w-full object-cover" /></div>
                 <div className="flex items-center gap-1">
+                  <button onClick={() => handleView(m)} className="p-2 rounded-lg text-ink-400 hover:text-primary-600 hover:bg-primary-50 transition-all"><Eye className="h-4 w-4" /></button>
                   <button onClick={() => handleEdit(m)} className="p-2 rounded-lg text-ink-400 hover:text-secondary-600 hover:bg-secondary-50 transition-all"><Edit3 className="h-4 w-4" /></button>
                   <button onClick={() => setDeleteConfirm(m)} className="p-2 rounded-lg text-ink-400 hover:text-red-500 hover:bg-red-50 transition-all"><Trash2 className="h-4 w-4" /></button>
                 </div>

@@ -1,5 +1,4 @@
 import { useState, useMemo } from 'react';
-import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -16,14 +15,15 @@ import {
   Info,
   Target,
   Layers,
+  Hash,
 } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { fetchSolutions, insertSolution, updateSolution, deleteSolution } from '@/features/content/infrastructure/content_api';
-import { Button, Input, Textarea, Card, CardHeader, CardTitle, CardDescription } from '@/shared/ui';
+import { Button, Input, Textarea, Card, CardHeader, CardTitle, CardDescription, Badge } from '@/shared/ui';
 import { solutionSchema, type SolutionFormValues } from '../forms/solution_schema';
 import type { Solution } from '@/features/solutions/domain/entities/solution';
 
-type View = 'list' | 'edit';
+type View = 'list' | 'edit' | 'detail';
 
 function toFormData(s: Solution): SolutionFormValues {
   return {
@@ -179,6 +179,151 @@ function SolutionForm({ defaultValues, onSubmit, onCancel, loading, isEdit = fal
   );
 }
 
+interface SolutionDetailViewProps {
+  solution: Solution;
+  onBack: () => void;
+  onEdit: () => void;
+  onDelete: () => void;
+}
+
+function SolutionDetailView({ solution, onBack, onEdit, onDelete }: SolutionDetailViewProps) {
+  return (
+    <div>
+      <button
+        onClick={onBack}
+        className="inline-flex items-center gap-2 text-sm text-ink-500 hover:text-ink-900 transition-colors mb-6"
+      >
+        <ArrowLeft className="h-4 w-4" /> Retour a la liste
+      </button>
+
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+        <div>
+          <h2 className="text-2xl font-bold text-ink-900">{solution.name}</h2>
+          <p className="text-sm text-ink-500 mt-1">{solution.tagline}</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button variant="primary" size="md" leftIcon={<Edit3 className="h-4 w-4" />} onClick={onEdit}>
+            Modifier
+          </Button>
+          <Button variant="outline" size="md" leftIcon={<Trash2 className="h-4 w-4" />} onClick={onDelete} className="!text-red-600 !border-red-200 hover:!bg-red-50">
+            Supprimer
+          </Button>
+        </div>
+      </div>
+
+      <div className="space-y-5">
+        <Card>
+          <CardHeader>
+            <div>
+              <CardTitle>
+                <Info className="h-5 w-5 text-primary-600" /> Identite
+              </CardTitle>
+              <CardDescription>Informations generales de la solution</CardDescription>
+            </div>
+          </CardHeader>
+          <dl className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div>
+              <dt className="text-xs font-semibold uppercase tracking-wide text-ink-400 mb-1">Nom</dt>
+              <dd className="text-sm font-medium text-ink-900">{solution.name}</dd>
+            </div>
+            <div>
+              <dt className="text-xs font-semibold uppercase tracking-wide text-ink-400 mb-1">Slug</dt>
+              <dd className="text-sm font-medium text-ink-900 font-mono">{solution.slug}</dd>
+            </div>
+            <div>
+              <dt className="text-xs font-semibold uppercase tracking-wide text-ink-400 mb-1">Categorie</dt>
+              <dd className="text-sm font-medium text-ink-900">{solution.category}</dd>
+            </div>
+            <div>
+              <dt className="text-xs font-semibold uppercase tracking-wide text-ink-400 mb-1">Cible</dt>
+              <dd className="text-sm font-medium text-ink-900">{solution.target}</dd>
+            </div>
+            <div className="sm:col-span-2">
+              <dt className="text-xs font-semibold uppercase tracking-wide text-ink-400 mb-1">Slogan</dt>
+              <dd className="text-sm font-medium text-ink-900">{solution.tagline}</dd>
+            </div>
+            <div className="sm:col-span-2">
+              <dt className="text-xs font-semibold uppercase tracking-wide text-ink-400 mb-1">Description</dt>
+              <dd className="text-sm text-ink-700 whitespace-pre-line">{solution.description}</dd>
+            </div>
+          </dl>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <div>
+              <CardTitle>
+                <Target className="h-5 w-5 text-primary-600" /> Contexte
+              </CardTitle>
+              <CardDescription>Le probleme resolu par la solution</CardDescription>
+            </div>
+          </CardHeader>
+          <div>
+            <dt className="text-xs font-semibold uppercase tracking-wide text-ink-400 mb-1">Probleme</dt>
+            <dd className="text-sm text-ink-700 whitespace-pre-line">{solution.problem}</dd>
+          </div>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <div>
+              <CardTitle>
+                <Layers className="h-5 w-5 text-primary-600" /> Details techniques
+              </CardTitle>
+              <CardDescription>Fonctionnalites et stack utilisees</CardDescription>
+            </div>
+          </CardHeader>
+          <div className="space-y-4">
+            <div>
+              <dt className="text-xs font-semibold uppercase tracking-wide text-ink-400 mb-2">Fonctionnalites</dt>
+              <dd>
+                {solution.features.length > 0 ? (
+                  <div className="flex flex-wrap gap-2">
+                    {solution.features.map((feature) => (
+                      <Badge key={feature} variant="neutral">{feature}</Badge>
+                    ))}
+                  </div>
+                ) : (
+                  <span className="text-sm text-ink-300">-</span>
+                )}
+              </dd>
+            </div>
+            <div>
+              <dt className="text-xs font-semibold uppercase tracking-wide text-ink-400 mb-2">Technologies</dt>
+              <dd>
+                {solution.technologies.length > 0 ? (
+                  <div className="flex flex-wrap gap-2">
+                    {solution.technologies.map((tech) => (
+                      <Badge key={tech} variant="primary">{tech}</Badge>
+                    ))}
+                  </div>
+                ) : (
+                  <span className="text-sm text-ink-300">-</span>
+                )}
+              </dd>
+            </div>
+          </div>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <div>
+              <CardTitle>
+                <Hash className="h-5 w-5 text-primary-600" /> Metadonnees
+              </CardTitle>
+              <CardDescription>Informations systeme</CardDescription>
+            </div>
+          </CardHeader>
+          <div>
+            <dt className="text-xs font-semibold uppercase tracking-wide text-ink-400 mb-1">Identifiant</dt>
+            <dd className="text-sm font-medium text-ink-900 font-mono">{solution.id}</dd>
+          </div>
+        </Card>
+      </div>
+    </div>
+  );
+}
+
 export function AdminSolutionsPage() {
   const queryClient = useQueryClient();
   const { data: solutions = [] } = useQuery({ queryKey: ['solutions'], queryFn: fetchSolutions });
@@ -191,6 +336,7 @@ export function AdminSolutionsPage() {
 
   const [view, setView] = useState<View>('list');
   const [editingSolution, setEditingSolution] = useState<Solution | null>(null);
+  const [viewingSolution, setViewingSolution] = useState<Solution | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState('Tous');
   const [deleteConfirm, setDeleteConfirm] = useState<Solution | null>(null);
@@ -213,6 +359,11 @@ export function AdminSolutionsPage() {
   function handleEdit(solution: Solution) {
     setEditingSolution(solution);
     setView('edit');
+  }
+
+  function handleView(solution: Solution) {
+    setViewingSolution(solution);
+    setView('detail');
   }
 
   function handleCreate() {
@@ -238,6 +389,17 @@ export function AdminSolutionsPage() {
       insertMutation.mutate(payload);
     }
     setView('list');
+  }
+
+  if (view === 'detail' && viewingSolution) {
+    return (
+      <SolutionDetailView
+        solution={viewingSolution}
+        onBack={() => setView('list')}
+        onEdit={() => handleEdit(viewingSolution)}
+        onDelete={() => setDeleteConfirm(viewingSolution)}
+      />
+    );
   }
 
   if (view === 'edit') {
@@ -302,7 +464,7 @@ export function AdminSolutionsPage() {
               <div className="flex items-start justify-between mb-3">
                 <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-green-50 text-green-600"><Lightbulb className="h-5 w-5" /></div>
                 <div className="flex items-center gap-1">
-                  <Link to="/solutions" className="p-2 rounded-lg text-ink-400 hover:text-primary-600 hover:bg-primary-50 transition-all" title="Voir"><Eye className="h-4 w-4" /></Link>
+                  <button onClick={() => handleView(solution)} className="p-2 rounded-lg text-ink-400 hover:text-primary-600 hover:bg-primary-50 transition-all" title="Voir"><Eye className="h-4 w-4" /></button>
                   <button onClick={() => handleEdit(solution)} className="p-2 rounded-lg text-ink-400 hover:text-secondary-600 hover:bg-secondary-50 transition-all" title="Modifier"><Edit3 className="h-4 w-4" /></button>
                   <button onClick={() => setDeleteConfirm(solution)} className="p-2 rounded-lg text-ink-400 hover:text-red-500 hover:bg-red-50 transition-all" title="Supprimer"><Trash2 className="h-4 w-4" /></button>
                 </div>

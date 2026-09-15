@@ -17,6 +17,7 @@ import {
   BarChart3,
   Award,
   Target,
+  UserCog,
 } from 'lucide-react';
 import { useAuth } from '@/features/auth/presentation/contexts/auth_context';
 import { Logo } from '@/shared/layouts/logo';
@@ -36,11 +37,17 @@ const navItems = [
   { label: 'Devis', to: '/admin/quotations', icon: FileCheck, end: false },
 ];
 
+const superadminNavItems = [
+  { label: 'Utilisateurs', to: '/admin/users', icon: UserCog, end: false },
+];
+
 export function AdminLayout() {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+
+  const visibleNavItems = user?.role === 'superadmin' ? [...navItems, ...superadminNavItems] : navItems;
 
   async function handleSignOut() {
     await signOut();
@@ -56,7 +63,7 @@ export function AdminLayout() {
     .toUpperCase()
     .slice(0, 2);
 
-  const currentTitle = navItems.find((item) =>
+  const currentTitle = visibleNavItems.find((item) =>
     item.end ? location.pathname === item.to : location.pathname.startsWith(item.to),
   )?.label ?? 'Admin';
 
@@ -71,7 +78,7 @@ export function AdminLayout() {
 
         <nav className="flex-1 px-3 py-6 space-y-1">
           <p className="px-3 mb-3 text-[10px] font-bold uppercase tracking-wider text-ink-600">Contenu</p>
-          {navItems.map((item) => (
+          {visibleNavItems.map((item) => (
             <NavLink
               key={item.to}
               to={item.to}
@@ -178,7 +185,7 @@ export function AdminLayout() {
                 </button>
               </div>
               <nav className="flex-1 px-3 py-6 space-y-1">
-                {navItems.map((item) => (
+                {visibleNavItems.map((item) => (
                   <NavLink
                     key={item.to}
                     to={item.to}

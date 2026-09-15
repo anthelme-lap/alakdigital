@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Plus, Edit3, Trash2, X, Save, ArrowLeft, BarChart3, Image, TrendingUp, Users, Sparkles, Layout } from 'lucide-react';
+import { Plus, Edit3, Trash2, X, Save, ArrowLeft, BarChart3, Image, TrendingUp, Users, Sparkles, Layout, Eye } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   fetchHeroSlides, insertHeroSlide, updateHeroSlide as updateHeroSlideApi, deleteHeroSlide as deleteHeroSlideApi,
@@ -183,11 +183,13 @@ function HeroTab() {
     mutationFn: (id: string) => deleteHeroSlideApi(id),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['heroSlides'] }),
   }).mutate;
-  const [view, setView] = useState<'list' | 'edit'>('list');
+  const [view, setView] = useState<'list' | 'edit' | 'detail'>('list');
   const [editing, setEditing] = useState<HeroSlide | null>(null);
+  const [viewingHero, setViewingHero] = useState<HeroSlide | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<HeroSlide | null>(null);
 
   function handleEdit(s: HeroSlide) { setEditing(s); setView('edit'); }
+  function handleView(s: HeroSlide) { setViewingHero(s); setView('detail'); }
   function handleCreate() { setEditing(null); setView('edit'); }
   function handleSave(values: HeroSlideFormValues) {
     const payload = {
@@ -226,6 +228,17 @@ function HeroTab() {
     );
   }
 
+  if (view === 'detail' && viewingHero) {
+    return (
+      <HeroDetailView
+        slide={viewingHero}
+        onBack={() => setView('list')}
+        onEdit={() => { setEditing(viewingHero); setView('edit'); }}
+        onDelete={() => setDeleteConfirm(viewingHero)}
+      />
+    );
+  }
+
   return (
     <div className="space-y-4">
       <div className="flex justify-end"><Button variant="primary" size="md" leftIcon={<Plus className="h-4 w-4" />} onClick={handleCreate}>Nouveau slide</Button></div>
@@ -233,13 +246,54 @@ function HeroTab() {
         {heroSlides.map((s, i) => (
           <motion.div key={s.id} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: Math.min(i * 0.06, 0.3) }} className="rounded-2xl border border-ink-100 bg-white p-5">
             <div className="flex items-start justify-between mb-3"><span className="px-2.5 py-1 rounded-md bg-ink-100 text-ink-600 text-xs font-semibold">{s.eyebrow}</span>
-              <div className="flex items-center gap-1"><button onClick={() => handleEdit(s)} className="p-2 rounded-lg text-ink-400 hover:text-secondary-600 hover:bg-secondary-50 transition-all"><Edit3 className="h-4 w-4" /></button><button onClick={() => setDeleteConfirm(s)} className="p-2 rounded-lg text-ink-400 hover:text-red-500 hover:bg-red-50 transition-all"><Trash2 className="h-4 w-4" /></button></div></div>
+              <div className="flex items-center gap-1"><button onClick={() => handleView(s)} className="p-2 rounded-lg text-ink-400 hover:text-primary-600 hover:bg-primary-50 transition-all"><Eye className="h-4 w-4" /></button><button onClick={() => handleEdit(s)} className="p-2 rounded-lg text-ink-400 hover:text-secondary-600 hover:bg-secondary-50 transition-all"><Edit3 className="h-4 w-4" /></button><button onClick={() => setDeleteConfirm(s)} className="p-2 rounded-lg text-ink-400 hover:text-red-500 hover:bg-red-50 transition-all"><Trash2 className="h-4 w-4" /></button></div></div>
             <p className="text-sm font-bold text-ink-900">{s.title} <span className="text-primary-600">{s.highlight}</span></p>
             <p className="text-xs text-ink-500 line-clamp-2 mt-1">{s.subtitle}</p>
           </motion.div>
         ))}
       </div>
       <DeleteConfirm deleteConfirm={deleteConfirm} setDeleteConfirm={setDeleteConfirm} onDelete={() => deleteHeroSlide(deleteConfirm!.id)} label={deleteConfirm?.title} />
+    </div>
+  );
+}
+
+function HeroDetailView({ slide, onBack, onEdit, onDelete }: { slide: HeroSlide; onBack: () => void; onEdit: () => void; onDelete: () => void }) {
+  const fields: { label: string; value: string | null }[] = [
+    { label: 'Sur-titre', value: slide.eyebrow || null },
+    { label: 'Titre', value: slide.title || null },
+    { label: 'Texte mis en avant', value: slide.highlight || null },
+    { label: 'Sous-titre', value: slide.subtitle || null },
+    { label: 'Label du bouton', value: slide.cta_label || null },
+    { label: 'Lien du bouton', value: slide.cta_to || null },
+    { label: 'Couleur d\'accent', value: slide.accent || null },
+    { label: 'Mockup', value: slide.mockup || null },
+  ];
+
+  return (
+    <div>
+      <button onClick={onBack} className="inline-flex items-center gap-2 text-sm text-ink-500 hover:text-ink-900 transition-colors mb-6"><ArrowLeft className="h-4 w-4" /> Retour à la liste</button>
+      <Card>
+        <CardHeader>
+          <div>
+            <CardTitle>
+              <Image className="h-5 w-5 text-primary-600" /> {slide.title}
+            </CardTitle>
+            <CardDescription>Détail du slide Hero</CardDescription>
+          </div>
+        </CardHeader>
+        <dl className="space-y-3 text-sm">
+          {fields.map(({ label, value }) => (
+            <div key={label} className="flex justify-between gap-3 border-b border-ink-50 pb-2 last:border-0">
+              <dt className="text-ink-500">{label}</dt>
+              <dd className="max-w-[65%] text-right font-medium text-ink-900">{value ?? <span className="text-ink-300">-</span>}</dd>
+            </div>
+          ))}
+        </dl>
+        <div className="mt-5 flex gap-3">
+          <Button variant="primary" size="md" leftIcon={<Edit3 className="h-4 w-4" />} onClick={onEdit}>Modifier</Button>
+          <Button variant="outline" size="md" className="!text-red-600 hover:!bg-red-50" leftIcon={<Trash2 className="h-4 w-4" />} onClick={onDelete}>Supprimer</Button>
+        </div>
+      </Card>
     </div>
   );
 }
@@ -338,11 +392,13 @@ function StatsTab() {
     mutationFn: (id: string) => deleteStatApi(id),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['stats'] }),
   }).mutate;
-  const [view, setView] = useState<'list' | 'edit'>('list');
+  const [view, setView] = useState<'list' | 'edit' | 'detail'>('list');
   const [editing, setEditing] = useState<Stat | null>(null);
+  const [viewingStat, setViewingStat] = useState<Stat | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<Stat | null>(null);
 
   function handleEdit(s: Stat) { setEditing(s); setView('edit'); }
+  function handleView(s: Stat) { setViewingStat(s); setView('detail'); }
   function handleCreate() { setEditing(null); setView('edit'); }
   function handleSave(values: StatFormValues) {
     const payload = { value: values.value, suffix: values.suffix ?? '', label: values.label };
@@ -369,6 +425,17 @@ function StatsTab() {
     );
   }
 
+  if (view === 'detail' && viewingStat) {
+    return (
+      <StatDetailView
+        stat={viewingStat}
+        onBack={() => setView('list')}
+        onEdit={() => { setEditing(viewingStat); setView('edit'); }}
+        onDelete={() => setDeleteConfirm(viewingStat)}
+      />
+    );
+  }
+
   return (
     <div className="space-y-4">
       <div className="flex justify-end"><Button variant="primary" size="md" leftIcon={<Plus className="h-4 w-4" />} onClick={handleCreate}>Nouvelle stat</Button></div>
@@ -376,12 +443,48 @@ function StatsTab() {
         {stats.map((s, i) => (
           <motion.div key={s.id} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: Math.min(i * 0.06, 0.3) }} className="rounded-2xl border border-ink-100 bg-white p-5">
             <div className="flex items-start justify-between mb-3"><div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary-50 text-primary-600"><TrendingUp className="h-5 w-5" /></div>
-              <div className="flex items-center gap-1"><button onClick={() => handleEdit(s)} className="p-2 rounded-lg text-ink-400 hover:text-secondary-600 hover:bg-secondary-50 transition-all"><Edit3 className="h-4 w-4" /></button><button onClick={() => setDeleteConfirm(s)} className="p-2 rounded-lg text-ink-400 hover:text-red-500 hover:bg-red-50 transition-all"><Trash2 className="h-4 w-4" /></button></div></div>
+              <div className="flex items-center gap-1"><button onClick={() => handleView(s)} className="p-2 rounded-lg text-ink-400 hover:text-primary-600 hover:bg-primary-50 transition-all"><Eye className="h-4 w-4" /></button><button onClick={() => handleEdit(s)} className="p-2 rounded-lg text-ink-400 hover:text-secondary-600 hover:bg-secondary-50 transition-all"><Edit3 className="h-4 w-4" /></button><button onClick={() => setDeleteConfirm(s)} className="p-2 rounded-lg text-ink-400 hover:text-red-500 hover:bg-red-50 transition-all"><Trash2 className="h-4 w-4" /></button></div></div>
             <p className="text-3xl font-bold text-ink-900">{s.value}<span className="text-primary-500">{s.suffix}</span></p><p className="text-xs text-ink-500 mt-1">{s.label}</p>
           </motion.div>
         ))}
       </div>
       <DeleteConfirm deleteConfirm={deleteConfirm} setDeleteConfirm={setDeleteConfirm} onDelete={() => deleteStat(deleteConfirm!.id)} label={deleteConfirm?.label} />
+    </div>
+  );
+}
+
+function StatDetailView({ stat, onBack, onEdit, onDelete }: { stat: Stat; onBack: () => void; onEdit: () => void; onDelete: () => void }) {
+  return (
+    <div>
+      <button onClick={onBack} className="inline-flex items-center gap-2 text-sm text-ink-500 hover:text-ink-900 transition-colors mb-6"><ArrowLeft className="h-4 w-4" /> Retour à la liste</button>
+      <Card className="max-w-md">
+        <CardHeader>
+          <div>
+            <CardTitle>
+              <TrendingUp className="h-5 w-5 text-primary-600" /> Détail de la statistique
+            </CardTitle>
+            <CardDescription>Chiffre clé affiché sur la page d'accueil</CardDescription>
+          </div>
+        </CardHeader>
+        <dl className="space-y-3 text-sm">
+          <div className="flex justify-between gap-3 border-b border-ink-50 pb-2">
+            <dt className="text-ink-500">Valeur</dt>
+            <dd className="font-medium text-ink-900">{stat.value}</dd>
+          </div>
+          <div className="flex justify-between gap-3 border-b border-ink-50 pb-2">
+            <dt className="text-ink-500">Suffixe</dt>
+            <dd className="font-medium text-ink-900">{stat.suffix || <span className="text-ink-300">-</span>}</dd>
+          </div>
+          <div className="flex justify-between gap-3">
+            <dt className="text-ink-500">Label</dt>
+            <dd className="font-medium text-ink-900">{stat.label}</dd>
+          </div>
+        </dl>
+        <div className="mt-5 flex gap-3">
+          <Button variant="primary" size="md" leftIcon={<Edit3 className="h-4 w-4" />} onClick={onEdit}>Modifier</Button>
+          <Button variant="outline" size="md" className="!text-red-600 hover:!bg-red-50" leftIcon={<Trash2 className="h-4 w-4" />} onClick={onDelete}>Supprimer</Button>
+        </div>
+      </Card>
     </div>
   );
 }
@@ -473,11 +576,13 @@ function ClientsTab() {
     mutationFn: (id: string) => deleteClientApi(id),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['clients'] }),
   }).mutate;
-  const [view, setView] = useState<'list' | 'edit'>('list');
+  const [view, setView] = useState<'list' | 'edit' | 'detail'>('list');
   const [editing, setEditing] = useState<Client | null>(null);
+  const [viewingClient, setViewingClient] = useState<Client | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<Client | null>(null);
 
   function handleEdit(c: Client) { setEditing(c); setView('edit'); }
+  function handleView(c: Client) { setViewingClient(c); setView('detail'); }
   function handleCreate() { setEditing(null); setView('edit'); }
   function handleSave(values: ClientFormValues) {
     const payload = { name: values.name };
@@ -504,6 +609,17 @@ function ClientsTab() {
     );
   }
 
+  if (view === 'detail' && viewingClient) {
+    return (
+      <ClientDetailView
+        client={viewingClient}
+        onBack={() => setView('list')}
+        onEdit={() => { setEditing(viewingClient); setView('edit'); }}
+        onDelete={() => setDeleteConfirm(viewingClient)}
+      />
+    );
+  }
+
   return (
     <div className="space-y-4">
       <div className="flex justify-end"><Button variant="primary" size="md" leftIcon={<Plus className="h-4 w-4" />} onClick={handleCreate}>Nouveau client</Button></div>
@@ -511,11 +627,39 @@ function ClientsTab() {
         {clients.map((c, i) => (
           <motion.div key={c.id} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: Math.min(i * 0.06, 0.3) }} className="rounded-2xl border border-ink-100 bg-white p-5 flex items-center justify-between">
             <p className="text-sm font-bold text-ink-900">{c.name}</p>
-            <div className="flex items-center gap-1"><button onClick={() => handleEdit(c)} className="p-2 rounded-lg text-ink-400 hover:text-secondary-600 hover:bg-secondary-50 transition-all"><Edit3 className="h-4 w-4" /></button><button onClick={() => setDeleteConfirm(c)} className="p-2 rounded-lg text-ink-400 hover:text-red-500 hover:bg-red-50 transition-all"><Trash2 className="h-4 w-4" /></button></div>
+            <div className="flex items-center gap-1"><button onClick={() => handleView(c)} className="p-2 rounded-lg text-ink-400 hover:text-primary-600 hover:bg-primary-50 transition-all"><Eye className="h-4 w-4" /></button><button onClick={() => handleEdit(c)} className="p-2 rounded-lg text-ink-400 hover:text-secondary-600 hover:bg-secondary-50 transition-all"><Edit3 className="h-4 w-4" /></button><button onClick={() => setDeleteConfirm(c)} className="p-2 rounded-lg text-ink-400 hover:text-red-500 hover:bg-red-50 transition-all"><Trash2 className="h-4 w-4" /></button></div>
           </motion.div>
         ))}
       </div>
       <DeleteConfirm deleteConfirm={deleteConfirm} setDeleteConfirm={setDeleteConfirm} onDelete={() => deleteClient(deleteConfirm!.id)} label={deleteConfirm?.name} />
+    </div>
+  );
+}
+
+function ClientDetailView({ client, onBack, onEdit, onDelete }: { client: Client; onBack: () => void; onEdit: () => void; onDelete: () => void }) {
+  return (
+    <div>
+      <button onClick={onBack} className="inline-flex items-center gap-2 text-sm text-ink-500 hover:text-ink-900 transition-colors mb-6"><ArrowLeft className="h-4 w-4" /> Retour à la liste</button>
+      <Card className="max-w-md">
+        <CardHeader>
+          <div>
+            <CardTitle>
+              <Users className="h-5 w-5 text-primary-600" /> Détail du client
+            </CardTitle>
+            <CardDescription>Logo/nom affiché dans la liste des clients</CardDescription>
+          </div>
+        </CardHeader>
+        <dl className="space-y-3 text-sm">
+          <div className="flex justify-between gap-3">
+            <dt className="text-ink-500">Nom</dt>
+            <dd className="font-medium text-ink-900">{client.name}</dd>
+          </div>
+        </dl>
+        <div className="mt-5 flex gap-3">
+          <Button variant="primary" size="md" leftIcon={<Edit3 className="h-4 w-4" />} onClick={onEdit}>Modifier</Button>
+          <Button variant="outline" size="md" className="!text-red-600 hover:!bg-red-50" leftIcon={<Trash2 className="h-4 w-4" />} onClick={onDelete}>Supprimer</Button>
+        </div>
+      </Card>
     </div>
   );
 }
@@ -621,11 +765,13 @@ function WhyUsTab() {
     mutationFn: (id: string) => deleteWhyUsApi(id),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['whyUs'] }),
   }).mutate;
-  const [view, setView] = useState<'list' | 'edit'>('list');
+  const [view, setView] = useState<'list' | 'edit' | 'detail'>('list');
   const [editing, setEditing] = useState<WhyUsReason | null>(null);
+  const [viewingWhyUs, setViewingWhyUs] = useState<WhyUsReason | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<WhyUsReason | null>(null);
 
   function handleEdit(w: WhyUsReason) { setEditing(w); setView('edit'); }
+  function handleView(w: WhyUsReason) { setViewingWhyUs(w); setView('detail'); }
   function handleCreate() { setEditing(null); setView('edit'); }
   function handleSave(values: WhyUsFormValues) {
     const payload = { icon: values.icon, title: values.title, description: values.description };
@@ -652,6 +798,17 @@ function WhyUsTab() {
     );
   }
 
+  if (view === 'detail' && viewingWhyUs) {
+    return (
+      <WhyUsDetailView
+        reason={viewingWhyUs}
+        onBack={() => setView('list')}
+        onEdit={() => { setEditing(viewingWhyUs); setView('edit'); }}
+        onDelete={() => setDeleteConfirm(viewingWhyUs)}
+      />
+    );
+  }
+
   return (
     <div className="space-y-4">
       <div className="flex justify-end"><Button variant="primary" size="md" leftIcon={<Plus className="h-4 w-4" />} onClick={handleCreate}>Nouvelle raison</Button></div>
@@ -659,12 +816,48 @@ function WhyUsTab() {
         {whyUs.map((w, i) => (
           <motion.div key={w.id} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: Math.min(i * 0.06, 0.3) }} className="rounded-2xl border border-ink-100 bg-white p-5">
             <div className="flex items-start justify-between mb-3"><div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary-50 text-primary-600"><Sparkles className="h-5 w-5" /></div>
-              <div className="flex items-center gap-1"><button onClick={() => handleEdit(w)} className="p-2 rounded-lg text-ink-400 hover:text-secondary-600 hover:bg-secondary-50 transition-all"><Edit3 className="h-4 w-4" /></button><button onClick={() => setDeleteConfirm(w)} className="p-2 rounded-lg text-ink-400 hover:text-red-500 hover:bg-red-50 transition-all"><Trash2 className="h-4 w-4" /></button></div></div>
+              <div className="flex items-center gap-1"><button onClick={() => handleView(w)} className="p-2 rounded-lg text-ink-400 hover:text-primary-600 hover:bg-primary-50 transition-all"><Eye className="h-4 w-4" /></button><button onClick={() => handleEdit(w)} className="p-2 rounded-lg text-ink-400 hover:text-secondary-600 hover:bg-secondary-50 transition-all"><Edit3 className="h-4 w-4" /></button><button onClick={() => setDeleteConfirm(w)} className="p-2 rounded-lg text-ink-400 hover:text-red-500 hover:bg-red-50 transition-all"><Trash2 className="h-4 w-4" /></button></div></div>
             <h3 className="text-sm font-bold text-ink-900 mb-1">{w.title}</h3><p className="text-xs text-ink-500 line-clamp-3">{w.description}</p>
           </motion.div>
         ))}
       </div>
       <DeleteConfirm deleteConfirm={deleteConfirm} setDeleteConfirm={setDeleteConfirm} onDelete={() => deleteWhyUs(deleteConfirm!.id)} label={deleteConfirm?.title} />
+    </div>
+  );
+}
+
+function WhyUsDetailView({ reason, onBack, onEdit, onDelete }: { reason: WhyUsReason; onBack: () => void; onEdit: () => void; onDelete: () => void }) {
+  return (
+    <div>
+      <button onClick={onBack} className="inline-flex items-center gap-2 text-sm text-ink-500 hover:text-ink-900 transition-colors mb-6"><ArrowLeft className="h-4 w-4" /> Retour à la liste</button>
+      <Card>
+        <CardHeader>
+          <div>
+            <CardTitle>
+              <Sparkles className="h-5 w-5 text-primary-600" /> {reason.title}
+            </CardTitle>
+            <CardDescription>Argument affiché dans la section "Pourquoi nous"</CardDescription>
+          </div>
+        </CardHeader>
+        <dl className="space-y-3 text-sm">
+          <div className="flex justify-between gap-3 border-b border-ink-50 pb-2">
+            <dt className="text-ink-500">Icône</dt>
+            <dd className="font-medium text-ink-900">{reason.icon || <span className="text-ink-300">-</span>}</dd>
+          </div>
+          <div className="flex justify-between gap-3 border-b border-ink-50 pb-2">
+            <dt className="text-ink-500">Titre</dt>
+            <dd className="font-medium text-ink-900">{reason.title}</dd>
+          </div>
+          <div className="flex flex-col gap-1">
+            <dt className="text-ink-500">Description</dt>
+            <dd className="font-medium text-ink-900">{reason.description}</dd>
+          </div>
+        </dl>
+        <div className="mt-5 flex gap-3">
+          <Button variant="primary" size="md" leftIcon={<Edit3 className="h-4 w-4" />} onClick={onEdit}>Modifier</Button>
+          <Button variant="outline" size="md" className="!text-red-600 hover:!bg-red-50" leftIcon={<Trash2 className="h-4 w-4" />} onClick={onDelete}>Supprimer</Button>
+        </div>
+      </Card>
     </div>
   );
 }

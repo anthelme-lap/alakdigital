@@ -1,5 +1,4 @@
 import { useState, useMemo } from 'react';
-import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -18,14 +17,18 @@ import {
   Info,
   Target,
   Layers,
+  Briefcase,
+  ListChecks,
+  BarChart3,
+  Tag,
 } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { fetchProjects, insertProject, updateProject, deleteProject } from '@/features/content/infrastructure/content_api';
-import { Button, Input, Textarea, Card, CardHeader, CardTitle, CardDescription } from '@/shared/ui';
+import { Button, Input, Textarea, Card, CardHeader, CardTitle, CardDescription, Badge } from '@/shared/ui';
 import { projectSchema, type ProjectFormValues } from '../forms/project_schema';
 import type { Project } from '@/features/projects/domain/entities/project';
 
-type View = 'list' | 'edit';
+type View = 'list' | 'edit' | 'detail';
 
 function toFormData(p: Project): ProjectFormValues {
   return {
@@ -211,6 +214,203 @@ function ProjectForm({ defaultValues, onSubmit, onCancel, loading, isEdit = fals
   );
 }
 
+interface ProjectDetailViewProps {
+  project: Project;
+  onBack: () => void;
+  onEdit: (project: Project) => void;
+  onDelete: (project: Project) => void;
+}
+
+function ProjectDetailView({ project, onBack, onEdit, onDelete }: ProjectDetailViewProps) {
+  return (
+    <div>
+      <button
+        onClick={onBack}
+        className="inline-flex items-center gap-2 text-sm text-ink-500 hover:text-ink-900 transition-colors mb-6"
+      >
+        <ArrowLeft className="h-4 w-4" /> Retour a la liste
+      </button>
+
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+        <div>
+          <div className="flex items-center gap-3">
+            <h2 className="text-2xl font-bold text-ink-900">{project.name}</h2>
+            {project.featured && (
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-accent-50 text-accent-600 text-xs font-bold uppercase tracking-wide">
+                <Star className="h-3 w-3" /> A la une
+              </span>
+            )}
+          </div>
+          <p className="text-sm text-ink-500 mt-1">{project.tagline}</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button variant="primary" size="md" leftIcon={<Edit3 className="h-4 w-4" />} onClick={() => onEdit(project)}>
+            Modifier
+          </Button>
+          <Button variant="outline" size="md" leftIcon={<Trash2 className="h-4 w-4" />} onClick={() => onDelete(project)} className="!text-red-600 !border-red-200 hover:!bg-red-50">
+            Supprimer
+          </Button>
+        </div>
+      </div>
+
+      <div className="space-y-5">
+        <Card>
+          <CardHeader>
+            <div>
+              <CardTitle>
+                <Info className="h-5 w-5 text-primary-600" /> Identite
+              </CardTitle>
+              <CardDescription>Informations generales du projet</CardDescription>
+            </div>
+          </CardHeader>
+          <dl className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div>
+              <dt className="text-xs font-semibold uppercase tracking-wide text-ink-400">Nom</dt>
+              <dd className="text-sm font-medium text-ink-900 mt-1">{project.name}</dd>
+            </div>
+            <div>
+              <dt className="text-xs font-semibold uppercase tracking-wide text-ink-400">Slug</dt>
+              <dd className="text-sm font-medium text-ink-900 mt-1 font-mono">{project.slug}</dd>
+            </div>
+            <div>
+              <dt className="text-xs font-semibold uppercase tracking-wide text-ink-400">Secteur</dt>
+              <dd className="text-sm font-medium text-ink-900 mt-1">{project.sector}</dd>
+            </div>
+            <div>
+              <dt className="text-xs font-semibold uppercase tracking-wide text-ink-400">Client</dt>
+              <dd className="text-sm font-medium text-ink-900 mt-1">{project.client}</dd>
+            </div>
+            <div className="sm:col-span-2">
+              <dt className="text-xs font-semibold uppercase tracking-wide text-ink-400">Slogan</dt>
+              <dd className="text-sm font-medium text-ink-900 mt-1">{project.tagline}</dd>
+            </div>
+          </dl>
+          <div className="mt-4">
+            <dt className="text-xs font-semibold uppercase tracking-wide text-ink-400">Description</dt>
+            <dd className="text-sm text-ink-700 mt-1 leading-relaxed">{project.description}</dd>
+          </div>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <div>
+              <CardTitle>
+                <Target className="h-5 w-5 text-primary-600" /> Contexte
+              </CardTitle>
+              <CardDescription>Le probleme resolu et la solution apportee</CardDescription>
+            </div>
+          </CardHeader>
+          <div className="space-y-4">
+            <div>
+              <dt className="text-xs font-semibold uppercase tracking-wide text-ink-400">Probleme</dt>
+              <dd className="text-sm text-ink-700 mt-1 leading-relaxed">{project.problem}</dd>
+            </div>
+            <div>
+              <dt className="text-xs font-semibold uppercase tracking-wide text-ink-400">Solution</dt>
+              <dd className="text-sm text-ink-700 mt-1 leading-relaxed">{project.solution}</dd>
+            </div>
+          </div>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <div>
+              <CardTitle>
+                <Layers className="h-5 w-5 text-primary-600" /> Details techniques
+              </CardTitle>
+              <CardDescription>Stack, perimetre et duree de la mission</CardDescription>
+            </div>
+          </CardHeader>
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div className="flex items-center gap-1.5 text-sm text-ink-500">
+                <Calendar className="h-3.5 w-3.5" /> Annee: <span className="font-medium text-ink-900">{project.year}</span>
+              </div>
+              <div className="flex items-center gap-1.5 text-sm text-ink-500">
+                <Briefcase className="h-3.5 w-3.5" /> Duree: <span className="font-medium text-ink-900">{project.duration}</span>
+              </div>
+            </div>
+            <div>
+              <dt className="text-xs font-semibold uppercase tracking-wide text-ink-400 flex items-center gap-1.5 mb-2">
+                <Tag className="h-3.5 w-3.5" /> Technologies
+              </dt>
+              <div className="flex flex-wrap gap-2">
+                {project.technologies.length === 0 ? (
+                  <span className="text-sm text-ink-300">-</span>
+                ) : (
+                  project.technologies.map((tech) => (
+                    <Badge key={tech} variant="primary">{tech}</Badge>
+                  ))
+                )}
+              </div>
+            </div>
+            <div>
+              <dt className="text-xs font-semibold uppercase tracking-wide text-ink-400 flex items-center gap-1.5 mb-2">
+                <Tag className="h-3.5 w-3.5" /> Services
+              </dt>
+              <div className="flex flex-wrap gap-2">
+                {project.services.length === 0 ? (
+                  <span className="text-sm text-ink-300">-</span>
+                ) : (
+                  project.services.map((service) => (
+                    <Badge key={service} variant="secondary">{service}</Badge>
+                  ))
+                )}
+              </div>
+            </div>
+          </div>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <div>
+              <CardTitle>
+                <ListChecks className="h-5 w-5 text-primary-600" /> Fonctionnalites
+              </CardTitle>
+              <CardDescription>Ce que le projet propose</CardDescription>
+            </div>
+          </CardHeader>
+          {project.features.length === 0 ? (
+            <p className="text-sm text-ink-300">Aucune fonctionnalite renseignee</p>
+          ) : (
+            <ul className="space-y-2">
+              {project.features.map((feature) => (
+                <li key={feature} className="flex items-start gap-2 text-sm text-ink-700">
+                  <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-primary-500 flex-shrink-0" />
+                  {feature}
+                </li>
+              ))}
+            </ul>
+          )}
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <div>
+              <CardTitle>
+                <BarChart3 className="h-5 w-5 text-primary-600" /> Resultats
+              </CardTitle>
+              <CardDescription>Indicateurs cles du projet</CardDescription>
+            </div>
+          </CardHeader>
+          {project.results.length === 0 ? (
+            <p className="text-sm text-ink-300">Aucun resultat renseigne</p>
+          ) : (
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+              {project.results.map((result) => (
+                <div key={result.label} className="rounded-xl border border-ink-100 bg-ink-50/50 p-4 text-center">
+                  <p className="text-lg font-bold text-ink-900">{result.value}</p>
+                  <p className="text-xs text-ink-500 mt-1">{result.label}</p>
+                </div>
+              ))}
+            </div>
+          )}
+        </Card>
+      </div>
+    </div>
+  );
+}
+
 export function AdminProjectsPage() {
   const queryClient = useQueryClient();
   const { data: projects = [] } = useQuery({ queryKey: ['projects'], queryFn: fetchProjects });
@@ -228,6 +428,7 @@ export function AdminProjectsPage() {
   });
   const [view, setView] = useState<View>('list');
   const [editingProject, setEditingProject] = useState<Project | null>(null);
+  const [viewingProject, setViewingProject] = useState<Project | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeSector, setActiveSector] = useState('Tous');
   const [deleteConfirm, setDeleteConfirm] = useState<Project | null>(null);
@@ -251,6 +452,11 @@ export function AdminProjectsPage() {
   function handleEdit(project: Project) {
     setEditingProject(project);
     setView('edit');
+  }
+
+  function handleView(project: Project) {
+    setViewingProject(project);
+    setView('detail');
   }
 
   function handleCreate() {
@@ -282,6 +488,20 @@ export function AdminProjectsPage() {
       insertMutation.mutate(payload);
     }
     setView('list');
+  }
+
+  if (view === 'detail' && viewingProject) {
+    return (
+      <ProjectDetailView
+        project={viewingProject}
+        onBack={() => setView('list')}
+        onEdit={(project) => {
+          setEditingProject(project);
+          setView('edit');
+        }}
+        onDelete={(project) => setDeleteConfirm(project)}
+      />
+    );
   }
 
   if (view === 'edit') {
@@ -411,9 +631,9 @@ export function AdminProjectsPage() {
                     </td>
                     <td className="px-5 py-3.5">
                       <div className="flex items-center justify-end gap-1">
-                        <Link to={`/projects/${project.slug}`} className="p-2 rounded-lg text-ink-400 hover:text-primary-600 hover:bg-primary-50 transition-all" title="Voir">
+                        <button onClick={() => handleView(project)} className="p-2 rounded-lg text-ink-400 hover:text-primary-600 hover:bg-primary-50 transition-all" title="Voir">
                           <Eye className="h-4 w-4" />
-                        </Link>
+                        </button>
                         <button onClick={() => handleEdit(project)} className="p-2 rounded-lg text-ink-400 hover:text-secondary-600 hover:bg-secondary-50 transition-all" title="Modifier">
                           <Edit3 className="h-4 w-4" />
                         </button>

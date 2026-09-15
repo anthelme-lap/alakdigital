@@ -1,18 +1,17 @@
 import { useState, useMemo } from 'react';
-import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
-  Search, Plus, Edit3, Trash2, Eye, X, Save, Wrench, ArrowLeft, Info, Layers,
+  Search, Plus, Edit3, Trash2, Eye, X, Save, Wrench, ArrowLeft, Info, Layers, Tag, FileText,
 } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { fetchServices, insertService, updateService, deleteService } from '@/features/content/infrastructure/content_api';
-import { Button, Input, Textarea, Select, Card, CardHeader, CardTitle, CardDescription } from '@/shared/ui';
+import { Button, Input, Textarea, Select, Card, CardHeader, CardTitle, CardDescription, Badge } from '@/shared/ui';
 import { serviceSchema, type ServiceFormValues } from '../forms/service_schema';
 import type { Service } from '@/features/services/domain/entities/service';
 
-type View = 'list' | 'edit';
+type View = 'list' | 'edit' | 'detail';
 
 const iconOptions = [
   { value: 'web', label: 'Web (Code2)' },
@@ -149,6 +148,124 @@ function ServiceForm({ defaultValues, onSubmit, onCancel, loading, isEdit = fals
   );
 }
 
+interface ServiceDetailViewProps {
+  service: Service;
+  onBack: () => void;
+  onEdit: () => void;
+  onDelete: () => void;
+}
+
+function ServiceDetailView({ service, onBack, onEdit, onDelete }: ServiceDetailViewProps) {
+  const iconLabel = iconOptions.find((o) => o.value === service.icon)?.label ?? service.icon;
+
+  return (
+    <div>
+      <button
+        onClick={onBack}
+        className="inline-flex items-center gap-2 text-sm text-ink-500 hover:text-ink-900 transition-colors mb-6"
+      >
+        <ArrowLeft className="h-4 w-4" /> Retour à la liste
+      </button>
+
+      <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h2 className="text-2xl font-bold text-ink-900">{service.name}</h2>
+          <p className="text-sm text-ink-500 mt-1">{service.tagline}</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button variant="primary" size="md" leftIcon={<Edit3 className="h-4 w-4" />} onClick={onEdit}>
+            Modifier
+          </Button>
+          <Button variant="outline" size="md" leftIcon={<Trash2 className="h-4 w-4" />} onClick={onDelete} className="!text-red-600 !border-red-200 hover:!bg-red-50">
+            Supprimer
+          </Button>
+        </div>
+      </div>
+
+      <div className="space-y-5">
+        <Card>
+          <CardHeader>
+            <div>
+              <CardTitle>
+                <Info className="h-5 w-5 text-primary-600" /> Identité
+              </CardTitle>
+              <CardDescription>Informations générales du service</CardDescription>
+            </div>
+          </CardHeader>
+          <dl className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div>
+              <dt className="text-xs font-semibold uppercase text-ink-400 mb-1">Nom</dt>
+              <dd className="text-sm font-medium text-ink-900">{service.name}</dd>
+            </div>
+            <div>
+              <dt className="text-xs font-semibold uppercase text-ink-400 mb-1">Slug</dt>
+              <dd className="text-sm font-medium text-ink-900 font-mono">{service.slug}</dd>
+            </div>
+            <div className="sm:col-span-2">
+              <dt className="text-xs font-semibold uppercase text-ink-400 mb-1">Slogan</dt>
+              <dd className="text-sm font-medium text-ink-900">{service.tagline}</dd>
+            </div>
+            <div>
+              <dt className="text-xs font-semibold uppercase text-ink-400 mb-1">Icône</dt>
+              <dd className="text-sm font-medium text-ink-900">{iconLabel}</dd>
+            </div>
+          </dl>
+          <div className="mt-4">
+            <dt className="text-xs font-semibold uppercase text-ink-400 mb-1 flex items-center gap-1.5">
+              <FileText className="h-3.5 w-3.5" /> Description
+            </dt>
+            <dd className="text-sm text-ink-700 leading-relaxed">{service.description}</dd>
+          </div>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <div>
+              <CardTitle>
+                <Layers className="h-5 w-5 text-primary-600" /> Fonctionnalités
+              </CardTitle>
+              <CardDescription>Liste des fonctionnalités proposées</CardDescription>
+            </div>
+          </CardHeader>
+          <div className="flex flex-wrap gap-2">
+            {service.features.length === 0 ? (
+              <span className="text-sm text-ink-300">Aucune fonctionnalité renseignée</span>
+            ) : (
+              service.features.map((feature) => (
+                <Badge key={feature} variant="secondary" size="md">
+                  {feature}
+                </Badge>
+              ))
+            )}
+          </div>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <div>
+              <CardTitle>
+                <Tag className="h-5 w-5 text-primary-600" /> Technologies
+              </CardTitle>
+              <CardDescription>Stack technique associée</CardDescription>
+            </div>
+          </CardHeader>
+          <div className="flex flex-wrap gap-2">
+            {service.technologies.length === 0 ? (
+              <span className="text-sm text-ink-300">Aucune technologie renseignée</span>
+            ) : (
+              service.technologies.map((tech) => (
+                <Badge key={tech} variant="neutral" size="md">
+                  {tech}
+                </Badge>
+              ))
+            )}
+          </div>
+        </Card>
+      </div>
+    </div>
+  );
+}
+
 export function AdminServicesPage() {
   const queryClient = useQueryClient();
   const { data: services = [] } = useQuery({ queryKey: ['services'], queryFn: fetchServices });
@@ -161,6 +278,7 @@ export function AdminServicesPage() {
 
   const [view, setView] = useState<View>('list');
   const [editing, setEditing] = useState<Service | null>(null);
+  const [viewingService, setViewingService] = useState<Service | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [deleteConfirm, setDeleteConfirm] = useState<Service | null>(null);
 
@@ -180,6 +298,11 @@ export function AdminServicesPage() {
     setView('edit');
   }
 
+  function handleView(service: Service) {
+    setViewingService(service);
+    setView('detail');
+  }
+
   function handleSave(values: ServiceFormValues) {
     const payload = {
       name: values.name,
@@ -193,6 +316,23 @@ export function AdminServicesPage() {
     if (editing) updateMutation.mutate({ id: editing.id, ...payload });
     else insertMutation.mutate(payload);
     setView('list');
+  }
+
+  if (view === 'detail' && viewingService) {
+    return (
+      <ServiceDetailView
+        service={viewingService}
+        onBack={() => setView('list')}
+        onEdit={() => {
+          setEditing(viewingService);
+          setView('edit');
+        }}
+        onDelete={() => {
+          setDeleteConfirm(viewingService);
+          setView('list');
+        }}
+      />
+    );
   }
 
   if (view === 'edit') {
@@ -250,7 +390,7 @@ export function AdminServicesPage() {
               <div className="flex items-start justify-between mb-3">
                 <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary-50 text-primary-600"><Wrench className="h-5 w-5" /></div>
                 <div className="flex items-center gap-1">
-                  <Link to={`/services/${service.slug}`} className="p-2 rounded-lg text-ink-400 hover:text-primary-600 hover:bg-primary-50 transition-all" title="Voir"><Eye className="h-4 w-4" /></Link>
+                  <button onClick={() => handleView(service)} className="p-2 rounded-lg text-ink-400 hover:text-primary-600 hover:bg-primary-50 transition-all" title="Voir"><Eye className="h-4 w-4" /></button>
                   <button onClick={() => handleEdit(service)} className="p-2 rounded-lg text-ink-400 hover:text-secondary-600 hover:bg-secondary-50 transition-all" title="Modifier"><Edit3 className="h-4 w-4" /></button>
                   <button onClick={() => setDeleteConfirm(service)} className="p-2 rounded-lg text-ink-400 hover:text-red-500 hover:bg-red-50 transition-all" title="Supprimer"><Trash2 className="h-4 w-4" /></button>
                 </div>

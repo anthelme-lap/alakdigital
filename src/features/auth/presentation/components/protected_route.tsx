@@ -1,9 +1,14 @@
 import type { ReactNode } from 'react';
 import { Navigate } from 'react-router-dom';
-import { useAuth } from '@/features/auth/presentation/contexts/auth_context';
+import { useAuth, type AdminRole } from '@/features/auth/presentation/contexts/auth_context';
 import { Loader } from '@/shared/ui';
 
-export function ProtectedRoute({ children }: { children: ReactNode }) {
+interface ProtectedRouteProps {
+  children: ReactNode;
+  requireRole?: AdminRole;
+}
+
+export function ProtectedRoute({ children, requireRole }: ProtectedRouteProps) {
   const { user, loading } = useAuth();
 
   if (loading) {
@@ -16,6 +21,10 @@ export function ProtectedRoute({ children }: { children: ReactNode }) {
 
   if (!user) {
     return <Navigate to="/admin/login" replace />;
+  }
+
+  if (requireRole && user.role !== requireRole) {
+    return <Navigate to="/admin" replace />;
   }
 
   return <>{children}</>;

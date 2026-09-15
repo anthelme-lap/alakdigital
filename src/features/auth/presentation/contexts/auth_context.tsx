@@ -1,17 +1,16 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
+import { supabase } from '@/core/database/supabase_client';
 
-const ADMIN_EMAIL = 'admin@alak-digital.com';
-const ADMIN_PASSWORD = 'Admin123!';
-const STORAGE_KEY = 'alak_admin_session';
+export type AdminRole = 'admin' | 'superadmin';
 
-interface FictitiousUser {
+interface AuthUser {
+  id: string;
   email: string;
-  name: string;
-  role: string;
+  role: AdminRole;
 }
 
 interface AuthContextValue {
-  user: FictitiousUser | null;
+  user: AuthUser | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
@@ -19,37 +18,73 @@ interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
+async function resolveUser(supabaseUserId: string, fallbackEmail: string): Promise<AuthUser | null> {
+  const { data, error } = await supabase
+    .from('admin_users')
+    .select('email, role')
+    .eq('id', supabaseUserId)
+    .single();
+
+  if (error || !data) {
+    return null;
+  }
+
+  return { id: supabaseUserId, email: data.email ?? fallbackEmail, role: data.role as AdminRole };
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<FictitiousUser | null>(null);
+  const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored) {
-        setUser(JSON.parse(stored));
+    let active = true;
+
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+      if (!session?.user) {
+        if (active) setLoading(false);
+        return;
       }
-    } catch {
-      // ignore parse errors
-    }
-    setLoading(false);
+      const resolved = await resolveUser(session.user.id, session.user.email ?? '');
+      if (active) {
+        setUser(resolved);
+        setLoading(false);
+      }
+    });
+
+    const { data: subscription } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      if (!session?.user) {
+        setUser(null);
+        return;
+      }
+      const resolved = await resolveUser(session.user.id, session.user.email ?? '');
+      setUser(resolved);
+    });
+
+    return () => {
+      active = false;
+      subscription.subscription.unsubscribe();
+    };
   }, []);
 
   async function signIn(email: string, password: string) {
-    await new Promise((r) => setTimeout(r, 400));
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
-    if (email.trim().toLowerCase() === ADMIN_EMAIL && password === ADMIN_PASSWORD) {
-      const u: FictitiousUser = { email: ADMIN_EMAIL, name: 'Konan A.', role: 'Administrateur' };
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(u));
-      setUser(u);
-      return { error: null };
+    if (error || !data.user) {
+      return { error: 'Email ou mot de passe incorrect.' };
     }
 
-    return { error: 'Email ou mot de passe incorrect.' };
+    const resolved = await resolveUser(data.user.id, data.user.email ?? '');
+    if (!resolved) {
+      await supabase.auth.signOut();
+      return { error: 'Ce compte ne dispose pas des droits admin.' };
+    }
+
+    setUser(resolved);
+    return { error: null };
   }
 
   async function signOut() {
-    localStorage.removeItem(STORAGE_KEY);
+    await supabase.auth.signOut();
     setUser(null);
   }
 

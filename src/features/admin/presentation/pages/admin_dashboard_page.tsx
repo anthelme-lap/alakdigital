@@ -93,7 +93,7 @@ export function AdminDashboardPage() {
   return (
     <div className="space-y-8">
       <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-        <h2 className="text-2xl font-bold text-ink-900 mb-1">Bonjour, {user?.name ?? 'Admin'}</h2>
+        <h2 className="text-2xl font-bold text-ink-900 mb-1">Bonjour, {user?.email?.split('@')[0] ?? 'Admin'}</h2>
         <p className="text-sm text-ink-500">Voici un aperçu de votre espace d'administration.</p>
       </motion.div>
 

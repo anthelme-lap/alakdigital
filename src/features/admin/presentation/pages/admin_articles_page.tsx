@@ -1,5 +1,4 @@
 import { useState, useMemo } from 'react';
-import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -19,10 +18,12 @@ import {
   Info,
   FileEdit,
   Tag,
+  User,
+  Star,
 } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { fetchArticles, insertArticle, updateArticle, deleteArticle } from '@/features/content/infrastructure/content_api';
-import { Button, Input, Textarea, Card, CardHeader, CardTitle, CardDescription } from '@/shared/ui';
+import { Button, Input, Textarea, Card, CardHeader, CardTitle, CardDescription, Badge } from '@/shared/ui';
 import { articleSchema, type ArticleFormValues } from '../forms/article_schema';
 import type { BlogArticle } from '@/features/blog/domain/entities/article';
 
@@ -30,7 +31,7 @@ function formatDate(date: string) {
   return new Date(date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' });
 }
 
-type View = 'list' | 'edit';
+type View = 'list' | 'edit' | 'detail';
 
 function toFormData(article: BlogArticle): ArticleFormValues {
   return {
@@ -210,6 +211,151 @@ function ArticleForm({ defaultValues, onSubmit, onCancel, loading, isEdit = fals
   );
 }
 
+interface ArticleDetailViewProps {
+  article: BlogArticle;
+  onBack: () => void;
+  onEdit: (article: BlogArticle) => void;
+  onDelete: (article: BlogArticle) => void;
+}
+
+function ArticleDetailView({ article, onBack, onEdit, onDelete }: ArticleDetailViewProps) {
+  return (
+    <div>
+      <button
+        onClick={onBack}
+        className="inline-flex items-center gap-2 text-sm text-ink-500 hover:text-ink-900 transition-colors mb-6"
+      >
+        <ArrowLeft className="h-4 w-4" /> Retour à la liste
+      </button>
+
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+        <div>
+          <div className="flex items-center gap-3">
+            <h2 className="text-2xl font-bold text-ink-900">{article.title}</h2>
+            {article.featured && (
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-accent-50 text-accent-600 text-xs font-bold uppercase tracking-wide">
+                <Star className="h-3 w-3" /> À la une
+              </span>
+            )}
+          </div>
+          <p className="text-sm text-ink-500 mt-1">{article.excerpt}</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button variant="primary" size="md" leftIcon={<Edit3 className="h-4 w-4" />} onClick={() => onEdit(article)}>
+            Modifier
+          </Button>
+          <Button variant="outline" size="md" leftIcon={<Trash2 className="h-4 w-4" />} onClick={() => onDelete(article)} className="!text-red-600 !border-red-200 hover:!bg-red-50">
+            Supprimer
+          </Button>
+        </div>
+      </div>
+
+      <div className="space-y-5">
+        <Card>
+          <CardHeader>
+            <div>
+              <CardTitle>
+                <Info className="h-5 w-5 text-primary-600" /> Identité
+              </CardTitle>
+              <CardDescription>Titre, slug et resume de l'article</CardDescription>
+            </div>
+          </CardHeader>
+          {article.coverImage && (
+            <div className="mb-4 rounded-xl overflow-hidden border border-ink-100 max-h-80">
+              <img src={article.coverImage} alt={article.title} className="w-full h-full object-cover" />
+            </div>
+          )}
+          <dl className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div>
+              <dt className="text-xs font-semibold uppercase tracking-wide text-ink-400">Titre</dt>
+              <dd className="text-sm font-medium text-ink-900 mt-1">{article.title}</dd>
+            </div>
+            <div>
+              <dt className="text-xs font-semibold uppercase tracking-wide text-ink-400">Slug</dt>
+              <dd className="text-sm font-medium text-ink-900 mt-1 font-mono">{article.slug}</dd>
+            </div>
+            <div>
+              <dt className="text-xs font-semibold uppercase tracking-wide text-ink-400">Catégorie</dt>
+              <dd className="text-sm font-medium text-ink-900 mt-1">{article.category}</dd>
+            </div>
+            <div>
+              <dt className="text-xs font-semibold uppercase tracking-wide text-ink-400">Date</dt>
+              <dd className="text-sm font-medium text-ink-900 mt-1 flex items-center gap-1.5">
+                <Calendar className="h-3.5 w-3.5" /> {formatDate(article.date)}
+              </dd>
+            </div>
+          </dl>
+          <div className="mt-4">
+            <dt className="text-xs font-semibold uppercase tracking-wide text-ink-400">Extrait</dt>
+            <dd className="text-sm text-ink-700 mt-1 leading-relaxed">{article.excerpt}</dd>
+          </div>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <div>
+              <CardTitle>
+                <User className="h-5 w-5 text-primary-600" /> Métadonnées
+              </CardTitle>
+              <CardDescription>Auteur, temps de lecture, tags et mise en avant</CardDescription>
+            </div>
+          </CardHeader>
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div>
+                <dt className="text-xs font-semibold uppercase tracking-wide text-ink-400">Auteur</dt>
+                <dd className="text-sm font-medium text-ink-900 mt-1">{article.author}</dd>
+              </div>
+              <div>
+                <dt className="text-xs font-semibold uppercase tracking-wide text-ink-400">Rôle</dt>
+                <dd className="text-sm font-medium text-ink-900 mt-1">{article.authorRole || <span className="text-ink-300">-</span>}</dd>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div>
+                <dt className="text-xs font-semibold uppercase tracking-wide text-ink-400 flex items-center gap-1.5">
+                  <Clock className="h-3.5 w-3.5" /> Temps de lecture
+                </dt>
+                <dd className="text-sm font-medium text-ink-900 mt-1">{article.readingTime}</dd>
+              </div>
+              <div>
+                <dt className="text-xs font-semibold uppercase tracking-wide text-ink-400">À la une</dt>
+                <dd className="text-sm font-medium text-ink-900 mt-1">{article.featured ? 'Oui' : 'Non'}</dd>
+              </div>
+            </div>
+            <div>
+              <dt className="text-xs font-semibold uppercase tracking-wide text-ink-400 flex items-center gap-1.5 mb-2">
+                <Tag className="h-3.5 w-3.5" /> Tags
+              </dt>
+              <div className="flex flex-wrap gap-2">
+                {article.tags.length === 0 ? (
+                  <span className="text-sm text-ink-300">-</span>
+                ) : (
+                  article.tags.map((tag) => (
+                    <Badge key={tag} variant="primary">{tag}</Badge>
+                  ))
+                )}
+              </div>
+            </div>
+          </div>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <div>
+              <CardTitle>
+                <FileEdit className="h-5 w-5 text-primary-600" /> Contenu
+              </CardTitle>
+              <CardDescription>Corps de l'article</CardDescription>
+            </div>
+          </CardHeader>
+          <div className="article-content rounded-xl border border-ink-100 p-5 max-w-none prose prose-sm" dangerouslySetInnerHTML={{ __html: article.content }} />
+        </Card>
+      </div>
+    </div>
+  );
+}
+
 export function AdminArticlesPage() {
   const queryClient = useQueryClient();
   const { data: articles = [] } = useQuery({ queryKey: ['articles'], queryFn: fetchArticles });
@@ -227,6 +373,7 @@ export function AdminArticlesPage() {
   });
   const [view, setView] = useState<View>('list');
   const [editingArticle, setEditingArticle] = useState<BlogArticle | null>(null);
+  const [viewingArticle, setViewingArticle] = useState<BlogArticle | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState('Tous');
   const [deleteConfirm, setDeleteConfirm] = useState<BlogArticle | null>(null);
@@ -252,6 +399,11 @@ export function AdminArticlesPage() {
   function handleEdit(article: BlogArticle) {
     setEditingArticle(article);
     setView('edit');
+  }
+
+  function handleView(article: BlogArticle) {
+    setViewingArticle(article);
+    setView('detail');
   }
 
   function handleCreate() {
@@ -317,6 +469,20 @@ export function AdminArticlesPage() {
           isEdit={!!editingArticle}
         />
       </div>
+    );
+  }
+
+  if (view === 'detail' && viewingArticle) {
+    return (
+      <ArticleDetailView
+        article={viewingArticle}
+        onBack={() => setView('list')}
+        onEdit={(article) => {
+          setEditingArticle(article);
+          setView('edit');
+        }}
+        onDelete={(article) => setDeleteConfirm(article)}
+      />
     );
   }
 
@@ -430,13 +596,13 @@ export function AdminArticlesPage() {
                     </td>
                     <td className="px-5 py-3.5">
                       <div className="flex items-center justify-end gap-1">
-                        <Link
-                          to={`/blog/${article.slug}`}
+                        <button
+                          onClick={() => handleView(article)}
                           className="p-2 rounded-lg text-ink-400 hover:text-primary-600 hover:bg-primary-50 transition-all"
                           title="Voir"
                         >
                           <Eye className="h-4 w-4" />
-                        </Link>
+                        </button>
                         <button
                           onClick={() => handleEdit(article)}
                           className="p-2 rounded-lg text-ink-400 hover:text-secondary-600 hover:bg-secondary-50 transition-all"

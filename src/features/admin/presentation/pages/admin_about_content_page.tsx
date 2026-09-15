@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Plus, Edit3, Trash2, X, Save, ArrowLeft, Award, Target } from 'lucide-react';
+import { Plus, Edit3, Trash2, X, Save, ArrowLeft, Award, Target, Eye } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   fetchMissionVision, updateMissionVision as updateMissionVisionApi,
@@ -123,6 +123,62 @@ function MissionVisionForm({ defaultValues, onSubmit, onCancel, loading }: Missi
   );
 }
 
+interface MissionVisionDetailViewProps {
+  missionVision: MissionVision;
+  onBack: () => void;
+  onEdit: () => void;
+}
+
+function MissionVisionDetailView({ missionVision, onBack, onEdit }: MissionVisionDetailViewProps) {
+  return (
+    <div>
+      <button
+        onClick={onBack}
+        className="inline-flex items-center gap-2 text-sm text-ink-500 hover:text-ink-900 transition-colors mb-6"
+      >
+        <ArrowLeft className="h-4 w-4" /> Retour
+      </button>
+
+      <div className="mb-6 flex items-start justify-between gap-4">
+        <div>
+          <h3 className="text-2xl font-bold text-ink-900">{missionVision.label}</h3>
+          <p className="text-sm text-ink-500 mt-1">{missionVision.title}</p>
+        </div>
+        <Button variant="primary" size="md" leftIcon={<Edit3 className="h-4 w-4" />} onClick={onEdit}>
+          Modifier
+        </Button>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <div className="flex items-center gap-3">
+            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary-50 text-primary-600">
+              <Target className="h-5 w-5" />
+            </div>
+            <div>
+              <CardTitle>{missionVision.title}</CardTitle>
+              <CardDescription>{missionVision.label}</CardDescription>
+            </div>
+          </div>
+        </CardHeader>
+        <div className="space-y-4">
+          <p className="text-sm text-ink-600">{missionVision.description}</p>
+          {missionVision.points.length > 0 && (
+            <ul className="space-y-2">
+              {missionVision.points.map((p) => (
+                <li key={p} className="text-sm text-ink-700 flex items-start gap-2">
+                  <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-primary-500" />
+                  {p}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </Card>
+    </div>
+  );
+}
+
 function MissionTab() {
   const queryClient = useQueryClient();
   const { data: missionVision = [] } = useQuery({ queryKey: ['missionVision'], queryFn: fetchMissionVision });
@@ -131,8 +187,10 @@ function MissionTab() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['missionVision'] }),
   });
   const [editing, setEditing] = useState<MissionVision | null>(null);
+  const [viewing, setViewing] = useState<MissionVision | null>(null);
 
-  function handleEdit(mv: MissionVision) { setEditing(mv); }
+  function handleEdit(mv: MissionVision) { setViewing(null); setEditing(mv); }
+  function handleView(mv: MissionVision) { setViewing(mv); }
 
   function handleSave(values: MissionVisionFormValues) {
     if (!editing) return;
@@ -180,11 +238,21 @@ function MissionTab() {
     );
   }
 
+  if (viewing) {
+    return (
+      <MissionVisionDetailView
+        missionVision={viewing}
+        onBack={() => setViewing(null)}
+        onEdit={() => handleEdit(viewing)}
+      />
+    );
+  }
+
   return (
     <div className="grid sm:grid-cols-2 gap-4">
       {missionVision.map((mv, i) => (
         <motion.div key={mv.id} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: i * 0.1 }} className="rounded-2xl border border-ink-100 bg-white p-5">
-          <div className="flex items-start justify-between mb-3"><div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary-50 text-primary-600"><Target className="h-5 w-5" /></div><button onClick={() => handleEdit(mv)} className="p-2 rounded-lg text-ink-400 hover:text-secondary-600 hover:bg-secondary-50 transition-all"><Edit3 className="h-4 w-4" /></button></div>
+          <div className="flex items-start justify-between mb-3"><div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary-50 text-primary-600"><Target className="h-5 w-5" /></div><div className="flex items-center gap-1"><button onClick={() => handleView(mv)} className="p-2 rounded-lg text-ink-400 hover:text-primary-600 hover:bg-primary-50 transition-all"><Eye className="h-4 w-4" /></button><button onClick={() => handleEdit(mv)} className="p-2 rounded-lg text-ink-400 hover:text-secondary-600 hover:bg-secondary-50 transition-all"><Edit3 className="h-4 w-4" /></button></div></div>
           <span className="text-xs font-semibold uppercase text-primary-600">{mv.label}</span>
           <h3 className="text-sm font-bold text-ink-900 mt-1 mb-2">{mv.title}</h3>
           <p className="text-xs text-ink-500 line-clamp-3">{mv.description}</p>
@@ -274,6 +342,57 @@ function PillarForm({ defaultValues, onSubmit, onCancel, loading, isEdit = false
   );
 }
 
+interface PillarDetailViewProps {
+  pillar: AboutPillar;
+  onBack: () => void;
+  onEdit: () => void;
+  onDelete: () => void;
+}
+
+function PillarDetailView({ pillar, onBack, onEdit, onDelete }: PillarDetailViewProps) {
+  return (
+    <div>
+      <button
+        onClick={onBack}
+        className="inline-flex items-center gap-2 text-sm text-ink-500 hover:text-ink-900 transition-colors mb-6"
+      >
+        <ArrowLeft className="h-4 w-4" /> Retour
+      </button>
+
+      <div className="mb-6 flex items-start justify-between gap-4">
+        <div>
+          <h3 className="text-2xl font-bold text-ink-900">{pillar.title}</h3>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="md" leftIcon={<Trash2 className="h-4 w-4" />} onClick={onDelete} className="!text-red-600 hover:!bg-red-50">
+            Supprimer
+          </Button>
+          <Button variant="primary" size="md" leftIcon={<Edit3 className="h-4 w-4" />} onClick={onEdit}>
+            Modifier
+          </Button>
+        </div>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <div className="flex items-center gap-3">
+            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary-50 text-primary-600">
+              <Award className="h-5 w-5" />
+            </div>
+            <div>
+              <CardTitle>{pillar.title}</CardTitle>
+              <CardDescription>Pilier</CardDescription>
+            </div>
+          </div>
+        </CardHeader>
+        <div className="space-y-4">
+          <p className="text-sm text-ink-600">{pillar.description}</p>
+        </div>
+      </Card>
+    </div>
+  );
+}
+
 function PillarsTab() {
   const queryClient = useQueryClient();
   const { data: pillars = [] } = useQuery({ queryKey: ['pillars'], queryFn: fetchPillars });
@@ -289,12 +408,14 @@ function PillarsTab() {
     mutationFn: (id: string) => deletePillarApi(id),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['pillars'] }),
   });
-  const [view, setView] = useState<'list' | 'edit'>('list');
+  const [view, setView] = useState<'list' | 'edit' | 'detail'>('list');
   const [editing, setEditing] = useState<AboutPillar | null>(null);
+  const [viewing, setViewing] = useState<AboutPillar | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<AboutPillar | null>(null);
 
   function handleEdit(p: AboutPillar) { setEditing(p); setView('edit'); }
   function handleCreate() { setEditing(null); setView('edit'); }
+  function handleView(p: AboutPillar) { setViewing(p); setView('detail'); }
   function handleSave(values: PillarFormValues) {
     const payload = { icon: values.icon, title: values.title, description: values.description };
     if (editing) {
@@ -331,6 +452,17 @@ function PillarsTab() {
     );
   }
 
+  if (view === 'detail' && viewing) {
+    return (
+      <PillarDetailView
+        pillar={viewing}
+        onBack={() => setView('list')}
+        onEdit={() => handleEdit(viewing)}
+        onDelete={() => { setDeleteConfirm(viewing); setView('list'); }}
+      />
+    );
+  }
+
   return (
     <div className="space-y-4">
       <div className="flex justify-end"><Button variant="primary" size="md" leftIcon={<Plus className="h-4 w-4" />} onClick={handleCreate}>Nouveau pilier</Button></div>
@@ -338,7 +470,7 @@ function PillarsTab() {
         {pillars.map((p, i) => (
           <motion.div key={p.id} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: Math.min(i * 0.06, 0.3) }} className="rounded-2xl border border-ink-100 bg-white p-5">
             <div className="flex items-start justify-between mb-3"><div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary-50 text-primary-600"><Award className="h-5 w-5" /></div>
-              <div className="flex items-center gap-1"><button onClick={() => handleEdit(p)} className="p-2 rounded-lg text-ink-400 hover:text-secondary-600 hover:bg-secondary-50 transition-all"><Edit3 className="h-4 w-4" /></button><button onClick={() => setDeleteConfirm(p)} className="p-2 rounded-lg text-ink-400 hover:text-red-500 hover:bg-red-50 transition-all"><Trash2 className="h-4 w-4" /></button></div></div>
+              <div className="flex items-center gap-1"><button onClick={() => handleView(p)} className="p-2 rounded-lg text-ink-400 hover:text-primary-600 hover:bg-primary-50 transition-all"><Eye className="h-4 w-4" /></button><button onClick={() => handleEdit(p)} className="p-2 rounded-lg text-ink-400 hover:text-secondary-600 hover:bg-secondary-50 transition-all"><Edit3 className="h-4 w-4" /></button><button onClick={() => setDeleteConfirm(p)} className="p-2 rounded-lg text-ink-400 hover:text-red-500 hover:bg-red-50 transition-all"><Trash2 className="h-4 w-4" /></button></div></div>
             <h3 className="text-sm font-bold text-ink-900 mb-1">{p.title}</h3><p className="text-xs text-ink-500 line-clamp-3">{p.description}</p>
           </motion.div>
         ))}

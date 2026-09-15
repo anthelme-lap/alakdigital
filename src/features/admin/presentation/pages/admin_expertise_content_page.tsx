@@ -2,16 +2,17 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Plus, Edit3, Trash2, X, Save, ArrowLeft, Target, Info } from 'lucide-react';
+import * as Icons from 'lucide-react';
+import { Plus, Edit3, Trash2, X, Save, ArrowLeft, Eye, Target, Info, Tag } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   fetchExpertise, insertExpertise, updateExpertise as updateExpertiseApi, deleteExpertise as deleteExpertiseApi,
 } from '@/features/content/infrastructure/content_api';
-import { Button, Input, Textarea, Select, Card, CardHeader, CardTitle, CardDescription } from '@/shared/ui';
+import { Button, Input, Textarea, Select, Card, CardHeader, CardTitle, CardDescription, Badge } from '@/shared/ui';
 import { expertiseSchema, type ExpertiseFormValues } from '../forms/expertise_schema';
 import type { ExpertiseDomain } from '@/features/content/domain/entities/content';
 
-type View = 'list' | 'edit';
+type View = 'list' | 'edit' | 'detail';
 
 const iconOptions = ['Code2', 'Smartphone', 'Server', 'Database', 'Cloud', 'GitBranch', 'Shield', 'Cpu', 'Layers', 'Globe'];
 const iconSelectOptions = iconOptions.map((ic) => ({ value: ic, label: ic }));
@@ -117,6 +118,81 @@ function ExpertiseForm({ defaultValues, onSubmit, onCancel, loading, isEdit = fa
   );
 }
 
+interface ExpertiseDetailViewProps {
+  expertise: ExpertiseDomain;
+  onBack: () => void;
+  onEdit: (expertise: ExpertiseDomain) => void;
+  onDelete: (expertise: ExpertiseDomain) => void;
+}
+
+function ExpertiseDetailView({ expertise, onBack, onEdit, onDelete }: ExpertiseDetailViewProps) {
+  const Icon = (Icons as unknown as Record<string, typeof Icons.Target>)[expertise.icon] ?? Target;
+
+  return (
+    <div>
+      <button onClick={onBack} className="inline-flex items-center gap-2 text-sm text-ink-500 hover:text-ink-900 transition-colors mb-6">
+        <ArrowLeft className="h-4 w-4" /> Retour à la liste
+      </button>
+
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+        <div className="flex items-center gap-3">
+          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary-50 text-primary-600">
+            <Icon className="h-5 w-5" />
+          </div>
+          <h2 className="text-2xl font-bold text-ink-900">{expertise.label}</h2>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button variant="primary" size="md" leftIcon={<Edit3 className="h-4 w-4" />} onClick={() => onEdit(expertise)}>
+            Modifier
+          </Button>
+          <Button variant="outline" size="md" leftIcon={<Trash2 className="h-4 w-4" />} onClick={() => onDelete(expertise)} className="!text-red-600 !border-red-200 hover:!bg-red-50">
+            Supprimer
+          </Button>
+        </div>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <div>
+            <CardTitle>
+              <Info className="h-5 w-5 text-primary-600" /> Identité
+            </CardTitle>
+            <CardDescription>Informations du domaine d'expertise</CardDescription>
+          </div>
+        </CardHeader>
+        <dl className="space-y-4">
+          <div>
+            <dt className="text-xs font-semibold uppercase tracking-wide text-ink-400">Label</dt>
+            <dd className="text-sm font-medium text-ink-900 mt-1">{expertise.label}</dd>
+          </div>
+          <div>
+            <dt className="text-xs font-semibold uppercase tracking-wide text-ink-400">Icône</dt>
+            <dd className="text-sm font-medium text-ink-900 mt-1">{expertise.icon}</dd>
+          </div>
+          <div>
+            <dt className="text-xs font-semibold uppercase tracking-wide text-ink-400">Description</dt>
+            <dd className="text-sm text-ink-700 mt-1 leading-relaxed">{expertise.description}</dd>
+          </div>
+          <div>
+            <dt className="text-xs font-semibold uppercase tracking-wide text-ink-400 flex items-center gap-1.5 mb-2">
+              <Tag className="h-3.5 w-3.5" /> Technologies
+            </dt>
+            <div className="flex flex-wrap gap-2">
+              {expertise.technologies.length === 0 ? (
+                <span className="text-sm text-ink-300">-</span>
+              ) : (
+                expertise.technologies.map((tech) => (
+                  <Badge key={tech} variant="primary">{tech}</Badge>
+                ))
+              )}
+            </div>
+          </div>
+        </dl>
+      </Card>
+    </div>
+  );
+}
+
 export function AdminExpertiseContentPage() {
   const queryClient = useQueryClient();
   const { data: expertise = [] } = useQuery({ queryKey: ['expertise'], queryFn: fetchExpertise });
@@ -134,9 +210,11 @@ export function AdminExpertiseContentPage() {
   }).mutate;
   const [view, setView] = useState<View>('list');
   const [editing, setEditing] = useState<ExpertiseDomain | null>(null);
+  const [viewingExpertise, setViewingExpertise] = useState<ExpertiseDomain | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<ExpertiseDomain | null>(null);
 
   function handleEdit(e: ExpertiseDomain) { setEditing(e); setView('edit'); }
+  function handleView(e: ExpertiseDomain) { setViewingExpertise(e); setView('detail'); }
   function handleCreate() { setEditing(null); setView('edit'); }
 
   function handleSave(values: ExpertiseFormValues) {
@@ -152,6 +230,17 @@ export function AdminExpertiseContentPage() {
       insertMutation.mutate(payload);
     }
     setView('list');
+  }
+
+  if (view === 'detail' && viewingExpertise) {
+    return (
+      <ExpertiseDetailView
+        expertise={viewingExpertise}
+        onBack={() => setView('list')}
+        onEdit={(e) => { setEditing(e); setView('edit'); }}
+        onDelete={(e) => setDeleteConfirm(e)}
+      />
+    );
   }
 
   if (view === 'edit') {
@@ -190,7 +279,7 @@ export function AdminExpertiseContentPage() {
           {expertise.map((e, i) => (
             <motion.div key={e.id} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: Math.min(i * 0.06, 0.3) }} className="rounded-2xl border border-ink-100 bg-white p-5 group">
               <div className="flex items-start justify-between mb-3"><div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary-50 text-primary-600"><Target className="h-5 w-5" /></div>
-                <div className="flex items-center gap-1"><button onClick={() => handleEdit(e)} className="p-2 rounded-lg text-ink-400 hover:text-secondary-600 hover:bg-secondary-50 transition-all"><Edit3 className="h-4 w-4" /></button><button onClick={() => setDeleteConfirm(e)} className="p-2 rounded-lg text-ink-400 hover:text-red-500 hover:bg-red-50 transition-all"><Trash2 className="h-4 w-4" /></button></div></div>
+                <div className="flex items-center gap-1"><button onClick={() => handleView(e)} className="p-2 rounded-lg text-ink-400 hover:text-primary-600 hover:bg-primary-50 transition-all" title="Voir"><Eye className="h-4 w-4" /></button><button onClick={() => handleEdit(e)} className="p-2 rounded-lg text-ink-400 hover:text-secondary-600 hover:bg-secondary-50 transition-all"><Edit3 className="h-4 w-4" /></button><button onClick={() => setDeleteConfirm(e)} className="p-2 rounded-lg text-ink-400 hover:text-red-500 hover:bg-red-50 transition-all"><Trash2 className="h-4 w-4" /></button></div></div>
               <h3 className="text-sm font-bold text-ink-900 mb-1">{e.label}</h3><p className="text-xs text-ink-500 line-clamp-2 mb-3">{e.description}</p>
               <div className="flex flex-wrap gap-1">{e.technologies.slice(0, 4).map((t) => <span key={t} className="px-2 py-0.5 rounded bg-ink-100 text-ink-600 text-[10px] font-semibold">{t}</span>)}{e.technologies.length > 4 && <span className="px-2 py-0.5 rounded bg-ink-100 text-ink-400 text-[10px] font-semibold">+{e.technologies.length - 4}</span>}</div>
             </motion.div>

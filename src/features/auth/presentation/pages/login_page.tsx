@@ -149,23 +149,6 @@ export function LoginPage() {
                 </>
               )}
             </button>
-
-            {/* Demo credentials */}
-            <div className="p-4 rounded-2xl bg-gradient-to-br from-ink-50 to-white border border-ink-100">
-              <p className="text-xs font-semibold text-ink-500 mb-2 flex items-center gap-1.5">
-                <Sparkles className="h-3 w-3 text-primary-500" /> Compte de démonstration
-              </p>
-              <div className="grid grid-cols-2 gap-2 text-xs">
-                <div className="p-2 rounded-lg bg-white border border-ink-100">
-                  <p className="text-ink-400 mb-0.5">Email</p>
-                  <p className="text-ink-700 font-mono font-medium">admin@alak-digital.com</p>
-                </div>
-                <div className="p-2 rounded-lg bg-white border border-ink-100">
-                  <p className="text-ink-400 mb-0.5">Mot de passe</p>
-                  <p className="text-ink-700 font-mono font-medium">Admin123!</p>
-                </div>
-              </div>
-            </div>
           </form>
 
           <div className="mt-8 text-center">
