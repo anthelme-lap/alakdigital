@@ -43,17 +43,20 @@ jobs:
 
       # --linked (Management API) demande des privileges d'org que le token
       # n'a pas toujours (403 "Initialising login role"), et "supabase db
-      # query --file" ne supporte pas les fichiers multi-instructions. On se
-      # connecte donc directement a Postgres via psql, comme "db push" au-dessus.
+      # query --file" ne supporte pas les fichiers multi-instructions. La
+      # connexion directe (db.<ref>.supabase.co) resout en IPv6 uniquement,
+      # indisponible sur les runners GitHub -> on passe par le Session
+      # Pooler (IPv4), comme indique dans Project Settings > Database.
       - name: Apply seed data (idempotent, ON CONFLICT DO NOTHING)
         env:
           PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_ID }}
           DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+          POOLER_HOST: aws-0-eu-west-1.pooler.supabase.com
         run: |
           set -e
           sudo apt-get update -y -qq && sudo apt-get install -y -qq postgresql-client
           ENC_PASSWORD=$(jq -rn --arg v "$DB_PASSWORD" '$v|@uri')
-          DB_URL="postgresql://postgres:${ENC_PASSWORD}@db.${PROJECT_REF}.supabase.co:5432/postgres"
+          DB_URL="postgresql://postgres.${PROJECT_REF}:${ENC_PASSWORD}@${POOLER_HOST}:5432/postgres"
           for f in supabase/seeds/*.sql; do
             echo "--- Seeding: $f ---"
             psql "$DB_URL" -v ON_ERROR_STOP=1 -f "$f"
