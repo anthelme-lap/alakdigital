@@ -1,5 +1,8 @@
 # CLAUDE.md — Conventions API
 
+> Migration en cours : bascule de Supabase vers l'API custom `alak-api`. Checklist et
+> etat d'avancement dans `e:\personnel\alak-api\CLAUDE.md`.
+
 ## Architecture
 
 Le projet suit une architecture Clean Architecture en couches :

@@ -1,8 +1,17 @@
-import { supabase } from '@/core/database/supabase_client';
+import { apiClient } from '@/core/http/api_client';
 
-const BUCKET = 'media';
 const MAX_SIZE_BYTES = 5 * 1024 * 1024;
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/svg+xml'];
+
+const UPLOAD_ENDPOINTS: Record<string, string> = {
+  projects: '/admin/projects/uploads',
+  articles: '/admin/articles/uploads',
+  team: '/admin/team-members/uploads',
+};
+
+interface UploadResponse {
+  url: string;
+}
 
 export async function uploadImage(file: File, folder: string): Promise<string> {
   if (!ALLOWED_TYPES.includes(file.type)) {
@@ -12,15 +21,14 @@ export async function uploadImage(file: File, folder: string): Promise<string> {
     throw new Error('Image trop volumineuse (5 Mo maximum).');
   }
 
-  const ext = file.name.split('.').pop() ?? 'jpg';
-  const path = `${folder}/${crypto.randomUUID()}.${ext}`;
+  const endpoint = UPLOAD_ENDPOINTS[folder];
+  if (!endpoint) {
+    throw new Error(`Aucun endpoint d'upload configure pour le dossier '${folder}'.`);
+  }
 
-  const { error } = await supabase.storage.from(BUCKET).upload(path, file, {
-    cacheControl: '3600',
-    upsert: false,
-  });
-  if (error) throw new Error(error.message);
+  const formData = new FormData();
+  formData.append('image', file);
 
-  const { data } = supabase.storage.from(BUCKET).getPublicUrl(path);
-  return data.publicUrl;
+  const { url } = await apiClient.upload<UploadResponse>(endpoint, formData);
+  return url;
 }

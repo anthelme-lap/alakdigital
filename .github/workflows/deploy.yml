@@ -1,170 +1,128 @@
-name: Build & Deploy ALAK DIGITAL
+# name: Build & Deploy ALAK DIGITAL
 
-on:
-  push:
-    branches: [main]
-  workflow_dispatch:
+# on:
+#   push:
+#     branches: [main]
+#   workflow_dispatch:
 
-permissions:
-  contents: read
-  packages: write
+# permissions:
+#   contents: read
+#   packages: write
 
-env:
-  REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}
+# env:
+#   REGISTRY: ghcr.io
+#   IMAGE_NAME: ${{ github.repository }}
 
-concurrency:
-  group: deploy-alak-digital
-  cancel-in-progress: true
+# concurrency:
+#   group: deploy-alak-digital
+#   cancel-in-progress: true
 
-jobs:
-  migrate:
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    environment: production
+# jobs:
+#   # Plus de job de migration ici : la base de donnees (schema + seed) est
+#   # geree par alak-api (Alembic + `seed_portfolio_defaults()` au demarrage),
+#   # pas par ce depot. Voir alak-api/init-dev.sh et alak-api/CLAUDE.md.
+#   build-and-push:
+#     runs-on: ubuntu-latest
+#     timeout-minutes: 15
+#     outputs:
+#       image_name: ${{ steps.image.outputs.name }}
 
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+#     steps:
+#       - name: Checkout code
+#         uses: actions/checkout@v4
 
-      - name: Set up Supabase CLI
-        uses: supabase/setup-cli@v1
-        with:
-          version: latest
+#       - name: Compute lowercase image name
+#         id: image
+#         run: |
+#           IMAGE_NAME_LC=$(echo "${{ env.IMAGE_NAME }}" | tr '[:upper:]' '[:lower:]')
+#           echo "name=$IMAGE_NAME_LC" >> "$GITHUB_OUTPUT"
 
-      - name: Link project and push migrations
-        env:
-          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
-          PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_ID }}
-          DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
-        run: |
-          supabase link --project-ref "$PROJECT_REF"
-          supabase db push --password "$DB_PASSWORD"
+#       - name: Set up Docker Buildx
+#         uses: docker/setup-buildx-action@v3
 
-      # --linked (Management API) demande des privileges d'org que le token
-      # n'a pas toujours (403 "Initialising login role"), et "supabase db
-      # query --file" ne supporte pas les fichiers multi-instructions. La
-      # connexion directe (db.<ref>.supabase.co) resout en IPv6 uniquement,
-      # indisponible sur les runners GitHub -> on passe par le Transaction
-      # Pooler (IPv4), voir Supabase Dashboard > Connect > Transaction pooler.
-      - name: Apply seed data (idempotent, ON CONFLICT DO NOTHING)
-        env:
-          PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_ID }}
-          DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
-          POOLER_HOST: aws-1-eu-west-1.pooler.supabase.com
-        run: |
-          set -e
-          sudo apt-get update -y -qq && sudo apt-get install -y -qq postgresql-client
-          ENC_PASSWORD=$(jq -rn --arg v "$DB_PASSWORD" '$v|@uri')
-          DB_URL="postgresql://postgres.${PROJECT_REF}:${ENC_PASSWORD}@${POOLER_HOST}:6543/postgres"
-          for f in supabase/seeds/*.sql; do
-            echo "--- Seeding: $f ---"
-            psql "$DB_URL" -v ON_ERROR_STOP=1 -f "$f"
-          done
+#       # Login pour le PUSH depuis le runner GitHub : github.token est legitime ici,
+#       # car l'authentification reste dans le contexte du workflow (pas sur le VPS).
+#       - name: Login to GitHub Container Registry
+#         uses: docker/login-action@v3
+#         with:
+#           registry: ${{ env.REGISTRY }}
+#           username: ${{ github.actor }}
+#           password: ${{ github.token }}
 
-  build-and-push:
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    outputs:
-      image_name: ${{ steps.image.outputs.name }}
+#       - name: Build and push
+#         uses: docker/build-push-action@v6
+#         with:
+#           context: .
+#           push: true
+#           tags: |
+#             ${{ env.REGISTRY }}/${{ steps.image.outputs.name }}:latest
+#             ${{ env.REGISTRY }}/${{ steps.image.outputs.name }}:${{ github.sha }}
+#           cache-from: type=gha
+#           cache-to: type=gha,mode=max
+#           build-args: |
+#             VITE_API_BASE=${{ secrets.VITE_API_BASE }}
+#           # Le LABEL project=alak_digital doit rester defini dans le Dockerfile,
+#           # sinon "docker image prune --filter label=..." sur le VPS
+#           # ne matchera aucune image.
 
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+#   deploy:
+#     runs-on: ubuntu-latest
+#     needs: [build-and-push]
+#     timeout-minutes: 15
+#     environment: production
 
-      - name: Compute lowercase image name
-        id: image
-        run: |
-          IMAGE_NAME_LC=$(echo "${{ env.IMAGE_NAME }}" | tr '[:upper:]' '[:lower:]')
-          echo "name=$IMAGE_NAME_LC" >> "$GITHUB_OUTPUT"
+#     steps:
+#       - name: Checkout code
+#         uses: actions/checkout@v4
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+#       - name: Copy Compose configuration
+#         uses: appleboy/scp-action@v1
+#         with:
+#           host: ${{ secrets.SERVER_IP }}
+#           username: ${{ secrets.SERVER_USER }}
+#           key: ${{ secrets.SERVER_SSH_KEY }}
+#           source: docker-compose.yml
+#           target: /opt/alak-digital
+#           overwrite: true
 
-      # Login pour le PUSH depuis le runner GitHub : github.token est legitime ici,
-      # car l'authentification reste dans le contexte du workflow (pas sur le VPS).
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ github.token }}
+#       - name: Deploy to PRODUCTION server
+#         uses: appleboy/ssh-action@v1
+#         with:
+#           host: ${{ secrets.SERVER_IP }}
+#           username: ${{ secrets.SERVER_USER }}
+#           key: ${{ secrets.SERVER_SSH_KEY }}
+#           script: |
+#             set -e
+#             cd /opt/alak-digital
 
-      - name: Build and push
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          push: true
-          tags: |
-            ${{ env.REGISTRY }}/${{ steps.image.outputs.name }}:latest
-            ${{ env.REGISTRY }}/${{ steps.image.outputs.name }}:${{ github.sha }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-          build-args: |
-            VITE_SUPABASE_URL=${{ secrets.VITE_SUPABASE_URL }}
-            VITE_SUPABASE_ANON_KEY=${{ secrets.VITE_SUPABASE_ANON_KEY }}
-          # Le LABEL project=alak_digital doit rester defini dans le Dockerfile,
-          # sinon "docker image prune --filter label=..." sur le VPS
-          # ne matchera aucune image.
+#             echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io \
+#               -u "${{ secrets.GHCR_USERNAME }}" --password-stdin
+#             trap 'docker logout ghcr.io >/dev/null 2>&1 || true' EXIT
 
-  deploy:
-    runs-on: ubuntu-latest
-    needs: [build-and-push, migrate]
-    timeout-minutes: 15
-    environment: production
+#             export APP_IMAGE="${{ env.REGISTRY }}/${{ needs.build-and-push.outputs.image_name }}:${{ github.sha }}"
 
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+#             docker compose pull alak_digital
 
-      - name: Copy Compose configuration
-        uses: appleboy/scp-action@v1
-        with:
-          host: ${{ secrets.SERVER_IP }}
-          username: ${{ secrets.SERVER_USER }}
-          key: ${{ secrets.SERVER_SSH_KEY }}
-          source: docker-compose.yml
-          target: /opt/alak-digital
-          overwrite: true
+#             # On desactive temporairement set -e pour cette etape specifique,
+#             # afin de pouvoir afficher les logs meme si le --wait echoue.
+#             set +e
+#             docker compose up -d --remove-orphans --wait alak_digital
+#             DEPLOY_STATUS=$?
+#             set -e
 
-      - name: Deploy to PRODUCTION server
-        uses: appleboy/ssh-action@v1
-        with:
-          host: ${{ secrets.SERVER_IP }}
-          username: ${{ secrets.SERVER_USER }}
-          key: ${{ secrets.SERVER_SSH_KEY }}
-          script: |
-            set -e
-            cd /opt/alak-digital
+#             echo "--- docker compose ps ---"
+#             docker compose ps
 
-            echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io \
-              -u "${{ secrets.GHCR_USERNAME }}" --password-stdin
-            trap 'docker logout ghcr.io >/dev/null 2>&1 || true' EXIT
+#             echo "--- alak_digital logs (dernieres 50 lignes) ---"
+#             docker compose logs --tail=50 alak_digital
 
-            export APP_IMAGE="${{ env.REGISTRY }}/${{ needs.build-and-push.outputs.image_name }}:${{ github.sha }}"
+#             echo "--- details du healthcheck ---"
+#             docker inspect --format='{{json .State.Health}}' alak_digital || true
 
-            docker compose pull alak_digital
+#             # Si le deploiement a echoue, on arrete maintenant, APRES avoir vu les logs.
+#             if [ $DEPLOY_STATUS -ne 0 ]; then
+#               echo "Deploiement echoue : alak_digital n'est pas devenu healthy."
+#               exit 1
+#             fi
 
-            # On desactive temporairement set -e pour cette etape specifique,
-            # afin de pouvoir afficher les logs meme si le --wait echoue.
-            set +e
-            docker compose up -d --remove-orphans --wait alak_digital
-            DEPLOY_STATUS=$?
-            set -e
-
-            echo "--- docker compose ps ---"
-            docker compose ps
-
-            echo "--- alak_digital logs (dernieres 50 lignes) ---"
-            docker compose logs --tail=50 alak_digital
-
-            echo "--- details du healthcheck ---"
-            docker inspect --format='{{json .State.Health}}' alak_digital || true
-
-            # Si le deploiement a echoue, on arrete maintenant, APRES avoir vu les logs.
-            if [ $DEPLOY_STATUS -ne 0 ]; then
-              echo "Deploiement echoue : alak_digital n'est pas devenu healthy."
-              exit 1
-            fi
-
-            docker image prune -f --filter "label=project=alak_digital"
+#             docker image prune -f --filter "label=project=alak_digital"

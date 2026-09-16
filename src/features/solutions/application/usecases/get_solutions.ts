@@ -1,4 +1,4 @@
-import type { SolutionRepository } from '@/features/solutions/domain/repositories/solution_repository';
+import type { SolutionRepository } from '@/features/solutions/domain/repositories/SolutionRepository';
 import type { Solution } from '@/features/solutions/domain/entities/solution';
 
 export class GetSolutions {

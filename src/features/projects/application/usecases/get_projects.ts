@@ -1,4 +1,4 @@
-import type { ProjectRepository } from '@/features/projects/domain/repositories/project_repository';
+import type { ProjectRepository } from '@/features/projects/domain/repositories/ProjectRepository';
 import type { Project } from '@/features/projects/domain/entities/project';
 
 export class GetProjects {

@@ -1,4 +1,4 @@
-import type { BlogRepository } from '@/features/blog/domain/repositories/blog_repository';
+import type { BlogRepository } from '@/features/blog/domain/repositories/BlogRepository';
 import type { BlogArticle } from '@/features/blog/domain/entities/article';
 
 export class GetArticles {

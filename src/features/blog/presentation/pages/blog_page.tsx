@@ -59,26 +59,28 @@ export function BlogPage() {
 
   return (
     <>
-      <section className="relative overflow-hidden bg-ink-900 text-white pt-20 pb-0 lg:pt-28">
+      <section className="relative overflow-hidden bg-ink-900 text-white">
         <div className="absolute inset-0 grid-bg-dark opacity-20" />
         <div className="absolute top-0 right-0 h-[400px] w-[400px] rounded-full bg-primary-600/20 blur-[120px]" />
-        <Container>
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }} className="max-w-3xl pb-12">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary-500/20 text-primary-400">
-                <Newspaper className="h-5 w-5" />
+        <div className="min-h-[300px] lg:min-h-[380px] flex items-center">
+          <Container>
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }} className="max-w-3xl">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary-500/20 text-primary-400">
+                  <Newspaper className="h-5 w-5" />
+                </div>
+                <p className="text-sm font-semibold uppercase tracking-[0.2em] text-primary-400">Actualités</p>
               </div>
-              <p className="text-sm font-semibold uppercase tracking-[0.2em] text-primary-400">Actualités</p>
-            </div>
-            <h1 className="text-display-lg font-extrabold text-balance">
-              Insights & <span className="text-gradient-light">expertises techniques</span>
-            </h1>
-            <p className="mt-6 text-lg text-ink-300 leading-relaxed max-w-2xl">
-              Articles, tutoriels et réflexions sur le développement, le design, le DevOps et la
-              transformation digitale.
-            </p>
-          </motion.div>
-        </Container>
+              <h1 className="text-display-lg font-extrabold text-balance">
+                Insights & <span className="text-gradient-light">expertises techniques</span>
+              </h1>
+              <p className="mt-6 text-lg text-ink-300 leading-relaxed max-w-2xl">
+                Articles, tutoriels et réflexions sur le développement, le design, le DevOps et la
+                transformation digitale.
+              </p>
+            </motion.div>
+          </Container>
+        </div>
 
         <div className="relative border-t border-white/10 bg-ink-950/50 backdrop-blur-sm">
           <Container>
@@ -396,11 +398,11 @@ export function ArticleDetailPage() {
         <div className="h-full bg-primary-500 transition-all duration-150" style={{ width: `${readingProgress}%` }} />
       </div>
 
-      <section className="relative overflow-hidden bg-ink-900 text-white pt-20 pb-16 lg:pt-28 lg:pb-20">
+      <section className="relative overflow-hidden bg-ink-900 text-white min-h-[300px] lg:min-h-[380px] flex items-center">
         <div className="absolute inset-0 grid-bg-dark opacity-20" />
         <div className="absolute top-0 right-0 h-[400px] w-[400px] rounded-full bg-primary-600/20 blur-[120px]" />
         <Container size="narrow">
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }} className="py-8">
             <nav className="flex items-center gap-2 text-sm text-ink-400 mb-8">
               <Link to="/" className="hover:text-white transition-colors">Accueil</Link>
               <ChevronRight className="h-3.5 w-3.5 text-ink-600" />

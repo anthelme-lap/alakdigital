@@ -1,4 +1,4 @@
-import type { ServiceRepository } from '@/features/services/domain/repositories/service_repository';
+import type { ServiceRepository } from '@/features/services/domain/repositories/ServiceRepository';
 import type { Service } from '@/features/services/domain/entities/service';
 
 export class GetServices {

@@ -1,5 +1,7 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
-import { supabase } from '@/core/database/supabase_client';
+import { apiClient } from '@/core/http/api_client';
+import { tokenStore } from '@/core/auth/token_store';
+import { UnauthorizedError } from '@/core/errors/app_error';
 
 export type AdminRole = 'admin' | 'superadmin';
 
@@ -16,53 +18,30 @@ interface AuthContextValue {
   signOut: () => Promise<void>;
 }
 
+interface UserResponse {
+  id: string;
+  email: string;
+  type_utilisateur: string | null;
+}
+
+interface LoginResponse {
+  token: string;
+  refresh_token: string;
+  utilisateur: UserResponse | null;
+}
+
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
-const AUTH_TIMEOUT_MS = 8000;
-
-class AuthTimeoutError extends Error {}
-
-function withTimeout<T>(promise: PromiseLike<T>, ms = AUTH_TIMEOUT_MS): Promise<T> {
-  return new Promise((resolve, reject) => {
-    const timer = setTimeout(() => reject(new AuthTimeoutError('Auth call timed out')), ms);
-    promise.then(
-      (value) => { clearTimeout(timer); resolve(value); },
-      (err) => { clearTimeout(timer); reject(err); },
-    );
-  });
+function roleFromTypeUtilisateur(type: string | null): AdminRole | null {
+  if (type === 'site_super_admin') return 'superadmin';
+  if (type === 'site_admin') return 'admin';
+  return null;
 }
 
-/**
- * supabase-js peut rester bloque indefiniment (ni resolue ni rejetee) si une
- * session/refresh token en localStorage est corrompue ou perimee. On efface
- * toute cle sb-* pour forcer un etat propre plutot que de laisser l'appelant
- * geler indefiniment.
- */
-function clearStaleSession() {
-  try {
-    Object.keys(localStorage)
-      .filter((key) => key.startsWith('sb-'))
-      .forEach((key) => localStorage.removeItem(key));
-  } catch {
-    // localStorage indisponible (mode prive strict, etc.) -- rien a nettoyer
-  }
-}
-
-async function resolveUser(supabaseUserId: string, fallbackEmail: string): Promise<AuthUser | null> {
-  try {
-    const { data, error } = await withTimeout(
-      supabase.from('admin_users').select('email, role').eq('id', supabaseUserId).single(),
-    );
-
-    if (error || !data) {
-      return null;
-    }
-
-    return { id: supabaseUserId, email: data.email ?? fallbackEmail, role: data.role as AdminRole };
-  } catch (err) {
-    if (err instanceof AuthTimeoutError) clearStaleSession();
-    return null;
-  }
+function toAuthUser(u: UserResponse): AuthUser | null {
+  const role = roleFromTypeUtilisateur(u.type_utilisateur);
+  if (!role) return null;
+  return { id: u.id, email: u.email, role };
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -72,73 +51,58 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     let active = true;
 
-    withTimeout(supabase.auth.getSession())
-      .then(async ({ data: { session } }) => {
-        if (!session?.user) {
-          if (active) setLoading(false);
-          return;
-        }
-        const resolved = await resolveUser(session.user.id, session.user.email ?? '');
-        if (active) {
-          setUser(resolved);
-          setLoading(false);
-        }
-      })
-      .catch(async (err) => {
-        if (err instanceof AuthTimeoutError) {
-          clearStaleSession();
-          await supabase.auth.signOut().catch(() => {});
-        }
-        if (active) {
-          setUser(null);
-          setLoading(false);
-        }
-      });
-
-    const { data: subscription } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      if (!session?.user) {
-        setUser(null);
+    async function restoreSession() {
+      if (!tokenStore.getAccessToken()) {
+        if (active) setLoading(false);
         return;
       }
-      const resolved = await resolveUser(session.user.id, session.user.email ?? '');
-      setUser(resolved);
-    });
+      try {
+        const me = await apiClient.get<UserResponse>('/auth/me');
+        if (active) setUser(toAuthUser(me));
+      } catch {
+        tokenStore.clear();
+        if (active) setUser(null);
+      } finally {
+        if (active) setLoading(false);
+      }
+    }
 
+    restoreSession();
     return () => {
       active = false;
-      subscription.subscription.unsubscribe();
     };
   }, []);
 
   async function signIn(email: string, password: string) {
     try {
-      const { data, error } = await withTimeout(supabase.auth.signInWithPassword({ email, password }));
+      const data = await apiClient.post<LoginResponse>('/auth/login', {
+        email,
+        mot_de_passe: password,
+      });
 
-      if (error || !data.user) {
-        return { error: 'Email ou mot de passe incorrect.' };
-      }
-
-      const resolved = await resolveUser(data.user.id, data.user.email ?? '');
-      if (!resolved) {
-        await supabase.auth.signOut();
+      const authUser = data.utilisateur ? toAuthUser(data.utilisateur) : null;
+      if (!authUser) {
         return { error: 'Ce compte ne dispose pas des droits admin.' };
       }
 
-      setUser(resolved);
+      tokenStore.setTokens(data.token, data.refresh_token);
+      setUser(authUser);
       return { error: null };
     } catch (err) {
-      if (err instanceof AuthTimeoutError) {
-        clearStaleSession();
-        await supabase.auth.signOut().catch(() => {});
-        return { error: 'Session precedente invalide, nettoyee. Reessaie de te connecter.' };
+      if (err instanceof UnauthorizedError) {
+        return { error: 'Email ou mot de passe incorrect.' };
       }
-      return { error: 'Une erreur est survenue. Reessaie.' };
+      return { error: 'Une erreur est survenue. Réessaie.' };
     }
   }
 
   async function signOut() {
-    await supabase.auth.signOut();
-    clearStaleSession();
+    try {
+      await apiClient.post('/auth/logout');
+    } catch {
+      // deconnexion cote client de toute facon
+    }
+    tokenStore.clear();
     setUser(null);
   }
 

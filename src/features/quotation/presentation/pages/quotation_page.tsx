@@ -127,7 +127,7 @@ export function QuotationPage() {
 
   return (
     <>
-      <section className="relative overflow-hidden bg-ink-900 text-white pt-20 pb-20 lg:pt-28 lg:pb-24">
+      <section className="relative overflow-hidden bg-ink-900 text-white min-h-[300px] lg:min-h-[380px] flex items-center">
         <div className="absolute inset-0 grid-bg-dark opacity-20" />
         <div className="absolute top-0 right-0 h-[400px] w-[400px] rounded-full bg-primary-600/20 blur-[120px]" />
         <Container>

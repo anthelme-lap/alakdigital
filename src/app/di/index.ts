@@ -1,19 +1,19 @@
-import { StaticServiceRepository } from '@/features/services/infrastructure/repositories/static_service_repository';
+import { ApiServiceRepository } from '@/features/services/infrastructure/repositories/ApiServiceRepository';
 import { GetServices, GetServiceBySlug } from '@/features/services/application/usecases/get_services';
 
-import { StaticProjectRepository } from '@/features/projects/infrastructure/repositories/static_project_repository';
+import { ApiProjectRepository } from '@/features/projects/infrastructure/repositories/ApiProjectRepository';
 import { GetProjects, GetFeaturedProjects, GetProjectBySlug } from '@/features/projects/application/usecases/get_projects';
 
-import { StaticSolutionRepository } from '@/features/solutions/infrastructure/repositories/static_solution_repository';
+import { ApiSolutionRepository } from '@/features/solutions/infrastructure/repositories/ApiSolutionRepository';
 import { GetSolutions, GetSolutionBySlug } from '@/features/solutions/application/usecases/get_solutions';
 
-import { StaticBlogRepository } from '@/features/blog/infrastructure/repositories/static_blog_repository';
+import { ApiBlogRepository } from '@/features/blog/infrastructure/repositories/ApiBlogRepository';
 import { GetArticles, GetArticleBySlug } from '@/features/blog/application/usecases/get_articles';
 
-const serviceRepository = new StaticServiceRepository();
-const projectRepository = new StaticProjectRepository();
-const solutionRepository = new StaticSolutionRepository();
-const blogRepository = new StaticBlogRepository();
+const serviceRepository = new ApiServiceRepository();
+const projectRepository = new ApiProjectRepository();
+const solutionRepository = new ApiSolutionRepository();
+const blogRepository = new ApiBlogRepository();
 
 export const getServices = new GetServices(serviceRepository);
 export const getServiceBySlug = new GetServiceBySlug(serviceRepository);
