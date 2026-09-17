@@ -2,20 +2,25 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Plus, Edit3, Trash2, X, Save, ArrowLeft, Award, Target, Eye } from 'lucide-react';
+import { Plus, Edit3, Trash2, X, Save, ArrowLeft, Award, Target, Eye, BookOpen } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   fetchMissionVision, updateMissionVision as updateMissionVisionApi,
   fetchPillars, insertPillar, updatePillar as updatePillarApi, deletePillar as deletePillarApi,
+  fetchCompanyStory, updateCompanyStory as updateCompanyStoryApi,
 } from '@/features/content/infrastructure/content_api';
 import { Button, Input, Textarea, Select, Card, CardHeader, CardTitle, CardDescription } from '@/shared/ui';
-import { missionVisionSchema, type MissionVisionFormValues, pillarSchema, type PillarFormValues } from '../forms/about_content_schema';
-import type { MissionVision, AboutPillar } from '@/features/content/domain/entities/content';
+import {
+  missionVisionSchema, type MissionVisionFormValues,
+  pillarSchema, type PillarFormValues,
+  companyStorySchema, type CompanyStoryFormValues,
+} from '../forms/about_content_schema';
+import type { MissionVision, AboutPillar, CompanyStory } from '@/features/content/domain/entities/content';
 
 const iconOptions = ['Target', 'Eye', 'Award', 'Rocket', 'Compass', 'Star', 'Shield', 'Zap', 'Heart', 'Sparkles'];
 const iconSelectOptions = iconOptions.map((ic) => ({ value: ic, label: ic }));
 
-type Tab = 'mission' | 'pillars';
+type Tab = 'mission' | 'pillars' | 'story';
 
 export function AdminAboutContentPage() {
   const [tab, setTab] = useState<Tab>('mission');
@@ -25,9 +30,11 @@ export function AdminAboutContentPage() {
       <div className="flex items-center gap-2 border-b border-ink-100">
         <button onClick={() => setTab('mission')} className={`flex items-center gap-2 px-4 py-2.5 text-sm font-semibold border-b-2 transition-all ${tab === 'mission' ? 'border-primary-600 text-primary-600' : 'border-transparent text-ink-500 hover:text-ink-900'}`}><Target className="h-4 w-4" /> Mission & Vision</button>
         <button onClick={() => setTab('pillars')} className={`flex items-center gap-2 px-4 py-2.5 text-sm font-semibold border-b-2 transition-all ${tab === 'pillars' ? 'border-primary-600 text-primary-600' : 'border-transparent text-ink-500 hover:text-ink-900'}`}><Award className="h-4 w-4" /> Piliers</button>
+        <button onClick={() => setTab('story')} className={`flex items-center gap-2 px-4 py-2.5 text-sm font-semibold border-b-2 transition-all ${tab === 'story' ? 'border-primary-600 text-primary-600' : 'border-transparent text-ink-500 hover:text-ink-900'}`}><BookOpen className="h-4 w-4" /> Notre histoire</button>
       </div>
       {tab === 'mission' && <MissionTab />}
       {tab === 'pillars' && <PillarsTab />}
+      {tab === 'story' && <StoryTab />}
     </div>
   );
 }
@@ -487,5 +494,118 @@ function PillarsTab() {
         )}
       </AnimatePresence>
     </div>
+  );
+}
+
+interface StoryFormProps {
+  defaultValues: CompanyStoryFormValues;
+  onSubmit: (values: CompanyStoryFormValues) => void;
+  onCancel: () => void;
+  loading: boolean;
+}
+
+function StoryForm({ defaultValues, onSubmit, onCancel, loading }: StoryFormProps) {
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<CompanyStoryFormValues>({
+    resolver: zodResolver(companyStorySchema),
+    defaultValues,
+    mode: 'onChange',
+  });
+
+  return (
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+      <Card>
+        <CardHeader>
+          <div>
+            <CardTitle>
+              <BookOpen className="h-5 w-5 text-primary-600" /> Notre histoire
+            </CardTitle>
+            <CardDescription>Année de création et récit fondateur d'ALAK DIGITAL</CardDescription>
+          </div>
+        </CardHeader>
+        <div className="space-y-4">
+          <Input label="Année *" placeholder="2022" className="max-w-[160px]" error={errors.year?.message} {...register('year')} />
+          <Textarea label="Paragraphe 1 *" rows={4} error={errors.paragraph_1?.message} {...register('paragraph_1')} />
+          <Textarea label="Paragraphe 2 *" rows={4} error={errors.paragraph_2?.message} {...register('paragraph_2')} />
+        </div>
+      </Card>
+
+      <div className="flex gap-2">
+        <Button type="submit" variant="primary" size="md" loading={loading} leftIcon={!loading ? <Save className="h-4 w-4" /> : undefined}>
+          Enregistrer
+        </Button>
+        <Button type="button" variant="outline" size="md" onClick={onCancel}>
+          Annuler
+        </Button>
+      </div>
+    </form>
+  );
+}
+
+function StoryTab() {
+  const queryClient = useQueryClient();
+  const { data: stories = [] } = useQuery({ queryKey: ['companyStory'], queryFn: fetchCompanyStory });
+  const story = stories[0];
+  const updateStoryMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: Partial<CompanyStory> }) => updateCompanyStoryApi(id, data),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['companyStory'] }),
+  });
+  const [editing, setEditing] = useState(false);
+
+  function handleSave(values: CompanyStoryFormValues) {
+    if (!story) return;
+    updateStoryMutation.mutate({ id: story.id, data: values });
+    setEditing(false);
+  }
+
+  if (!story) {
+    return <p className="text-sm text-ink-500">Aucune histoire enregistrée.</p>;
+  }
+
+  if (editing) {
+    return (
+      <div>
+        <button
+          onClick={() => setEditing(false)}
+          className="inline-flex items-center gap-2 text-sm text-ink-500 hover:text-ink-900 transition-colors mb-6"
+        >
+          <ArrowLeft className="h-4 w-4" /> Retour
+        </button>
+
+        <div className="mb-6">
+          <h3 className="text-2xl font-bold text-ink-900">Modifier l'histoire</h3>
+        </div>
+
+        <StoryForm
+          defaultValues={{ year: story.year, paragraph_1: story.paragraph_1, paragraph_2: story.paragraph_2 }}
+          onSubmit={handleSave}
+          onCancel={() => setEditing(false)}
+          loading={updateStoryMutation.isPending}
+        />
+      </div>
+    );
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <div>
+          <CardTitle>
+            <BookOpen className="h-5 w-5 text-primary-600" /> Notre histoire
+          </CardTitle>
+          <CardDescription>Année de création : {story.year}</CardDescription>
+        </div>
+        <Button variant="primary" size="md" leftIcon={<Edit3 className="h-4 w-4" />} onClick={() => setEditing(true)}>
+          Modifier
+        </Button>
+      </CardHeader>
+      <div className="space-y-3">
+        <p className="text-sm text-ink-600">{story.paragraph_1}</p>
+        <p className="text-sm text-ink-600">{story.paragraph_2}</p>
+      </div>
+    </Card>
   );
 }

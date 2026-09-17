@@ -5,7 +5,7 @@ import type { Project } from '@/features/projects/domain/entities/project';
 import type { Service } from '@/features/services/domain/entities/service';
 import type { Solution } from '@/features/solutions/domain/entities/solution';
 import type {
-  TeamMember, Value, MissionVision, AboutPillar, ExpertiseDomain,
+  TeamMember, Value, MissionVision, AboutPillar, CompanyStory, ExpertiseDomain,
   Stat, Client, WhyUsReason, HeroSlide, ContactMessage, QuotationRequest,
 } from '@/features/content/domain/entities/content';
 
@@ -174,6 +174,10 @@ export const deleteValue = valuesApi.remove;
 const missionVisionApi = simpleContentApi<MissionVision>('mission-vision');
 export const fetchMissionVision = missionVisionApi.fetchAll;
 export const updateMissionVision = (id: string, mv: Partial<MissionVision>) => missionVisionApi.update(id, mv);
+
+const companyStoryApi = simpleContentApi<CompanyStory>('company-story');
+export const fetchCompanyStory = companyStoryApi.fetchAll;
+export const updateCompanyStory = (id: string, s: Partial<CompanyStory>) => companyStoryApi.update(id, s);
 
 const pillarsApi = simpleContentApi<AboutPillar>('about-pillars');
 export const fetchPillars = pillarsApi.fetchAll;

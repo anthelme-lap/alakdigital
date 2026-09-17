@@ -5,7 +5,7 @@ import { Check } from 'lucide-react';
 import { Container, Section, SectionHeading } from '@/shared/ui';
 import { CtaSection } from '@/shared/components/cta_section';
 import { Reveal, StaggerContainer, StaggerItem } from '@/shared/components/reveal';
-import { fetchValues, fetchMissionVision, fetchTeam, fetchPillars } from '@/features/content/infrastructure/content_api';
+import { fetchValues, fetchMissionVision, fetchTeam, fetchPillars, fetchCompanyStory } from '@/features/content/infrastructure/content_api';
 import * as Icons from 'lucide-react';
 
 export function AboutPage() {
@@ -13,6 +13,8 @@ export function AboutPage() {
   const { data: missionVision = [] } = useQuery({ queryKey: ['missionVision'], queryFn: fetchMissionVision });
   const { data: team = [] } = useQuery({ queryKey: ['team'], queryFn: fetchTeam });
   const { data: pillars = [] } = useQuery({ queryKey: ['pillars'], queryFn: fetchPillars });
+  const { data: companyStory = [] } = useQuery({ queryKey: ['companyStory'], queryFn: fetchCompanyStory });
+  const story = companyStory[0];
   const [activeTab, setActiveTab] = useState<'mission' | 'vision'>('mission');
   const active = missionVision.find((mv) => mv.tab_key === activeTab) ?? missionVision[0];
 
@@ -59,22 +61,29 @@ export function AboutPage() {
 
           <Reveal delay={0.1}>
             <SectionHeading
-              eyebrow="Notre histoire"
+              eyebrow={story ? `Notre histoire — depuis ${story.year}` : 'Notre histoire'}
               title="D'où vient le nom ALAK ?"
             />
-            <p className="mt-6 text-lg text-ink-600 leading-relaxed">
-              ALAK DIGITAL est né de l'amitié entre <strong>Affouété Luc</strong> et <strong>Anthelme Koffi</strong>,
-              deux amis depuis le lycée qui ont ensuite suivi ensemble la filière Informatique Développement
-              d'Applications (IDA).
-            </p>
-            <p className="mt-4 text-lg text-ink-600 leading-relaxed">
-              Le nom <strong className="text-ink-900">ALAK</strong> est né de la contraction de leurs prénoms :
-              <strong className="text-primary-600"> A</strong>ffouété <strong className="text-primary-600">L</strong>uc
-              et <strong className="text-primary-600">A</strong>nthelme <strong className="text-primary-600">K</strong>offi.
-              Ce qui a commencé comme une passion commune pour le code, née sur les bancs de l'école, est devenu
-              une entreprise dédiée à la conception de solutions digitales sur mesure pour les entreprises et
-              organisations africaines.
-            </p>
+            {story ? (
+              <>
+                <p className="mt-6 text-lg text-ink-600 leading-relaxed">{story.paragraph_1}</p>
+                <p className="mt-4 text-lg text-ink-600 leading-relaxed">{story.paragraph_2}</p>
+              </>
+            ) : (
+              <>
+                <p className="mt-6 text-lg text-ink-600 leading-relaxed">
+                  ALAK DIGITAL est né de l'amitié entre <strong>Affouété Luc</strong> et <strong>Anthelme Koffi</strong>,
+                  deux amis depuis le lycée qui ont ensuite suivi ensemble la filière Informatique Développement
+                  d'Applications (IDA).
+                </p>
+                <p className="mt-4 text-lg text-ink-600 leading-relaxed">
+                  Le nom <strong className="text-ink-900">ALAK</strong> est né de la contraction de leurs prénoms :
+                  Affouété Luc et Anthelme Koffi. Ce qui a commencé comme une passion commune pour le code, née sur
+                  les bancs de l'école, est devenu une entreprise dédiée à la conception de solutions digitales sur
+                  mesure pour les entreprises et organisations africaines.
+                </p>
+              </>
+            )}
           </Reveal>
         </div>
       </Section>

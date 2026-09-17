@@ -17,3 +17,11 @@ export const pillarSchema = z.object({
 });
 
 export type PillarFormValues = z.infer<typeof pillarSchema>;
+
+export const companyStorySchema = z.object({
+  year: z.string().min(1, 'Année requise'),
+  paragraph_1: z.string().min(1, 'Paragraphe 1 requis'),
+  paragraph_2: z.string().min(1, 'Paragraphe 2 requis'),
+});
+
+export type CompanyStoryFormValues = z.infer<typeof companyStorySchema>;

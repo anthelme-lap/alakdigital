@@ -34,6 +34,14 @@ export interface AboutPillar {
   sort_order: number;
 }
 
+export interface CompanyStory {
+  id: string;
+  year: string;
+  paragraph_1: string;
+  paragraph_2: string;
+  sort_order: number;
+}
+
 export interface ExpertiseDomain {
   id: string;
   icon: string;
