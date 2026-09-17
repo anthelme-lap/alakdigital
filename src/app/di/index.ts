@@ -10,10 +10,20 @@ import { GetSolutions, GetSolutionBySlug } from '@/features/solutions/applicatio
 import { ApiBlogRepository } from '@/features/blog/infrastructure/repositories/ApiBlogRepository';
 import { GetArticles, GetArticleBySlug } from '@/features/blog/application/usecases/get_articles';
 
+import { ApiProfileRepository } from '@/features/profile/infrastructure/repositories/ApiProfileRepository';
+import {
+  GetMyProfile,
+  UpdateMyProfile,
+  UpdateMyAvatar,
+  DeleteMyAvatar,
+  ChangeMyPassword,
+} from '@/features/profile/application/usecases/get_profile';
+
 const serviceRepository = new ApiServiceRepository();
 const projectRepository = new ApiProjectRepository();
 const solutionRepository = new ApiSolutionRepository();
 const blogRepository = new ApiBlogRepository();
+const profileRepository = new ApiProfileRepository();
 
 export const getServices = new GetServices(serviceRepository);
 export const getServiceBySlug = new GetServiceBySlug(serviceRepository);
@@ -27,3 +37,9 @@ export const getSolutionBySlug = new GetSolutionBySlug(solutionRepository);
 
 export const getArticles = new GetArticles(blogRepository);
 export const getArticleBySlug = new GetArticleBySlug(blogRepository);
+
+export const getMyProfile = new GetMyProfile(profileRepository);
+export const updateMyProfile = new UpdateMyProfile(profileRepository);
+export const updateMyAvatar = new UpdateMyAvatar(profileRepository);
+export const deleteMyAvatar = new DeleteMyAvatar(profileRepository);
+export const changeMyPassword = new ChangeMyPassword(profileRepository);

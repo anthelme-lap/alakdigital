@@ -1,9 +1,10 @@
 interface LogoProps {
   dark?: boolean;
   className?: string;
+  iconOnly?: boolean;
 }
 
-export function Logo({ dark = false, className = '' }: LogoProps) {
+export function Logo({ dark = false, className = '', iconOnly = false }: LogoProps) {
   return (
     <div className={`flex items-center gap-2.5 ${className}`}>
       <img
@@ -13,14 +14,16 @@ export function Logo({ dark = false, className = '' }: LogoProps) {
         height="36"
         className="h-9 w-9 rounded-xl object-cover flex-shrink-0"
       />
-      <div className="flex flex-col leading-none">
-        <span className={`font-display text-base font-extrabold tracking-tight ${dark ? 'text-white' : 'text-ink-900'}`}>
-          ALAK
-        </span>
-        <span className={`text-[10px] font-semibold tracking-[0.2em] uppercase ${dark ? 'text-ink-300' : 'text-ink-400'}`}>
-          Digital
-        </span>
-      </div>
+      {!iconOnly && (
+        <div className="flex flex-col leading-none">
+          <span className={`font-display text-base font-extrabold tracking-tight ${dark ? 'text-white' : 'text-ink-900'}`}>
+            ALAK
+          </span>
+          <span className={`text-[10px] font-semibold tracking-[0.2em] uppercase ${dark ? 'text-ink-300' : 'text-ink-400'}`}>
+            Digital
+          </span>
+        </div>
+      )}
     </div>
   );
 }

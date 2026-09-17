@@ -46,10 +46,11 @@ export const Button = forwardRef<HTMLButtonElement | HTMLAnchorElement, ButtonPr
       rightIcon,
       fullWidth,
       children,
+      className = '',
       ...rest
     } = props;
 
-    const classes = `${baseClass} ${variantClasses[variant]} ${sizeClasses[size]} ${fullWidth ? 'w-full' : ''}`;
+    const classes = `${baseClass} ${variantClasses[variant]} ${sizeClasses[size]} ${fullWidth ? 'w-full' : ''} ${className}`;
 
     const content = (
       <>

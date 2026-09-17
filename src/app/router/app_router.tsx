@@ -32,6 +32,7 @@ const AdminQuotationsPage = lazy(() => import('@/features/admin/presentation/pag
 const AdminHomepagePage = lazy(() => import('@/features/admin/presentation/pages/admin_homepage_page').then((m) => ({ default: m.AdminHomepagePage })));
 const AdminAboutContentPage = lazy(() => import('@/features/admin/presentation/pages/admin_about_content_page').then((m) => ({ default: m.AdminAboutContentPage })));
 const AdminUsersPage = lazy(() => import('@/features/admin/presentation/pages/admin_users_page').then((m) => ({ default: m.AdminUsersPage })));
+const ProfilePage = lazy(() => import('@/features/profile/presentation/pages/profile_page').then((m) => ({ default: m.ProfilePage })));
 
 export function AppRouter() {
   return (
@@ -59,6 +60,7 @@ export function AppRouter() {
           <Route path="quotations" element={<AdminQuotationsPage />} />
           <Route path="homepage" element={<AdminHomepagePage />} />
           <Route path="about-content" element={<AdminAboutContentPage />} />
+          <Route path="profile" element={<ProfilePage />} />
           <Route
             path="users"
             element={

@@ -45,8 +45,8 @@ export class ApiClient {
   }
 
   /** Upload multipart (FormData) — pas de Content-Type manuel (le navigateur pose le boundary). */
-  async upload<T>(path: string, formData: FormData, options?: RequestOptions): Promise<T> {
-    return this.request<T>('POST', path, formData, options, true);
+  async upload<T>(path: string, formData: FormData, options?: RequestOptions, method: 'POST' | 'PUT' = 'POST'): Promise<T> {
+    return this.request<T>(method, path, formData, options, true);
   }
 
   private async request<T>(
