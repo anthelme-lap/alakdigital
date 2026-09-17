@@ -20,18 +20,26 @@ import {
   Tag,
   User,
   Star,
+  Settings,
 } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { fetchArticles, insertArticle, updateArticle, deleteArticle } from '@/features/content/infrastructure/content_api';
-import { Button, Input, Textarea, Card, CardHeader, CardTitle, CardDescription, Badge, ImageUpload, RichTextEditor } from '@/shared/ui';
+import {
+  fetchArticleCategories,
+  insertArticleCategory,
+  deleteArticleCategory as deleteArticleCategoryApi,
+} from '@/features/blog/infrastructure/article_categories_api';
+import { Button, Input, Textarea, Select, Card, CardHeader, CardTitle, CardDescription, Badge, ImageUpload, RichTextEditor } from '@/shared/ui';
 import { articleSchema, type ArticleFormValues } from '../forms/article_schema';
+import { articleCategorySchema, type ArticleCategoryFormValues } from '../forms/article_category_schema';
 import type { BlogArticle } from '@/features/blog/domain/entities/article';
+import type { ArticleCategory } from '@/features/blog/domain/entities/article_category';
 
 function formatDate(date: string) {
   return new Date(date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' });
 }
 
-type View = 'list' | 'edit' | 'detail';
+type View = 'list' | 'edit' | 'detail' | 'categories';
 
 function toFormData(article: BlogArticle): ArticleFormValues {
   return {
@@ -78,9 +86,10 @@ interface ArticleFormProps {
   onCancel: () => void;
   loading: boolean;
   isEdit?: boolean;
+  categoryOptions: { value: string; label: string }[];
 }
 
-function ArticleForm({ defaultValues, onSubmit, onCancel, loading, isEdit = false }: ArticleFormProps) {
+function ArticleForm({ defaultValues, onSubmit, onCancel, loading, isEdit = false, categoryOptions }: ArticleFormProps) {
   const {
     register,
     handleSubmit,
@@ -110,7 +119,7 @@ function ArticleForm({ defaultValues, onSubmit, onCancel, loading, isEdit = fals
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <Input label="Titre *" placeholder="Titre de l'article" className="sm:col-span-2" error={errors.title?.message} {...register('title')} />
             <Input label="Slug *" placeholder="mon-article" className="font-mono" error={errors.slug?.message} {...register('slug')} />
-            <Input label="Categorie *" placeholder="Developpement Web" error={errors.category?.message} {...register('category')} />
+            <Select label="Categorie *" options={categoryOptions} error={errors.category?.message} {...register('category')} />
           </div>
           <div className="mt-4">
             <Textarea label="Extrait *" rows={3} placeholder="Resume court de l'article" error={errors.excerpt?.message} {...register('excerpt')} />
@@ -369,9 +378,132 @@ function ArticleDetailView({ article, onBack, onEdit, onDelete }: ArticleDetailV
   );
 }
 
+function slugify(value: string): string {
+  return value
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
+interface CategoriesManagerProps {
+  categories: ArticleCategory[];
+}
+
+function CategoriesManager({ categories }: CategoriesManagerProps) {
+  const queryClient = useQueryClient();
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const {
+    register,
+    handleSubmit,
+    watch,
+    setValue,
+    resetField,
+    formState: { errors },
+  } = useForm<ArticleCategoryFormValues>({
+    resolver: zodResolver(articleCategorySchema),
+    defaultValues: { name: '', slug: '' },
+    mode: 'onChange',
+  });
+
+  const addMutation = useMutation({
+    mutationFn: insertArticleCategory,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['articleCategories'] });
+      setErrorMessage(null);
+      resetField('name');
+      resetField('slug');
+    },
+    onError: (error: Error) => setErrorMessage(error.message),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: deleteArticleCategoryApi,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['articleCategories'] }),
+  });
+
+  const name = watch('name');
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-2xl font-bold text-ink-900">Catégories d'articles</h2>
+        <p className="text-sm text-ink-500 mt-1">
+          Gérez la liste des catégories proposées lors de la création d'un article.
+        </p>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <div>
+            <CardTitle>Ajouter une catégorie</CardTitle>
+          </div>
+        </CardHeader>
+        <form
+          onSubmit={handleSubmit((values) => addMutation.mutate(values))}
+          className="grid grid-cols-1 gap-4 sm:grid-cols-[1fr_1fr_auto] sm:items-end"
+        >
+          {errorMessage && (
+            <p className="sm:col-span-3 text-sm text-red-600 bg-red-50 border border-red-100 rounded-xl px-4 py-3">{errorMessage}</p>
+          )}
+          <Input
+            label="Nom *"
+            placeholder="Backend"
+            error={errors.name?.message}
+            {...register('name', {
+              onChange: (e) => setValue('slug', slugify(e.target.value), { shouldValidate: true }),
+            })}
+          />
+          <Input label="Slug *" placeholder="backend" className="font-mono" error={errors.slug?.message} {...register('slug')} />
+          <Button type="submit" variant="primary" size="md" loading={addMutation.isPending} leftIcon={!addMutation.isPending ? <Plus className="h-4 w-4" /> : undefined}>
+            Ajouter
+          </Button>
+        </form>
+        {name && <p className="mt-2 text-xs text-ink-400">Aperçu du slug : {slugify(name)}</p>}
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <div>
+            <CardTitle>Catégories existantes</CardTitle>
+            <CardDescription>{categories.length} catégorie{categories.length > 1 ? 's' : ''}</CardDescription>
+          </div>
+        </CardHeader>
+        {categories.length === 0 ? (
+          <p className="text-sm text-ink-400">Aucune catégorie pour le moment.</p>
+        ) : (
+          <div className="divide-y divide-ink-100">
+            {categories.map((cat) => (
+              <div key={cat.id} className="flex items-center justify-between py-3">
+                <div>
+                  <p className="text-sm font-semibold text-ink-900">{cat.name}</p>
+                  <p className="text-xs text-ink-400 font-mono">{cat.slug}</p>
+                </div>
+                <button
+                  onClick={() => deleteMutation.mutate(cat.id)}
+                  className="p-2 rounded-lg text-ink-400 hover:text-red-500 hover:bg-red-50 transition-all"
+                  title="Supprimer"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+      </Card>
+    </div>
+  );
+}
+
 export function AdminArticlesPage() {
   const queryClient = useQueryClient();
   const { data: articles = [] } = useQuery({ queryKey: ['articles'], queryFn: fetchArticles });
+  const { data: articleCategories = [] } = useQuery({ queryKey: ['articleCategories'], queryFn: fetchArticleCategories });
+  const categoryOptions = useMemo(
+    () => articleCategories.map((c) => ({ value: c.name, label: c.name })),
+    [articleCategories],
+  );
   const insertMutation = useMutation({
     mutationFn: insertArticle,
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['articles'] }),
@@ -484,7 +616,22 @@ export function AdminArticlesPage() {
           onCancel={() => setView('list')}
           loading={insertMutation.isPending || updateMutation.isPending}
           isEdit={!!editingArticle}
+          categoryOptions={categoryOptions}
         />
+      </div>
+    );
+  }
+
+  if (view === 'categories') {
+    return (
+      <div>
+        <button
+          onClick={() => setView('list')}
+          className="inline-flex items-center gap-2 text-sm text-ink-500 hover:text-ink-900 transition-colors mb-6"
+        >
+          <ArrowLeft className="h-4 w-4" /> Retour à la liste
+        </button>
+        <CategoriesManager categories={articleCategories} />
       </div>
     );
   }
@@ -510,9 +657,14 @@ export function AdminArticlesPage() {
           <h2 className="text-2xl font-bold text-ink-900">Articles</h2>
           <p className="text-sm text-ink-500 mt-1">Gérez tous les articles du blog</p>
         </div>
-        <Button variant="primary" size="md" leftIcon={<Plus className="h-4 w-4" />} onClick={handleCreate}>
-          Nouvel article
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="md" leftIcon={<Settings className="h-4 w-4" />} onClick={() => setView('categories')}>
+            Catégories
+          </Button>
+          <Button variant="primary" size="md" leftIcon={<Plus className="h-4 w-4" />} onClick={handleCreate}>
+            Nouvel article
+          </Button>
+        </div>
       </div>
 
       <div className="flex flex-col sm:flex-row gap-3">

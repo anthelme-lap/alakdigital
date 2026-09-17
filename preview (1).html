@@ -1,0 +1,2547 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Maktub - Blog</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Nunito:wght@600;700;800&display=swap"
+        rel="stylesheet"
+    >
+
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#ff5068",
+                        dark: "#34324f",
+                        soft: "#f7f7fb",
+                        muted: "#8b8b9d"
+                    },
+
+                    fontFamily: {
+                        sans: ["Inter", "sans-serif"],
+                        display: ["Nunito", "sans-serif"]
+                    },
+
+                    boxShadow: {
+                        card: "0 10px 35px rgba(47,45,80,0.07)"
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            overflow-x: hidden;
+        }
+    </style>
+</head>
+
+
+<body class="bg-[#f8f8fc] text-dark font-sans">
+
+
+<!-- ========================================================= -->
+<!-- HEADER -->
+<!-- ========================================================= -->
+
+<header class="bg-white">
+
+    <div class="max-w-7xl mx-auto px-5 lg:px-8">
+
+        <!-- TOP HEADER -->
+
+        <div class="h-24 flex items-center justify-between">
+
+            <!-- SOCIAL -->
+
+            <div class="hidden md:flex items-center gap-4 text-gray-400">
+
+                <a
+                    href="#"
+                    class="hover:text-primary transition"
+                >
+                    <i data-lucide="instagram" class="w-4 h-4"></i>
+                </a>
+
+                <a
+                    href="#"
+                    class="hover:text-primary transition"
+                >
+                    <i data-lucide="facebook" class="w-4 h-4"></i>
+                </a>
+
+                <a
+                    href="#"
+                    class="hover:text-primary transition"
+                >
+                    <i data-lucide="twitter" class="w-4 h-4"></i>
+                </a>
+
+                <a
+                    href="#"
+                    class="hover:text-primary transition"
+                >
+                    <i data-lucide="rss" class="w-4 h-4"></i>
+                </a>
+
+            </div>
+
+
+            <!-- LOGO -->
+
+            <a
+                href="#"
+                class="font-display text-3xl md:text-4xl font-extrabold tracking-tight"
+            >
+
+                <span class="text-primary">M</span>aktub
+
+            </a>
+
+
+            <!-- SEARCH -->
+
+            <button
+                class="w-10 h-10 rounded-full bg-primary text-white
+                flex items-center justify-center
+                hover:scale-105 transition
+                shadow-lg shadow-primary/20"
+            >
+
+                <i data-lucide="search" class="w-4 h-4"></i>
+
+            </button>
+
+        </div>
+
+
+        <!-- NAVIGATION -->
+
+        <nav
+            class="hidden lg:flex
+            h-14 bg-white
+            border border-gray-100
+            shadow-sm
+            px-8
+            items-center justify-center
+            gap-8
+            text-[13px] font-medium"
+        >
+
+            <a href="#" class="hover:text-primary transition">
+                Accueil
+            </a>
+
+            <a href="#" class="hover:text-primary transition">
+                Lifestyle
+            </a>
+
+            <a href="#" class="hover:text-primary transition">
+                Technologie
+            </a>
+
+            <a href="#" class="hover:text-primary transition">
+                Santé
+            </a>
+
+            <a href="#" class="hover:text-primary transition">
+                Voyage
+            </a>
+
+            <a href="#" class="hover:text-primary transition">
+                Culture
+            </a>
+
+            <a href="#" class="hover:text-primary transition">
+                Vidéos
+            </a>
+
+            <a href="#" class="hover:text-primary transition">
+                À propos
+            </a>
+
+            <a href="#" class="hover:text-primary transition">
+                Contact
+            </a>
+
+        </nav>
+
+    </div>
+
+</header>
+
+
+
+<!-- ========================================================= -->
+<!-- MOBILE MENU -->
+<!-- ========================================================= -->
+
+<div class="lg:hidden bg-white border-t border-gray-100">
+
+    <div class="max-w-7xl mx-auto px-5 py-4">
+
+        <button
+            id="menuButton"
+            class="flex items-center gap-2 text-sm font-semibold"
+        >
+
+            <i data-lucide="menu" class="w-5 h-5"></i>
+
+            Menu
+
+        </button>
+
+
+        <div
+            id="mobileMenu"
+            class="hidden pt-4"
+        >
+
+            <div class="flex flex-col gap-4 text-sm">
+
+                <a href="#" class="hover:text-primary">
+                    Accueil
+                </a>
+
+                <a href="#" class="hover:text-primary">
+                    Lifestyle
+                </a>
+
+                <a href="#" class="hover:text-primary">
+                    Technologie
+                </a>
+
+                <a href="#" class="hover:text-primary">
+                    Santé
+                </a>
+
+                <a href="#" class="hover:text-primary">
+                    Voyage
+                </a>
+
+                <a href="#" class="hover:text-primary">
+                    Culture
+                </a>
+
+                <a href="#" class="hover:text-primary">
+                    Vidéos
+                </a>
+
+                <a href="#" class="hover:text-primary">
+                    À propos
+                </a>
+
+                <a href="#" class="hover:text-primary">
+                    Contact
+                </a>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+
+<!-- ========================================================= -->
+<!-- HERO SLIDER -->
+<!-- ========================================================= -->
+
+<section class="max-w-7xl mx-auto px-5 lg:px-8 mt-10">
+
+    <div
+        class="relative min-h-[340px] md:min-h-[430px]
+        overflow-hidden group"
+    >
+
+        <img
+            src="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=90&w=1800"
+            alt=""
+            class="absolute inset-0 w-full h-full object-cover
+            group-hover:scale-[1.03]
+            transition duration-700"
+        >
+
+
+        <!-- Overlay -->
+
+        <div
+            class="absolute inset-0
+            bg-gradient-to-r
+            from-black/60
+            via-black/35
+            to-black/20"
+        ></div>
+
+
+        <!-- CONTENT -->
+
+        <div
+            class="absolute inset-0
+            flex items-center justify-center"
+        >
+
+            <div
+                class="max-w-3xl text-center
+                text-white px-6"
+            >
+
+                <!-- TAGS -->
+
+                <div
+                    class="flex justify-center flex-wrap
+                    gap-2 mb-5"
+                >
+
+                    <span
+                        class="px-3 py-1
+                        bg-white/20 backdrop-blur
+                        text-xs rounded-full"
+                    >
+                        Technologie
+                    </span>
+
+                    <span
+                        class="px-3 py-1
+                        bg-primary
+                        text-xs rounded-full"
+                    >
+                        Design
+                    </span>
+
+                </div>
+
+
+                <!-- TITLE -->
+
+                <h1
+                    class="font-display
+                    text-3xl sm:text-4xl md:text-5xl
+                    font-extrabold
+                    leading-[1.12]"
+                >
+                    Comment créer des expériences digitales mémorables
+                </h1>
+
+
+                <!-- META -->
+
+                <div
+                    class="mt-5
+                    flex justify-center
+                    flex-wrap gap-3
+                    text-xs md:text-sm
+                    text-white/80"
+                >
+
+                    <span>
+                        17 Septembre 2026
+                    </span>
+
+                    <span>•</span>
+
+                    <span>
+                        6 min de lecture
+                    </span>
+
+                    <span>•</span>
+
+                    <span>
+                        Jonathan Doe
+                    </span>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- LEFT -->
+
+        <button
+            class="absolute left-4 md:left-6
+            top-1/2 -translate-y-1/2
+            w-10 h-10
+            rounded-full
+            bg-primary text-white
+            flex items-center justify-center
+            hover:scale-110 transition"
+        >
+
+            <i data-lucide="arrow-left" class="w-4 h-4"></i>
+
+        </button>
+
+
+        <!-- RIGHT -->
+
+        <button
+            class="absolute right-4 md:right-6
+            top-1/2 -translate-y-1/2
+            w-10 h-10
+            rounded-full
+            bg-primary text-white
+            flex items-center justify-center
+            hover:scale-110 transition"
+        >
+
+            <i data-lucide="arrow-right" class="w-4 h-4"></i>
+
+        </button>
+
+    </div>
+
+</section>
+
+
+
+<!-- ========================================================= -->
+<!-- MAIN -->
+<!-- ========================================================= -->
+
+<main
+    class="max-w-7xl mx-auto
+    px-5 lg:px-8
+    py-12"
+>
+
+    <div
+        class="grid
+        lg:grid-cols-[minmax(0,1fr)_300px]
+        gap-10"
+    >
+
+
+        <!-- ================================================= -->
+        <!-- ARTICLES -->
+        <!-- ================================================= -->
+
+        <section>
+
+            <!-- SECTION TITLE -->
+
+            <div
+                class="flex items-center gap-4
+                mb-7"
+            >
+
+                <h2
+                    class="font-display
+                    font-extrabold
+                    text-2xl"
+                >
+                    Derniers articles
+                </h2>
+
+                <div
+                    class="h-[2px]
+                    bg-primary
+                    flex-1"
+                ></div>
+
+            </div>
+
+
+            <!-- ARTICLE LIST -->
+
+            <div class="space-y-5">
+
+
+                <!-- ARTICLE 1 -->
+
+                <article
+                    class="group
+                    bg-white
+                    border border-gray-100
+                    shadow-card
+                    hover:shadow-lg
+                    transition duration-300"
+                >
+
+                    <div
+                        class="flex
+                        flex-col sm:flex-row"
+                    >
+
+                        <!-- IMAGE -->
+
+                        <a
+                            href="#"
+                            class="sm:w-[220px]
+                            md:w-[240px]
+                            shrink-0
+                            overflow-hidden"
+                        >
+
+                            <img
+                                src="https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?q=80&w=800"
+                                alt=""
+                                class="w-full
+                                h-[190px]
+                                sm:h-full
+                                min-h-[190px]
+                                object-cover
+                                group-hover:scale-105
+                                transition duration-500"
+                            >
+
+                        </a>
+
+
+                        <!-- CONTENT -->
+
+                        <div
+                            class="flex-1
+                            p-5 md:p-6"
+                        >
+
+                            <!-- TOP META -->
+
+                            <div
+                                class="flex items-center gap-3
+                                text-[11px]"
+                            >
+
+                                <span
+                                    class="font-semibold
+                                    uppercase
+                                    tracking-wider
+                                    text-primary"
+                                >
+                                    Lifestyle
+                                </span>
+
+                                <span class="text-gray-300">
+                                    •
+                                </span>
+
+                                <span class="text-gray-400">
+                                    5 min
+                                </span>
+
+                            </div>
+
+
+                            <!-- TITLE -->
+
+                            <a href="#">
+
+                                <h3
+                                    class="mt-2
+                                    font-display
+                                    font-extrabold
+                                    text-[20px]
+                                    md:text-[23px]
+                                    leading-[1.25]
+                                    group-hover:text-primary
+                                    transition"
+                                >
+                                    Le spectacle devant nous était vraiment sublime
+                                </h3>
+
+                            </a>
+
+
+                            <!-- META -->
+
+                            <div
+                                class="flex flex-wrap
+                                items-center
+                                gap-4
+                                mt-3
+                                text-[11px]
+                                text-gray-400"
+                            >
+
+                                <span>
+                                    26 Juillet 2026
+                                </span>
+
+                                <span
+                                    class="flex items-center gap-1"
+                                >
+
+                                    <i
+                                        data-lucide="message-circle"
+                                        class="w-3.5 h-3.5"
+                                    ></i>
+
+                                    12
+
+                                </span>
+
+                                <span
+                                    class="flex items-center gap-1"
+                                >
+
+                                    <i
+                                        data-lucide="eye"
+                                        class="w-3.5 h-3.5"
+                                    ></i>
+
+                                    7 837
+
+                                </span>
+
+                            </div>
+
+
+                            <!-- TEXT -->
+
+                            <p
+                                class="mt-4
+                                text-[13px]
+                                leading-6
+                                text-gray-500"
+                            >
+                                Découvrez des histoires, des idées et des expériences
+                                qui inspirent une nouvelle manière de voir le monde
+                                et les tendances contemporaines.
+                            </p>
+
+
+                            <!-- FOOT -->
+
+                            <div
+                                class="flex items-center
+                                justify-between
+                                gap-4
+                                mt-5
+                                pt-4
+                                border-t
+                                border-gray-100"
+                            >
+
+                                <div
+                                    class="flex gap-2
+                                    flex-wrap"
+                                >
+
+                                    <span
+                                        class="px-2 py-1
+                                        bg-soft
+                                        text-[10px]
+                                        text-gray-500"
+                                    >
+                                        Lifestyle
+                                    </span>
+
+                                    <span
+                                        class="px-2 py-1
+                                        bg-soft
+                                        text-[10px]
+                                        text-gray-500"
+                                    >
+                                        Culture
+                                    </span>
+
+                                </div>
+
+
+                                <a
+                                    href="#"
+                                    class="flex items-center
+                                    gap-2
+                                    text-xs
+                                    font-semibold
+                                    whitespace-nowrap
+                                    hover:text-primary
+                                    transition"
+                                >
+
+                                    Lire
+
+                                    <i
+                                        data-lucide="arrow-right"
+                                        class="w-4 h-4"
+                                    ></i>
+
+                                </a>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </article>
+
+
+
+                <!-- ARTICLE 2 -->
+
+                <article
+                    class="group
+                    bg-white
+                    border border-gray-100
+                    shadow-card
+                    hover:shadow-lg
+                    transition duration-300"
+                >
+
+                    <div
+                        class="flex
+                        flex-col sm:flex-row"
+                    >
+
+                        <a
+                            href="#"
+                            class="sm:w-[220px]
+                            md:w-[240px]
+                            shrink-0
+                            overflow-hidden"
+                        >
+
+                            <img
+                                src="https://images.unsplash.com/photo-1529139574466-a303027c1d8b?q=80&w=800"
+                                alt=""
+                                class="w-full
+                                h-[190px]
+                                sm:h-full
+                                min-h-[190px]
+                                object-cover
+                                group-hover:scale-105
+                                transition duration-500"
+                            >
+
+                        </a>
+
+
+                        <div class="flex-1 p-5 md:p-6">
+
+                            <div
+                                class="flex items-center gap-3
+                                text-[11px]"
+                            >
+
+                                <span
+                                    class="font-semibold
+                                    uppercase
+                                    tracking-wider
+                                    text-primary"
+                                >
+                                    Santé
+                                </span>
+
+                                <span class="text-gray-300">
+                                    •
+                                </span>
+
+                                <span class="text-gray-400">
+                                    7 min
+                                </span>
+
+                            </div>
+
+
+                            <a href="#">
+
+                                <h3
+                                    class="mt-2
+                                    font-display
+                                    text-[20px]
+                                    md:text-[23px]
+                                    leading-[1.25]
+                                    font-extrabold
+                                    group-hover:text-primary
+                                    transition"
+                                >
+                                    Notre vision du bien-être évolue avec le temps
+                                </h3>
+
+                            </a>
+
+
+                            <div
+                                class="flex flex-wrap
+                                items-center gap-4
+                                mt-3
+                                text-[11px]
+                                text-gray-400"
+                            >
+
+                                <span>
+                                    24 Juillet 2026
+                                </span>
+
+                                <span
+                                    class="flex items-center gap-1"
+                                >
+
+                                    <i
+                                        data-lucide="message-circle"
+                                        class="w-3.5 h-3.5"
+                                    ></i>
+
+                                    8
+
+                                </span>
+
+                                <span
+                                    class="flex items-center gap-1"
+                                >
+
+                                    <i
+                                        data-lucide="eye"
+                                        class="w-3.5 h-3.5"
+                                    ></i>
+
+                                    6 136
+
+                                </span>
+
+                            </div>
+
+
+                            <p
+                                class="mt-4
+                                text-[13px]
+                                leading-6
+                                text-gray-500"
+                            >
+                                Une réflexion sur l'évolution de nos habitudes,
+                                du bien-être et de notre relation à la santé
+                                dans notre société actuelle.
+                            </p>
+
+
+                            <div
+                                class="flex items-center
+                                justify-between
+                                gap-4
+                                mt-5
+                                pt-4
+                                border-t
+                                border-gray-100"
+                            >
+
+                                <div class="flex gap-2">
+
+                                    <span
+                                        class="px-2 py-1
+                                        bg-soft
+                                        text-[10px]
+                                        text-gray-500"
+                                    >
+                                        Santé
+                                    </span>
+
+                                    <span
+                                        class="px-2 py-1
+                                        bg-soft
+                                        text-[10px]
+                                        text-gray-500"
+                                    >
+                                        Bien-être
+                                    </span>
+
+                                </div>
+
+                                <a
+                                    href="#"
+                                    class="flex items-center
+                                    gap-2
+                                    text-xs
+                                    font-semibold
+                                    hover:text-primary
+                                    transition"
+                                >
+
+                                    Lire
+
+                                    <i
+                                        data-lucide="arrow-right"
+                                        class="w-4 h-4"
+                                    ></i>
+
+                                </a>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </article>
+
+
+
+                <!-- ARTICLE 3 -->
+
+                <article
+                    class="group
+                    bg-white
+                    border border-gray-100
+                    shadow-card
+                    hover:shadow-lg
+                    transition duration-300"
+                >
+
+                    <div
+                        class="flex
+                        flex-col sm:flex-row"
+                    >
+
+                        <a
+                            href="#"
+                            class="sm:w-[220px]
+                            md:w-[240px]
+                            shrink-0
+                            overflow-hidden"
+                        >
+
+                            <img
+                                src="https://images.unsplash.com/photo-1518717758536-85ae29035b6d?q=80&w=800"
+                                alt=""
+                                class="w-full
+                                h-[190px]
+                                sm:h-full
+                                min-h-[190px]
+                                object-cover
+                                group-hover:scale-105
+                                transition duration-500"
+                            >
+
+                        </a>
+
+
+                        <div class="flex-1 p-5 md:p-6">
+
+                            <div
+                                class="flex items-center gap-3
+                                text-[11px]"
+                            >
+
+                                <span
+                                    class="font-semibold
+                                    uppercase
+                                    tracking-wider
+                                    text-primary"
+                                >
+                                    Voyage
+                                </span>
+
+                                <span class="text-gray-300">
+                                    •
+                                </span>
+
+                                <span class="text-gray-400">
+                                    5 min
+                                </span>
+
+                            </div>
+
+
+                            <h3
+                                class="mt-2
+                                font-display
+                                text-[20px]
+                                md:text-[23px]
+                                leading-[1.25]
+                                font-extrabold
+                                group-hover:text-primary
+                                transition"
+                            >
+                                Un petit chien nommé Duden voyage autour du monde
+                            </h3>
+
+
+                            <div
+                                class="flex flex-wrap
+                                items-center gap-4
+                                mt-3
+                                text-[11px]
+                                text-gray-400"
+                            >
+
+                                <span>
+                                    22 Juillet 2026
+                                </span>
+
+                                <span>
+                                    6 commentaires
+                                </span>
+
+                                <span>
+                                    4 291 vues
+                                </span>
+
+                            </div>
+
+
+                            <p
+                                class="mt-4
+                                text-[13px]
+                                leading-6
+                                text-gray-500"
+                            >
+                                Découvrez son histoire, ses rencontres et les
+                                aventures insolites qui rythment son incroyable
+                                voyage.
+                            </p>
+
+
+                            <div
+                                class="flex items-center
+                                justify-between
+                                mt-5
+                                pt-4
+                                border-t
+                                border-gray-100"
+                            >
+
+                                <span
+                                    class="px-2 py-1
+                                    bg-soft
+                                    text-[10px]
+                                    text-gray-500"
+                                >
+                                    Voyage
+                                </span>
+
+
+                                <a
+                                    href="#"
+                                    class="flex items-center
+                                    gap-2
+                                    text-xs
+                                    font-semibold
+                                    hover:text-primary
+                                    transition"
+                                >
+
+                                    Lire
+
+                                    <i
+                                        data-lucide="arrow-right"
+                                        class="w-4 h-4"
+                                    ></i>
+
+                                </a>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </article>
+
+
+
+                <!-- ARTICLE 4 -->
+
+                <article
+                    class="group
+                    bg-white
+                    border border-gray-100
+                    shadow-card
+                    hover:shadow-lg
+                    transition duration-300"
+                >
+
+                    <div
+                        class="flex
+                        flex-col sm:flex-row"
+                    >
+
+                        <a
+                            href="#"
+                            class="sm:w-[220px]
+                            md:w-[240px]
+                            shrink-0
+                            overflow-hidden"
+                        >
+
+                            <img
+                                src="https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?q=80&w=800"
+                                alt=""
+                                class="w-full
+                                h-[190px]
+                                sm:h-full
+                                min-h-[190px]
+                                object-cover
+                                group-hover:scale-105
+                                transition duration-500"
+                            >
+
+                        </a>
+
+
+                        <div class="flex-1 p-5 md:p-6">
+
+                            <div
+                                class="flex items-center gap-3
+                                text-[11px]"
+                            >
+
+                                <span
+                                    class="font-semibold
+                                    uppercase
+                                    tracking-wider
+                                    text-primary"
+                                >
+                                    Musique
+                                </span>
+
+                                <span class="text-gray-300">
+                                    •
+                                </span>
+
+                                <span class="text-gray-400">
+                                    4 min
+                                </span>
+
+                            </div>
+
+
+                            <h3
+                                class="mt-2
+                                font-display
+                                text-[20px]
+                                md:text-[23px]
+                                leading-[1.25]
+                                font-extrabold
+                                group-hover:text-primary
+                                transition"
+                            >
+                                L'improvisation musicale dans un monde toujours plus rapide
+                            </h3>
+
+
+                            <div
+                                class="flex flex-wrap
+                                items-center gap-4
+                                mt-3
+                                text-[11px]
+                                text-gray-400"
+                            >
+
+                                <span>
+                                    20 Juillet 2026
+                                </span>
+
+                                <span>
+                                    14 commentaires
+                                </span>
+
+                                <span>
+                                    9 420 vues
+                                </span>
+
+                            </div>
+
+
+                            <p
+                                class="mt-4
+                                text-[13px]
+                                leading-6
+                                text-gray-500"
+                            >
+                                La musique évolue constamment. Entre nouvelles
+                                tendances, créativité et innovation, les artistes
+                                réinventent leurs méthodes.
+                            </p>
+
+
+                            <div
+                                class="flex items-center
+                                justify-between
+                                mt-5
+                                pt-4
+                                border-t border-gray-100"
+                            >
+
+                                <span
+                                    class="px-2 py-1
+                                    bg-soft
+                                    text-[10px]
+                                    text-gray-500"
+                                >
+                                    Musique
+                                </span>
+
+
+                                <a
+                                    href="#"
+                                    class="flex items-center gap-2
+                                    text-xs font-semibold
+                                    hover:text-primary"
+                                >
+
+                                    Lire
+
+                                    <i
+                                        data-lucide="arrow-right"
+                                        class="w-4 h-4"
+                                    ></i>
+
+                                </a>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </article>
+
+
+
+                <!-- ARTICLE 5 -->
+
+                <article
+                    class="group
+                    bg-white
+                    border border-gray-100
+                    shadow-card
+                    hover:shadow-lg
+                    transition duration-300"
+                >
+
+                    <div class="flex flex-col sm:flex-row">
+
+                        <a
+                            href="#"
+                            class="sm:w-[220px]
+                            md:w-[240px]
+                            shrink-0
+                            overflow-hidden"
+                        >
+
+                            <img
+                                src="https://images.unsplash.com/photo-1516321165247-4aa89a48be28?q=80&w=800"
+                                alt=""
+                                class="w-full
+                                h-[190px]
+                                sm:h-full
+                                min-h-[190px]
+                                object-cover
+                                group-hover:scale-105
+                                transition duration-500"
+                            >
+
+                        </a>
+
+
+                        <div class="flex-1 p-5 md:p-6">
+
+                            <div
+                                class="flex items-center gap-3
+                                text-[11px]"
+                            >
+
+                                <span
+                                    class="font-semibold
+                                    uppercase
+                                    tracking-wider
+                                    text-primary"
+                                >
+                                    Technologie
+                                </span>
+
+                                <span class="text-gray-300">
+                                    •
+                                </span>
+
+                                <span class="text-gray-400">
+                                    8 min
+                                </span>
+
+                            </div>
+
+
+                            <h3
+                                class="mt-2
+                                font-display
+                                text-[20px]
+                                md:text-[23px]
+                                leading-[1.25]
+                                font-extrabold
+                                group-hover:text-primary"
+                            >
+                                Les nouvelles habitudes digitales transforment notre quotidien
+                            </h3>
+
+
+                            <div
+                                class="flex flex-wrap
+                                items-center gap-4
+                                mt-3
+                                text-[11px]
+                                text-gray-400"
+                            >
+
+                                <span>
+                                    18 Juillet 2026
+                                </span>
+
+                                <span>
+                                    9 commentaires
+                                </span>
+
+                                <span>
+                                    8 205 vues
+                                </span>
+
+                            </div>
+
+
+                            <p
+                                class="mt-4
+                                text-[13px]
+                                leading-6
+                                text-gray-500"
+                            >
+                                Smartphones, intelligence artificielle et
+                                plateformes sociales changent progressivement
+                                notre manière de travailler et de communiquer.
+                            </p>
+
+
+                            <div
+                                class="flex items-center
+                                justify-between
+                                mt-5
+                                pt-4
+                                border-t border-gray-100"
+                            >
+
+                                <span
+                                    class="px-2 py-1
+                                    bg-soft
+                                    text-[10px]
+                                    text-gray-500"
+                                >
+                                    Technologie
+                                </span>
+
+
+                                <a
+                                    href="#"
+                                    class="flex items-center gap-2
+                                    text-xs font-semibold
+                                    hover:text-primary"
+                                >
+
+                                    Lire
+
+                                    <i
+                                        data-lucide="arrow-right"
+                                        class="w-4 h-4"
+                                    ></i>
+
+                                </a>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </article>
+
+            </div>
+
+
+
+            <!-- PAGINATION -->
+
+            <div
+                class="flex items-center
+                justify-center
+                gap-2
+                mt-10"
+            >
+
+                <button
+                    class="w-10 h-10
+                    bg-primary
+                    text-white
+                    text-sm font-semibold"
+                >
+                    1
+                </button>
+
+                <button
+                    class="w-10 h-10
+                    bg-white
+                    border border-gray-200
+                    text-sm
+                    hover:border-primary
+                    hover:text-primary"
+                >
+                    2
+                </button>
+
+                <button
+                    class="w-10 h-10
+                    bg-white
+                    border border-gray-200
+                    text-sm
+                    hover:border-primary
+                    hover:text-primary"
+                >
+                    3
+                </button>
+
+                <button
+                    class="h-10 px-4
+                    bg-dark
+                    text-white
+                    text-sm
+                    flex items-center gap-2
+                    hover:bg-primary
+                    transition"
+                >
+
+                    Suivant
+
+                    <i
+                        data-lucide="arrow-right"
+                        class="w-4 h-4"
+                    ></i>
+
+                </button>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- ================================================= -->
+        <!-- SIDEBAR -->
+        <!-- ================================================= -->
+
+        <aside class="space-y-10">
+
+
+            <!-- RECENT POSTS -->
+
+            <section>
+
+                <div
+                    class="flex items-center gap-3
+                    mb-6"
+                >
+
+                    <h3
+                        class="font-display
+                        text-lg
+                        font-extrabold
+                        whitespace-nowrap"
+                    >
+                        Articles récents
+                    </h3>
+
+                    <div
+                        class="h-[2px]
+                        bg-primary
+                        flex-1"
+                    ></div>
+
+                </div>
+
+
+                <div class="space-y-5">
+
+
+                    <!-- ITEM -->
+
+                    <a
+                        href="#"
+                        class="group
+                        flex gap-4"
+                    >
+
+                        <img
+                            src="https://images.unsplash.com/photo-1485846234645-a62644f84728?q=80&w=300"
+                            alt=""
+                            class="w-20 h-20
+                            object-cover"
+                        >
+
+                        <div>
+
+                            <h4
+                                class="font-display
+                                font-bold
+                                text-[13px]
+                                leading-5
+                                group-hover:text-primary
+                                transition"
+                            >
+                                Jusqu'où peut aller notre imagination ?
+                            </h4>
+
+                            <p
+                                class="text-[10px]
+                                text-gray-400
+                                mt-2"
+                            >
+                                15 Septembre 2026
+                            </p>
+
+                        </div>
+
+                    </a>
+
+
+
+                    <!-- ITEM -->
+
+                    <a
+                        href="#"
+                        class="group
+                        flex gap-4"
+                    >
+
+                        <img
+                            src="https://images.unsplash.com/photo-1531058020387-3be344556be6?q=80&w=300"
+                            alt=""
+                            class="w-20 h-20
+                            object-cover"
+                        >
+
+                        <div>
+
+                            <h4
+                                class="font-display
+                                font-bold
+                                text-[13px]
+                                leading-5
+                                group-hover:text-primary"
+                            >
+                                Créer des expériences digitales qui inspirent
+                            </h4>
+
+                            <p
+                                class="text-[10px]
+                                text-gray-400
+                                mt-2"
+                            >
+                                13 Septembre 2026
+                            </p>
+
+                        </div>
+
+                    </a>
+
+
+
+                    <!-- ITEM -->
+
+                    <a
+                        href="#"
+                        class="group
+                        flex gap-4"
+                    >
+
+                        <img
+                            src="https://images.unsplash.com/photo-1506157786151-b8491531f063?q=80&w=300"
+                            alt=""
+                            class="w-20 h-20
+                            object-cover"
+                        >
+
+                        <div>
+
+                            <h4
+                                class="font-display
+                                font-bold
+                                text-[13px]
+                                leading-5
+                                group-hover:text-primary"
+                            >
+                                Musique, créativité et nouvelles tendances
+                            </h4>
+
+                            <p
+                                class="text-[10px]
+                                text-gray-400
+                                mt-2"
+                            >
+                                08 Septembre 2026
+                            </p>
+
+                        </div>
+
+                    </a>
+
+
+
+                    <!-- ITEM -->
+
+                    <a
+                        href="#"
+                        class="group
+                        flex gap-4"
+                    >
+
+                        <img
+                            src="https://images.unsplash.com/photo-1521737604893-d14cc237f11d?q=80&w=300"
+                            alt=""
+                            class="w-20 h-20
+                            object-cover"
+                        >
+
+                        <div>
+
+                            <h4
+                                class="font-display
+                                font-bold
+                                text-[13px]
+                                leading-5
+                                group-hover:text-primary"
+                            >
+                                Les nouvelles façons de travailler en équipe
+                            </h4>
+
+                            <p
+                                class="text-[10px]
+                                text-gray-400
+                                mt-2"
+                            >
+                                02 Septembre 2026
+                            </p>
+
+                        </div>
+
+                    </a>
+
+                </div>
+
+            </section>
+
+
+
+            <!-- POPULAR -->
+
+            <section>
+
+                <div
+                    class="flex items-center
+                    gap-3 mb-6"
+                >
+
+                    <h3
+                        class="font-display
+                        text-lg
+                        font-extrabold
+                        whitespace-nowrap"
+                    >
+                        Les plus lus
+                    </h3>
+
+                    <div
+                        class="h-[2px]
+                        bg-primary
+                        flex-1"
+                    ></div>
+
+                </div>
+
+
+                <div class="space-y-5">
+
+                    <a
+                        href="#"
+                        class="flex gap-4
+                        group"
+                    >
+
+                        <span
+                            class="font-display
+                            text-3xl
+                            font-extrabold
+                            text-gray-200"
+                        >
+                            01
+                        </span>
+
+                        <div>
+
+                            <h4
+                                class="text-[13px]
+                                font-semibold
+                                leading-5
+                                group-hover:text-primary"
+                            >
+                                10 tendances digitales qui vont changer notre quotidien
+                            </h4>
+
+                            <span
+                                class="text-[10px]
+                                text-gray-400"
+                            >
+                                12 841 vues
+                            </span>
+
+                        </div>
+
+                    </a>
+
+
+                    <a
+                        href="#"
+                        class="flex gap-4
+                        group"
+                    >
+
+                        <span
+                            class="font-display
+                            text-3xl
+                            font-extrabold
+                            text-gray-200"
+                        >
+                            02
+                        </span>
+
+                        <div>
+
+                            <h4
+                                class="text-[13px]
+                                font-semibold
+                                leading-5
+                                group-hover:text-primary"
+                            >
+                                Pourquoi les créateurs changent leurs méthodes
+                            </h4>
+
+                            <span
+                                class="text-[10px]
+                                text-gray-400"
+                            >
+                                9 723 vues
+                            </span>
+
+                        </div>
+
+                    </a>
+
+
+                    <a
+                        href="#"
+                        class="flex gap-4
+                        group"
+                    >
+
+                        <span
+                            class="font-display
+                            text-3xl
+                            font-extrabold
+                            text-gray-200"
+                        >
+                            03
+                        </span>
+
+                        <div>
+
+                            <h4
+                                class="text-[13px]
+                                font-semibold
+                                leading-5
+                                group-hover:text-primary"
+                            >
+                                Les habitudes simples qui changent une journée
+                            </h4>
+
+                            <span
+                                class="text-[10px]
+                                text-gray-400"
+                            >
+                                8 470 vues
+                            </span>
+
+                        </div>
+
+                    </a>
+
+                </div>
+
+            </section>
+
+
+
+            <!-- TAGS -->
+
+            <section>
+
+                <div
+                    class="flex items-center
+                    gap-3
+                    mb-5"
+                >
+
+                    <h3
+                        class="font-display
+                        font-extrabold
+                        text-lg"
+                    >
+                        Tags
+                    </h3>
+
+                    <div
+                        class="h-[2px]
+                        bg-primary
+                        flex-1"
+                    ></div>
+
+                </div>
+
+
+                <div
+                    class="flex flex-wrap
+                    gap-2"
+                >
+
+                    <a
+                        href="#"
+                        class="px-3 py-2
+                        bg-white
+                        border border-gray-100
+                        text-[11px]
+                        hover:text-primary
+                        hover:border-primary"
+                    >
+                        Santé
+                    </a>
+
+                    <a
+                        href="#"
+                        class="px-3 py-2
+                        bg-white
+                        border border-gray-100
+                        text-[11px]
+                        hover:text-primary
+                        hover:border-primary"
+                    >
+                        Lifestyle
+                    </a>
+
+                    <a
+                        href="#"
+                        class="px-3 py-2
+                        bg-white
+                        border border-gray-100
+                        text-[11px]
+                        hover:text-primary
+                        hover:border-primary"
+                    >
+                        Musique
+                    </a>
+
+                    <a
+                        href="#"
+                        class="px-3 py-2
+                        bg-white
+                        border border-gray-100
+                        text-[11px]
+                        hover:text-primary
+                        hover:border-primary"
+                    >
+                        Technologie
+                    </a>
+
+                    <a
+                        href="#"
+                        class="px-3 py-2
+                        bg-white
+                        border border-gray-100
+                        text-[11px]
+                        hover:text-primary
+                        hover:border-primary"
+                    >
+                        Voyage
+                    </a>
+
+                    <a
+                        href="#"
+                        class="px-3 py-2
+                        bg-white
+                        border border-gray-100
+                        text-[11px]
+                        hover:text-primary
+                        hover:border-primary"
+                    >
+                        Vidéo
+                    </a>
+
+                    <a
+                        href="#"
+                        class="px-3 py-2
+                        bg-white
+                        border border-gray-100
+                        text-[11px]
+                        hover:text-primary
+                        hover:border-primary"
+                    >
+                        Design
+                    </a>
+
+                    <a
+                        href="#"
+                        class="px-3 py-2
+                        bg-white
+                        border border-gray-100
+                        text-[11px]
+                        hover:text-primary
+                        hover:border-primary"
+                    >
+                        Culture
+                    </a>
+
+                </div>
+
+            </section>
+
+
+
+            <!-- SOCIAL -->
+
+            <section>
+
+                <div
+                    class="flex items-center
+                    gap-3
+                    mb-5"
+                >
+
+                    <h3
+                        class="font-display
+                        font-extrabold
+                        text-lg
+                        whitespace-nowrap"
+                    >
+                        Réseaux sociaux
+                    </h3>
+
+                    <div
+                        class="h-[2px]
+                        bg-primary
+                        flex-1"
+                    ></div>
+
+                </div>
+
+
+                <div
+                    class="grid grid-cols-4
+                    gap-2"
+                >
+
+                    <a
+                        href="#"
+                        class="h-11
+                        bg-black
+                        text-white
+                        flex items-center
+                        justify-center"
+                    >
+
+                        <i
+                            data-lucide="twitter"
+                            class="w-4 h-4"
+                        ></i>
+
+                    </a>
+
+                    <a
+                        href="#"
+                        class="h-11
+                        bg-[#4267B2]
+                        text-white
+                        flex items-center
+                        justify-center"
+                    >
+
+                        <i
+                            data-lucide="facebook"
+                            class="w-4 h-4"
+                        ></i>
+
+                    </a>
+
+                    <a
+                        href="#"
+                        class="h-11
+                        bg-pink-500
+                        text-white
+                        flex items-center
+                        justify-center"
+                    >
+
+                        <i
+                            data-lucide="instagram"
+                            class="w-4 h-4"
+                        ></i>
+
+                    </a>
+
+                    <a
+                        href="#"
+                        class="h-11
+                        bg-orange-400
+                        text-white
+                        flex items-center
+                        justify-center"
+                    >
+
+                        <i
+                            data-lucide="rss"
+                            class="w-4 h-4"
+                        ></i>
+
+                    </a>
+
+                </div>
+
+            </section>
+
+        </aside>
+
+    </div>
+
+</main>
+
+
+
+<!-- ========================================================= -->
+<!-- NEWSLETTER -->
+<!-- ========================================================= -->
+
+<section
+    class="bg-white
+    py-16
+    mt-8"
+>
+
+    <div
+        class="max-w-xl
+        mx-auto
+        px-5
+        text-center"
+    >
+
+        <h2
+            class="font-display
+            text-3xl
+            font-extrabold"
+        >
+            Abonnez-vous à
+            <span class="text-primary">
+                M
+            </span>aktub
+        </h2>
+
+
+        <p
+            class="text-sm
+            text-gray-400
+            mt-3"
+        >
+            Recevez nos derniers articles directement dans votre boîte mail.
+        </p>
+
+
+        <form
+            class="flex
+            flex-col sm:flex-row
+            mt-7"
+        >
+
+            <input
+                type="email"
+                placeholder="Votre adresse email"
+                class="flex-1
+                h-12
+                px-5
+                bg-soft
+                border
+                border-gray-100
+                outline-none
+                focus:border-primary"
+            >
+
+
+            <button
+                class="h-12
+                px-8
+                bg-dark
+                text-white
+                text-sm
+                font-semibold
+                hover:bg-primary
+                transition"
+            >
+                S'abonner
+            </button>
+
+        </form>
+
+
+        <div
+            class="flex
+            justify-center
+            gap-5
+            mt-7
+            text-gray-400"
+        >
+
+            <a href="#" class="hover:text-primary">
+                <i data-lucide="instagram" class="w-4 h-4"></i>
+            </a>
+
+            <a href="#" class="hover:text-primary">
+                <i data-lucide="facebook" class="w-4 h-4"></i>
+            </a>
+
+            <a href="#" class="hover:text-primary">
+                <i data-lucide="twitter" class="w-4 h-4"></i>
+            </a>
+
+            <a href="#" class="hover:text-primary">
+                <i data-lucide="rss" class="w-4 h-4"></i>
+            </a>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+
+<!-- ========================================================= -->
+<!-- FOOTER -->
+<!-- ========================================================= -->
+
+<footer
+    class="bg-[#f2f2f8]
+    pt-16"
+>
+
+    <div
+        class="max-w-7xl
+        mx-auto
+        px-5 lg:px-8
+        grid
+        sm:grid-cols-2
+        lg:grid-cols-4
+        gap-12"
+    >
+
+
+        <!-- COLUMN 1 -->
+
+        <div>
+
+            <div
+                class="flex items-center
+                gap-3
+                mb-6"
+            >
+
+                <h3
+                    class="font-display
+                    font-extrabold
+                    text-lg
+                    whitespace-nowrap"
+                >
+                    Derniers articles
+                </h3>
+
+                <div
+                    class="h-[2px]
+                    bg-primary
+                    flex-1"
+                ></div>
+
+            </div>
+
+
+            <div class="space-y-4">
+
+                <a
+                    href="#"
+                    class="block
+                    text-[12px]
+                    leading-5
+                    hover:text-primary"
+                >
+                    Jusqu'où peut aller notre imagination ?
+                </a>
+
+                <a
+                    href="#"
+                    class="block
+                    text-[12px]
+                    leading-5
+                    hover:text-primary"
+                >
+                    Le spectacle devant nous était sublime
+                </a>
+
+                <a
+                    href="#"
+                    class="block
+                    text-[12px]
+                    leading-5
+                    hover:text-primary"
+                >
+                    Créativité musicale et improvisation
+                </a>
+
+            </div>
+
+        </div>
+
+
+
+        <!-- COLUMN 2 -->
+
+        <div>
+
+            <div
+                class="flex items-center
+                gap-3
+                mb-6"
+            >
+
+                <h3
+                    class="font-display
+                    font-extrabold
+                    text-lg
+                    whitespace-nowrap"
+                >
+                    Tags
+                </h3>
+
+                <div
+                    class="h-[2px]
+                    bg-primary
+                    flex-1"
+                ></div>
+
+            </div>
+
+
+            <div
+                class="flex
+                flex-wrap
+                gap-2"
+            >
+
+                <span class="bg-white px-3 py-1.5 text-[10px]">
+                    Santé
+                </span>
+
+                <span class="bg-white px-3 py-1.5 text-[10px]">
+                    Lifestyle
+                </span>
+
+                <span class="bg-white px-3 py-1.5 text-[10px]">
+                    Musique
+                </span>
+
+                <span class="bg-white px-3 py-1.5 text-[10px]">
+                    Technologie
+                </span>
+
+                <span class="bg-white px-3 py-1.5 text-[10px]">
+                    Voyage
+                </span>
+
+                <span class="bg-white px-3 py-1.5 text-[10px]">
+                    Vidéo
+                </span>
+
+            </div>
+
+        </div>
+
+
+
+        <!-- COLUMN 3 -->
+
+        <div>
+
+            <div
+                class="flex items-center
+                gap-3
+                mb-6"
+            >
+
+                <h3
+                    class="font-display
+                    font-extrabold
+                    text-lg
+                    whitespace-nowrap"
+                >
+                    Suivez-nous
+                </h3>
+
+                <div
+                    class="h-[2px]
+                    bg-primary
+                    flex-1"
+                ></div>
+
+            </div>
+
+
+            <div class="flex gap-3">
+
+                <a
+                    href="#"
+                    class="w-11 h-11
+                    bg-black
+                    text-white
+                    flex items-center
+                    justify-center"
+                >
+                    <i data-lucide="twitter" class="w-4 h-4"></i>
+                </a>
+
+                <a
+                    href="#"
+                    class="w-11 h-11
+                    bg-[#4267B2]
+                    text-white
+                    flex items-center
+                    justify-center"
+                >
+                    <i data-lucide="facebook" class="w-4 h-4"></i>
+                </a>
+
+                <a
+                    href="#"
+                    class="w-11 h-11
+                    bg-pink-500
+                    text-white
+                    flex items-center
+                    justify-center"
+                >
+                    <i data-lucide="instagram" class="w-4 h-4"></i>
+                </a>
+
+                <a
+                    href="#"
+                    class="w-11 h-11
+                    bg-orange-400
+                    text-white
+                    flex items-center
+                    justify-center"
+                >
+                    <i data-lucide="rss" class="w-4 h-4"></i>
+                </a>
+
+            </div>
+
+        </div>
+
+
+
+        <!-- COLUMN 4 -->
+
+        <div>
+
+            <div
+                class="flex items-center
+                gap-3
+                mb-6"
+            >
+
+                <h3
+                    class="font-display
+                    font-extrabold
+                    text-lg
+                    whitespace-nowrap"
+                >
+                    À propos
+                </h3>
+
+                <div
+                    class="h-[2px]
+                    bg-primary
+                    flex-1"
+                ></div>
+
+            </div>
+
+
+            <div class="flex gap-4">
+
+                <img
+                    src="https://i.pravatar.cc/100?img=12"
+                    alt=""
+                    class="w-14 h-14
+                    rounded-full
+                    object-cover"
+                >
+
+
+                <div>
+
+                    <h4
+                        class="font-semibold
+                        text-sm"
+                    >
+                        Jonathan Doe
+                    </h4>
+
+                    <p
+                        class="text-[11px]
+                        text-gray-400"
+                    >
+                        Fondateur & Éditeur
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <p
+                class="text-[11px]
+                leading-5
+                text-gray-400
+                mt-5"
+            >
+                Passionné par la créativité, la technologie,
+                les tendances digitales et les histoires inspirantes.
+            </p>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- BOTTOM -->
+
+    <div
+        class="max-w-7xl
+        mx-auto
+        px-5 lg:px-8
+        py-12
+        text-center"
+    >
+
+        <div
+            class="font-display
+            text-3xl
+            font-extrabold"
+        >
+
+            <span class="text-primary">
+                M
+            </span>aktub
+
+        </div>
+
+
+        <p
+            class="text-[11px]
+            text-gray-400
+            mt-4"
+        >
+            © 2026 Maktub. Tous droits réservés.
+        </p>
+
+    </div>
+
+</footer>
+
+
+
+<!-- ========================================================= -->
+<!-- BACK TO TOP -->
+<!-- ========================================================= -->
+
+<button
+    id="backToTop"
+    class="fixed
+    bottom-5 right-5
+    w-11 h-11
+    bg-dark
+    text-white
+    shadow-lg
+    flex items-center
+    justify-center
+    hover:bg-primary
+    transition"
+>
+
+    <i
+        data-lucide="chevron-up"
+        class="w-4 h-4"
+    ></i>
+
+</button>
+
+
+
+<!-- ========================================================= -->
+<!-- JS -->
+<!-- ========================================================= -->
+
+<script>
+
+    lucide.createIcons();
+
+
+    // MOBILE MENU
+
+    const menuButton = document.getElementById("menuButton");
+    const mobileMenu = document.getElementById("mobileMenu");
+
+    menuButton.addEventListener("click", () => {
+
+        mobileMenu.classList.toggle("hidden");
+
+    });
+
+
+    // BACK TO TOP
+
+    const backToTop = document.getElementById("backToTop");
+
+    backToTop.addEventListener("click", () => {
+
+        window.scrollTo({
+            top: 0,
+            behavior: "smooth"
+        });
+
+    });
+
+</script>
+
+
+</body>
+</html>

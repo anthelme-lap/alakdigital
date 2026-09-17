@@ -1,0 +1,2023 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Détail article - Maktub</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Nunito:wght@600;700;800&display=swap"
+        rel="stylesheet"
+    >
+
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#ff5068",
+                        dark: "#34324f",
+                        soft: "#f7f7fb",
+                        muted: "#8b8b9d"
+                    },
+
+                    fontFamily: {
+                        sans: ["Inter", "sans-serif"],
+                        display: ["Nunito", "sans-serif"]
+                    },
+
+                    boxShadow: {
+                        card: "0 10px 35px rgba(47,45,80,0.07)"
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            overflow-x: hidden;
+        }
+
+        /* ================================================= */
+        /* CKEDITOR CONTENT */
+        /* ================================================= */
+
+        .article-content {
+            color: #555565;
+            font-size: 16px;
+            line-height: 1.9;
+        }
+
+        .article-content > *:first-child {
+            margin-top: 0;
+        }
+
+        .article-content > *:last-child {
+            margin-bottom: 0;
+        }
+
+        .article-content p {
+            margin: 0 0 1.5rem;
+        }
+
+        .article-content h1,
+        .article-content h2,
+        .article-content h3,
+        .article-content h4,
+        .article-content h5,
+        .article-content h6 {
+            font-family: "Nunito", sans-serif;
+            color: #34324f;
+            font-weight: 800;
+            line-height: 1.25;
+            margin-top: 2.2rem;
+            margin-bottom: 1rem;
+        }
+
+        .article-content h1 {
+            font-size: 2.25rem;
+        }
+
+        .article-content h2 {
+            font-size: 1.85rem;
+        }
+
+        .article-content h3 {
+            font-size: 1.5rem;
+        }
+
+        .article-content h4 {
+            font-size: 1.25rem;
+        }
+
+        .article-content strong {
+            color: #34324f;
+            font-weight: 700;
+        }
+
+        .article-content a {
+            color: #ff5068;
+            text-decoration: underline;
+            text-underline-offset: 3px;
+        }
+
+        .article-content a:hover {
+            opacity: 0.8;
+        }
+
+        .article-content ul,
+        .article-content ol {
+            margin: 1.5rem 0;
+            padding-left: 1.5rem;
+        }
+
+        .article-content ul {
+            list-style: disc;
+        }
+
+        .article-content ol {
+            list-style: decimal;
+        }
+
+        .article-content li {
+            margin-bottom: 0.6rem;
+        }
+
+        .article-content blockquote {
+            margin: 2rem 0;
+            padding: 1.4rem 1.7rem;
+            border-left: 4px solid #ff5068;
+            background: #f8f8fc;
+            color: #555565;
+            font-style: italic;
+        }
+
+        .article-content blockquote p {
+            margin: 0;
+        }
+
+        .article-content img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin: 2rem auto;
+        }
+
+        .article-content figure {
+            margin: 2rem 0;
+        }
+
+        .article-content figure img {
+            margin: 0 auto;
+        }
+
+        .article-content figcaption {
+            margin-top: 0.7rem;
+            text-align: center;
+            font-size: 13px;
+            color: #9a9aa8;
+        }
+
+        .article-content table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 2rem 0;
+            overflow: hidden;
+        }
+
+        .article-content th,
+        .article-content td {
+            border: 1px solid #e5e7eb;
+            padding: 0.9rem 1rem;
+            text-align: left;
+        }
+
+        .article-content th {
+            background: #f7f7fb;
+            color: #34324f;
+            font-weight: 700;
+        }
+
+        .article-content pre {
+            overflow-x: auto;
+            background: #222230;
+            color: #fff;
+            padding: 1.25rem;
+            margin: 2rem 0;
+            border-radius: 4px;
+        }
+
+        .article-content code {
+            font-family: monospace;
+        }
+
+        .article-content hr {
+            margin: 2.5rem 0;
+            border: 0;
+            border-top: 1px solid #ececf2;
+        }
+
+        /* CKEditor specific */
+
+        .article-content .image {
+            margin: 2rem auto;
+        }
+
+        .article-content .image.image-style-side {
+            float: right;
+            max-width: 50%;
+            margin-left: 2rem;
+        }
+
+        .article-content .media {
+            margin: 2rem 0;
+        }
+
+        .article-content iframe {
+            max-width: 100%;
+        }
+
+        @media (max-width: 768px) {
+            .article-content {
+                font-size: 15px;
+                line-height: 1.8;
+            }
+
+            .article-content h1 {
+                font-size: 1.9rem;
+            }
+
+            .article-content h2 {
+                font-size: 1.6rem;
+            }
+
+            .article-content h3 {
+                font-size: 1.35rem;
+            }
+
+            .article-content .image.image-style-side {
+                float: none;
+                max-width: 100%;
+                margin-left: 0;
+            }
+
+            .article-content table {
+                display: block;
+                overflow-x: auto;
+                white-space: nowrap;
+            }
+        }
+    </style>
+</head>
+
+
+<body class="bg-[#f8f8fc] text-dark font-sans">
+
+
+<!-- ========================================================= -->
+<!-- HEADER -->
+<!-- ========================================================= -->
+
+<header class="bg-white">
+
+    <div class="max-w-7xl mx-auto px-5 lg:px-8">
+
+        <div class="h-24 flex items-center justify-between">
+
+            <div class="hidden md:flex items-center gap-4 text-gray-400">
+
+                <a href="#" class="hover:text-primary transition">
+                    <i data-lucide="instagram" class="w-4 h-4"></i>
+                </a>
+
+                <a href="#" class="hover:text-primary transition">
+                    <i data-lucide="facebook" class="w-4 h-4"></i>
+                </a>
+
+                <a href="#" class="hover:text-primary transition">
+                    <i data-lucide="twitter" class="w-4 h-4"></i>
+                </a>
+
+                <a href="#" class="hover:text-primary transition">
+                    <i data-lucide="rss" class="w-4 h-4"></i>
+                </a>
+
+            </div>
+
+
+            <a
+                href="#"
+                class="font-display text-3xl md:text-4xl font-extrabold tracking-tight"
+            >
+                <span class="text-primary">M</span>aktub
+            </a>
+
+
+            <button
+                class="w-10 h-10 rounded-full bg-primary text-white
+                flex items-center justify-center
+                hover:scale-105 transition
+                shadow-lg shadow-primary/20"
+            >
+                <i data-lucide="search" class="w-4 h-4"></i>
+            </button>
+
+        </div>
+
+
+        <nav
+            class="hidden lg:flex
+            h-14 bg-white
+            border border-gray-100
+            shadow-sm
+            px-8
+            items-center justify-center
+            gap-8
+            text-[13px] font-medium"
+        >
+
+            <a href="#" class="hover:text-primary transition">Accueil</a>
+            <a href="#" class="hover:text-primary transition">Lifestyle</a>
+            <a href="#" class="hover:text-primary transition">Technologie</a>
+            <a href="#" class="hover:text-primary transition">Santé</a>
+            <a href="#" class="hover:text-primary transition">Voyage</a>
+            <a href="#" class="hover:text-primary transition">Culture</a>
+            <a href="#" class="hover:text-primary transition">Vidéos</a>
+            <a href="#" class="hover:text-primary transition">À propos</a>
+            <a href="#" class="hover:text-primary transition">Contact</a>
+
+        </nav>
+
+    </div>
+
+</header>
+
+
+
+<!-- ========================================================= -->
+<!-- MOBILE MENU -->
+<!-- ========================================================= -->
+
+<div class="lg:hidden bg-white border-t border-gray-100">
+
+    <div class="max-w-7xl mx-auto px-5 py-4">
+
+        <button
+            id="menuButton"
+            class="flex items-center gap-2 text-sm font-semibold"
+        >
+            <i data-lucide="menu" class="w-5 h-5"></i>
+            Menu
+        </button>
+
+        <div id="mobileMenu" class="hidden pt-4">
+
+            <div class="flex flex-col gap-4 text-sm">
+
+                <a href="#" class="hover:text-primary">Accueil</a>
+                <a href="#" class="hover:text-primary">Lifestyle</a>
+                <a href="#" class="hover:text-primary">Technologie</a>
+                <a href="#" class="hover:text-primary">Santé</a>
+                <a href="#" class="hover:text-primary">Voyage</a>
+                <a href="#" class="hover:text-primary">Culture</a>
+                <a href="#" class="hover:text-primary">Vidéos</a>
+                <a href="#" class="hover:text-primary">À propos</a>
+                <a href="#" class="hover:text-primary">Contact</a>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+
+<!-- ========================================================= -->
+<!-- ARTICLE HEADER -->
+<!-- ========================================================= -->
+
+<section class="max-w-5xl mx-auto px-5 lg:px-8 pt-12">
+
+    <!-- BREADCRUMB -->
+
+    <div
+        class="flex flex-wrap items-center
+        gap-2 text-[12px] text-gray-400"
+    >
+
+        <a href="#" class="hover:text-primary">
+            Accueil
+        </a>
+
+        <i data-lucide="chevron-right" class="w-3 h-3"></i>
+
+        <a href="#" class="hover:text-primary">
+            Technologie
+        </a>
+
+        <i data-lucide="chevron-right" class="w-3 h-3"></i>
+
+        <span class="text-gray-500">
+            Design digital
+        </span>
+
+    </div>
+
+
+    <!-- CATEGORY -->
+
+    <div class="flex flex-wrap gap-2 mt-8">
+
+        <span
+            class="bg-primary/10 text-primary
+            text-[11px] font-semibold
+            uppercase tracking-wider
+            px-3 py-1.5"
+        >
+            Technologie
+        </span>
+
+        <span
+            class="bg-gray-100 text-gray-500
+            text-[11px] font-medium
+            px-3 py-1.5"
+        >
+            Design
+        </span>
+
+    </div>
+
+
+    <!-- TITLE -->
+
+    <h1
+        class="font-display
+        text-3xl sm:text-4xl
+        lg:text-5xl
+        leading-[1.15]
+        font-extrabold
+        mt-5"
+    >
+        Comment créer des expériences digitales mémorables
+    </h1>
+
+
+    <!-- EXCERPT -->
+
+    <p
+        class="mt-5
+        max-w-3xl
+        text-[16px]
+        md:text-[17px]
+        text-gray-500
+        leading-7"
+    >
+        Une bonne expérience digitale ne repose pas uniquement sur le design.
+        Elle résulte d’un équilibre entre simplicité, contenu, performance et
+        compréhension réelle des besoins utilisateurs.
+    </p>
+
+
+    <!-- ARTICLE META -->
+
+    <div
+        class="mt-7
+        pb-7
+        border-b border-gray-200
+        flex flex-col
+        sm:flex-row
+        sm:items-center
+        sm:justify-between
+        gap-5"
+    >
+
+        <div
+            class="flex items-center
+            gap-4"
+        >
+
+            <img
+                src="https://i.pravatar.cc/100?img=12"
+                alt=""
+                class="w-11 h-11
+                rounded-full
+                object-cover"
+            >
+
+            <div>
+
+                <p
+                    class="text-sm
+                    font-semibold"
+                >
+                    Jonathan Doe
+                </p>
+
+                <div
+                    class="flex flex-wrap
+                    gap-2 mt-1
+                    text-[11px]
+                    text-gray-400"
+                >
+                    <span>17 Septembre 2026</span>
+
+                    <span>•</span>
+
+                    <span>6 min de lecture</span>
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div
+            class="flex items-center
+            gap-4
+            text-xs text-gray-400"
+        >
+
+            <span class="flex items-center gap-1.5">
+                <i data-lucide="eye" class="w-4 h-4"></i>
+                7 837
+            </span>
+
+            <span class="flex items-center gap-1.5">
+                <i data-lucide="message-circle" class="w-4 h-4"></i>
+                12
+            </span>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+
+<!-- ========================================================= -->
+<!-- FEATURED IMAGE -->
+<!-- ========================================================= -->
+
+<section class="max-w-6xl mx-auto px-5 lg:px-8 mt-8">
+
+    <img
+        src="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=90&w=1800"
+        alt=""
+        class="w-full
+        h-[260px]
+        sm:h-[400px]
+        lg:h-[520px]
+        object-cover"
+    >
+
+</section>
+
+
+
+<!-- ========================================================= -->
+<!-- ARTICLE BODY -->
+<!-- ========================================================= -->
+
+<main class="max-w-7xl mx-auto px-5 lg:px-8 py-12">
+
+    <div
+        class="grid
+        lg:grid-cols-[minmax(0,760px)_300px]
+        justify-center
+        gap-12"
+    >
+
+
+        <!-- ================================================= -->
+        <!-- ARTICLE -->
+        <!-- ================================================= -->
+
+        <article>
+
+            <div
+                class="bg-white
+                border border-gray-100
+                shadow-card
+                p-6 sm:p-8 lg:p-10"
+            >
+
+                <!-- ========================================= -->
+                <!-- CKEDITOR CONTENT START -->
+                <!-- ========================================= -->
+
+                <div class="article-content">
+
+                    <!--
+                        EN PRODUCTION :
+
+                        Laravel Blade :
+                        {!! $article->content !!}
+
+                        React :
+                        <div
+                            className="article-content"
+                            dangerouslySetInnerHTML={{
+                                __html: article.content
+                            }}
+                        />
+                    -->
+
+
+                    <p>
+                        Aujourd’hui, créer une expérience digitale mémorable
+                        nécessite bien plus qu’une belle interface. Les utilisateurs
+                        attendent des plateformes rapides, simples, utiles et capables
+                        de répondre immédiatement à leurs besoins.
+                    </p>
+
+
+                    <h2>
+                        Comprendre avant de concevoir
+                    </h2>
+
+
+                    <p>
+                        Avant de commencer à concevoir une interface, il est
+                        essentiel de comprendre la personne qui utilisera réellement
+                        le produit. Ses habitudes, ses problèmes et son contexte
+                        d’utilisation doivent influencer chaque décision.
+                    </p>
+
+
+                    <p>
+                        Une interface réussie n’est donc pas nécessairement celle
+                        qui comporte le plus d’éléments visuels. Elle est plutôt
+                        celle qui permet à l’utilisateur d’atteindre rapidement son
+                        objectif.
+                    </p>
+
+
+                    <blockquote>
+                        <p>
+                            Une bonne expérience utilisateur devient presque
+                            invisible : l’utilisateur atteint simplement son objectif
+                            sans avoir à réfléchir au fonctionnement de l’interface.
+                        </p>
+                    </blockquote>
+
+
+                    <h2>
+                        La simplicité comme principe fondamental
+                    </h2>
+
+
+                    <p>
+                        Une interface trop chargée augmente la charge cognitive.
+                        Chaque bouton, chaque couleur et chaque information doivent
+                        donc avoir une véritable utilité.
+                    </p>
+
+
+                    <ul>
+                        <li>
+                            Limiter les actions principales sur chaque écran.
+                        </li>
+
+                        <li>
+                            Utiliser une hiérarchie visuelle claire.
+                        </li>
+
+                        <li>
+                            Faciliter la lecture du contenu.
+                        </li>
+
+                        <li>
+                            Maintenir une navigation cohérente.
+                        </li>
+
+                        <li>
+                            Réduire les étapes inutiles.
+                        </li>
+                    </ul>
+
+
+                    <figure>
+
+                        <img
+                            src="https://images.unsplash.com/photo-1559028012-481c04fa702d?q=90&w=1400"
+                            alt="Interface design"
+                        >
+
+                        <figcaption>
+                            Une interface claire permet à l’utilisateur de comprendre
+                            immédiatement les actions disponibles.
+                        </figcaption>
+
+                    </figure>
+
+
+                    <h2>
+                        Concevoir d'abord pour le mobile
+                    </h2>
+
+
+                    <p>
+                        Une approche mobile-first permet de se concentrer sur
+                        l’essentiel avant d’ajouter progressivement davantage de
+                        possibilités sur les écrans plus grands.
+                    </p>
+
+
+                    <h3>
+                        Les avantages du mobile-first
+                    </h3>
+
+
+                    <ol>
+                        <li>
+                            Priorisation naturelle du contenu.
+                        </li>
+
+                        <li>
+                            Meilleure expérience sur les petits écrans.
+                        </li>
+
+                        <li>
+                            Interfaces généralement plus simples.
+                        </li>
+
+                        <li>
+                            Meilleures performances.
+                        </li>
+                    </ol>
+
+
+                    <h2>
+                        Performance et expérience utilisateur
+                    </h2>
+
+
+                    <p>
+                        La vitesse fait également partie intégrante de l’expérience
+                        utilisateur. Une interface magnifique mais lente reste une
+                        mauvaise expérience.
+                    </p>
+
+
+                    <table>
+
+                        <thead>
+
+                            <tr>
+                                <th>Élément</th>
+                                <th>Objectif</th>
+                                <th>Impact</th>
+                            </tr>
+
+                        </thead>
+
+                        <tbody>
+
+                            <tr>
+                                <td>Images</td>
+                                <td>Optimiser leur poids</td>
+                                <td>Chargement plus rapide</td>
+                            </tr>
+
+                            <tr>
+                                <td>JavaScript</td>
+                                <td>Réduire les scripts inutiles</td>
+                                <td>Meilleure réactivité</td>
+                            </tr>
+
+                            <tr>
+                                <td>Cache</td>
+                                <td>Éviter les téléchargements répétés</td>
+                                <td>Navigation plus fluide</td>
+                            </tr>
+
+                        </tbody>
+
+                    </table>
+
+
+                    <h2>
+                        Conclusion
+                    </h2>
+
+
+                    <p>
+                        Créer une bonne expérience digitale consiste finalement
+                        à supprimer les obstacles entre l’utilisateur et son objectif.
+                        Le design, les performances, le contenu et la technologie
+                        doivent fonctionner ensemble.
+                    </p>
+
+
+                    <p>
+                        Lorsque ces éléments sont cohérents, l’utilisateur ne
+                        remarque plus vraiment l’interface : il profite simplement
+                        de l’expérience.
+                    </p>
+
+                </div>
+
+                <!-- ========================================= -->
+                <!-- CKEDITOR CONTENT END -->
+                <!-- ========================================= -->
+
+
+                <!-- TAGS -->
+
+                <div
+                    class="mt-10
+                    pt-7
+                    border-t border-gray-100"
+                >
+
+                    <div
+                        class="flex flex-wrap
+                        items-center
+                        gap-2"
+                    >
+
+                        <span
+                            class="text-xs
+                            font-semibold
+                            mr-2"
+                        >
+                            Tags :
+                        </span>
+
+                        <a
+                            href="#"
+                            class="px-3 py-1.5
+                            bg-soft
+                            text-[11px]
+                            text-gray-500
+                            hover:text-primary"
+                        >
+                            Technologie
+                        </a>
+
+                        <a
+                            href="#"
+                            class="px-3 py-1.5
+                            bg-soft
+                            text-[11px]
+                            text-gray-500
+                            hover:text-primary"
+                        >
+                            Design
+                        </a>
+
+                        <a
+                            href="#"
+                            class="px-3 py-1.5
+                            bg-soft
+                            text-[11px]
+                            text-gray-500
+                            hover:text-primary"
+                        >
+                            UX
+                        </a>
+
+                    </div>
+
+                </div>
+
+
+                <!-- SHARE -->
+
+                <div
+                    class="flex
+                    flex-col sm:flex-row
+                    sm:items-center
+                    sm:justify-between
+                    gap-4
+                    mt-7
+                    pt-7
+                    border-t border-gray-100"
+                >
+
+                    <span class="text-sm font-semibold">
+                        Partager cet article
+                    </span>
+
+
+                    <div class="flex gap-2">
+
+                        <a
+                            href="#"
+                            class="w-10 h-10
+                            bg-[#4267B2]
+                            text-white
+                            flex items-center
+                            justify-center"
+                        >
+                            <i data-lucide="facebook" class="w-4 h-4"></i>
+                        </a>
+
+                        <a
+                            href="#"
+                            class="w-10 h-10
+                            bg-black
+                            text-white
+                            flex items-center
+                            justify-center"
+                        >
+                            <i data-lucide="twitter" class="w-4 h-4"></i>
+                        </a>
+
+                        <a
+                            href="#"
+                            class="w-10 h-10
+                            bg-[#25D366]
+                            text-white
+                            flex items-center
+                            justify-center"
+                        >
+                            <i data-lucide="message-circle" class="w-4 h-4"></i>
+                        </a>
+
+                        <button
+                            class="w-10 h-10
+                            bg-soft
+                            text-dark
+                            flex items-center
+                            justify-center"
+                        >
+                            <i data-lucide="link" class="w-4 h-4"></i>
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+
+            <!-- ================================================= -->
+            <!-- AUTHOR -->
+            <!-- ================================================= -->
+
+            <section
+                class="bg-white
+                border border-gray-100
+                shadow-card
+                p-6 sm:p-8
+                mt-6"
+            >
+
+                <div
+                    class="flex
+                    flex-col sm:flex-row
+                    gap-5"
+                >
+
+                    <img
+                        src="https://i.pravatar.cc/200?img=12"
+                        alt=""
+                        class="w-20 h-20
+                        rounded-full
+                        object-cover
+                        shrink-0"
+                    >
+
+
+                    <div>
+
+                        <span
+                            class="text-[11px]
+                            uppercase
+                            tracking-wider
+                            text-gray-400"
+                        >
+                            Écrit par
+                        </span>
+
+
+                        <h3
+                            class="font-display
+                            font-extrabold
+                            text-xl
+                            mt-1"
+                        >
+                            Jonathan Doe
+                        </h3>
+
+
+                        <p
+                            class="text-[13px]
+                            leading-6
+                            text-gray-500
+                            mt-3"
+                        >
+                            Auteur spécialisé dans la technologie, le design
+                            numérique et les nouvelles tendances digitales.
+                            Il partage régulièrement ses analyses sur
+                            l'évolution des usages numériques.
+                        </p>
+
+
+                        <div
+                            class="flex gap-4
+                            mt-4
+                            text-gray-400"
+                        >
+
+                            <a href="#" class="hover:text-primary">
+                                <i data-lucide="instagram" class="w-4 h-4"></i>
+                            </a>
+
+                            <a href="#" class="hover:text-primary">
+                                <i data-lucide="facebook" class="w-4 h-4"></i>
+                            </a>
+
+                            <a href="#" class="hover:text-primary">
+                                <i data-lucide="twitter" class="w-4 h-4"></i>
+                            </a>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+
+            <!-- ================================================= -->
+            <!-- PREVIOUS NEXT -->
+            <!-- ================================================= -->
+
+            <section
+                class="grid
+                sm:grid-cols-2
+                gap-4
+                mt-6"
+            >
+
+                <a
+                    href="#"
+                    class="bg-white
+                    border border-gray-100
+                    p-5
+                    group"
+                >
+
+                    <div
+                        class="flex items-center
+                        gap-2
+                        text-[11px]
+                        text-gray-400"
+                    >
+
+                        <i data-lucide="arrow-left" class="w-3 h-3"></i>
+
+                        Article précédent
+
+                    </div>
+
+
+                    <h3
+                        class="font-display
+                        font-bold
+                        text-sm
+                        leading-5
+                        mt-2
+                        group-hover:text-primary"
+                    >
+                        Les nouvelles habitudes digitales qui transforment
+                        notre quotidien
+                    </h3>
+
+                </a>
+
+
+                <a
+                    href="#"
+                    class="bg-white
+                    border border-gray-100
+                    p-5
+                    text-right
+                    group"
+                >
+
+                    <div
+                        class="flex items-center
+                        justify-end
+                        gap-2
+                        text-[11px]
+                        text-gray-400"
+                    >
+
+                        Article suivant
+
+                        <i data-lucide="arrow-right" class="w-3 h-3"></i>
+
+                    </div>
+
+
+                    <h3
+                        class="font-display
+                        font-bold
+                        text-sm
+                        leading-5
+                        mt-2
+                        group-hover:text-primary"
+                    >
+                        Pourquoi les créateurs changent leurs méthodes
+                        de travail
+                    </h3>
+
+                </a>
+
+            </section>
+
+
+
+            <!-- ================================================= -->
+            <!-- RELATED POSTS -->
+            <!-- ================================================= -->
+
+            <section class="mt-12">
+
+                <div
+                    class="flex items-center
+                    gap-4
+                    mb-6"
+                >
+
+                    <h2
+                        class="font-display
+                        font-extrabold
+                        text-2xl
+                        whitespace-nowrap"
+                    >
+                        À lire aussi
+                    </h2>
+
+                    <div
+                        class="h-[2px]
+                        bg-primary
+                        flex-1"
+                    ></div>
+
+                </div>
+
+
+                <div class="grid sm:grid-cols-2 gap-5">
+
+
+                    <!-- RELATED -->
+
+                    <article
+                        class="bg-white
+                        border border-gray-100
+                        group"
+                    >
+
+                        <a href="#" class="block overflow-hidden">
+
+                            <img
+                                src="https://images.unsplash.com/photo-1521737711867-e3b97375f902?q=80&w=800"
+                                alt=""
+                                class="w-full
+                                h-44
+                                object-cover
+                                group-hover:scale-105
+                                transition duration-500"
+                            >
+
+                        </a>
+
+
+                        <div class="p-5">
+
+                            <span
+                                class="text-[10px]
+                                uppercase
+                                font-semibold
+                                tracking-wider
+                                text-primary"
+                            >
+                                Technologie
+                            </span>
+
+
+                            <h3
+                                class="font-display
+                                text-lg
+                                font-extrabold
+                                leading-6
+                                mt-2
+                                group-hover:text-primary"
+                            >
+                                Comment mieux collaborer dans une équipe digitale
+                            </h3>
+
+
+                            <p
+                                class="text-[11px]
+                                text-gray-400
+                                mt-3"
+                            >
+                                14 Septembre 2026 · 5 min
+                            </p>
+
+                        </div>
+
+                    </article>
+
+
+                    <!-- RELATED -->
+
+                    <article
+                        class="bg-white
+                        border border-gray-100
+                        group"
+                    >
+
+                        <a href="#" class="block overflow-hidden">
+
+                            <img
+                                src="https://images.unsplash.com/photo-1552664730-d307ca884978?q=80&w=800"
+                                alt=""
+                                class="w-full
+                                h-44
+                                object-cover
+                                group-hover:scale-105
+                                transition duration-500"
+                            >
+
+                        </a>
+
+
+                        <div class="p-5">
+
+                            <span
+                                class="text-[10px]
+                                uppercase
+                                font-semibold
+                                tracking-wider
+                                text-primary"
+                            >
+                                Design
+                            </span>
+
+
+                            <h3
+                                class="font-display
+                                text-lg
+                                font-extrabold
+                                leading-6
+                                mt-2
+                                group-hover:text-primary"
+                            >
+                                Les erreurs fréquentes dans les interfaces modernes
+                            </h3>
+
+
+                            <p
+                                class="text-[11px]
+                                text-gray-400
+                                mt-3"
+                            >
+                                10 Septembre 2026 · 7 min
+                            </p>
+
+                        </div>
+
+                    </article>
+
+                </div>
+
+            </section>
+
+        </article>
+
+
+
+        <!-- ================================================= -->
+        <!-- SIDEBAR -->
+        <!-- ================================================= -->
+
+        <aside class="space-y-10">
+
+
+            <!-- RECENT -->
+
+            <section>
+
+                <div
+                    class="flex items-center
+                    gap-3 mb-6"
+                >
+
+                    <h3
+                        class="font-display
+                        text-lg
+                        font-extrabold
+                        whitespace-nowrap"
+                    >
+                        Articles récents
+                    </h3>
+
+                    <div
+                        class="h-[2px]
+                        bg-primary
+                        flex-1"
+                    ></div>
+
+                </div>
+
+
+                <div class="space-y-5">
+
+                    <a href="#" class="group flex gap-4">
+
+                        <img
+                            src="https://images.unsplash.com/photo-1485846234645-a62644f84728?q=80&w=300"
+                            alt=""
+                            class="w-20 h-20 object-cover"
+                        >
+
+                        <div>
+
+                            <h4
+                                class="font-display
+                                font-bold
+                                text-[13px]
+                                leading-5
+                                group-hover:text-primary"
+                            >
+                                Jusqu'où peut aller notre imagination ?
+                            </h4>
+
+                            <p
+                                class="text-[10px]
+                                text-gray-400
+                                mt-2"
+                            >
+                                15 Septembre 2026
+                            </p>
+
+                        </div>
+
+                    </a>
+
+
+                    <a href="#" class="group flex gap-4">
+
+                        <img
+                            src="https://images.unsplash.com/photo-1531058020387-3be344556be6?q=80&w=300"
+                            alt=""
+                            class="w-20 h-20 object-cover"
+                        >
+
+                        <div>
+
+                            <h4
+                                class="font-display
+                                font-bold
+                                text-[13px]
+                                leading-5
+                                group-hover:text-primary"
+                            >
+                                Créer des expériences qui inspirent
+                            </h4>
+
+                            <p
+                                class="text-[10px]
+                                text-gray-400
+                                mt-2"
+                            >
+                                13 Septembre 2026
+                            </p>
+
+                        </div>
+
+                    </a>
+
+
+                    <a href="#" class="group flex gap-4">
+
+                        <img
+                            src="https://images.unsplash.com/photo-1506157786151-b8491531f063?q=80&w=300"
+                            alt=""
+                            class="w-20 h-20 object-cover"
+                        >
+
+                        <div>
+
+                            <h4
+                                class="font-display
+                                font-bold
+                                text-[13px]
+                                leading-5
+                                group-hover:text-primary"
+                            >
+                                Musique et nouvelles tendances créatives
+                            </h4>
+
+                            <p
+                                class="text-[10px]
+                                text-gray-400
+                                mt-2"
+                            >
+                                08 Septembre 2026
+                            </p>
+
+                        </div>
+
+                    </a>
+
+                </div>
+
+            </section>
+
+
+
+            <!-- POPULAR -->
+
+            <section>
+
+                <div
+                    class="flex items-center
+                    gap-3 mb-6"
+                >
+
+                    <h3
+                        class="font-display
+                        text-lg
+                        font-extrabold
+                        whitespace-nowrap"
+                    >
+                        Les plus lus
+                    </h3>
+
+                    <div class="h-[2px] bg-primary flex-1"></div>
+
+                </div>
+
+
+                <div class="space-y-5">
+
+                    <a href="#" class="flex gap-4 group">
+
+                        <span
+                            class="font-display
+                            text-3xl
+                            font-extrabold
+                            text-gray-200"
+                        >
+                            01
+                        </span>
+
+
+                        <div>
+
+                            <h4
+                                class="text-[13px]
+                                font-semibold
+                                leading-5
+                                group-hover:text-primary"
+                            >
+                                10 tendances digitales à suivre cette année
+                            </h4>
+
+                            <span
+                                class="text-[10px]
+                                text-gray-400"
+                            >
+                                12 841 vues
+                            </span>
+
+                        </div>
+
+                    </a>
+
+
+                    <a href="#" class="flex gap-4 group">
+
+                        <span
+                            class="font-display
+                            text-3xl
+                            font-extrabold
+                            text-gray-200"
+                        >
+                            02
+                        </span>
+
+
+                        <div>
+
+                            <h4
+                                class="text-[13px]
+                                font-semibold
+                                leading-5
+                                group-hover:text-primary"
+                            >
+                                Pourquoi les créateurs changent leur manière de travailler
+                            </h4>
+
+                            <span
+                                class="text-[10px]
+                                text-gray-400"
+                            >
+                                9 723 vues
+                            </span>
+
+                        </div>
+
+                    </a>
+
+                </div>
+
+            </section>
+
+
+
+            <!-- TAGS -->
+
+            <section>
+
+                <div
+                    class="flex items-center
+                    gap-3 mb-5"
+                >
+
+                    <h3
+                        class="font-display
+                        font-extrabold
+                        text-lg"
+                    >
+                        Tags
+                    </h3>
+
+                    <div class="h-[2px] bg-primary flex-1"></div>
+
+                </div>
+
+
+                <div class="flex flex-wrap gap-2">
+
+                    <a
+                        href="#"
+                        class="px-3 py-2
+                        bg-white
+                        border border-gray-100
+                        text-[11px]
+                        hover:text-primary
+                        hover:border-primary"
+                    >
+                        Santé
+                    </a>
+
+                    <a
+                        href="#"
+                        class="px-3 py-2
+                        bg-white
+                        border border-gray-100
+                        text-[11px]
+                        hover:text-primary
+                        hover:border-primary"
+                    >
+                        Lifestyle
+                    </a>
+
+                    <a
+                        href="#"
+                        class="px-3 py-2
+                        bg-white
+                        border border-gray-100
+                        text-[11px]
+                        hover:text-primary
+                        hover:border-primary"
+                    >
+                        Design
+                    </a>
+
+                    <a
+                        href="#"
+                        class="px-3 py-2
+                        bg-white
+                        border border-gray-100
+                        text-[11px]
+                        hover:text-primary
+                        hover:border-primary"
+                    >
+                        Technologie
+                    </a>
+
+                    <a
+                        href="#"
+                        class="px-3 py-2
+                        bg-white
+                        border border-gray-100
+                        text-[11px]
+                        hover:text-primary
+                        hover:border-primary"
+                    >
+                        Voyage
+                    </a>
+
+                </div>
+
+            </section>
+
+
+
+            <!-- NEWSLETTER SMALL -->
+
+            <section
+                class="bg-dark
+                text-white
+                p-6"
+            >
+
+                <i
+                    data-lucide="mail"
+                    class="w-8 h-8
+                    text-primary"
+                ></i>
+
+
+                <h3
+                    class="font-display
+                    font-extrabold
+                    text-xl
+                    mt-4"
+                >
+                    Ne manquez aucun article
+                </h3>
+
+
+                <p
+                    class="text-[12px]
+                    text-white/60
+                    leading-5
+                    mt-2"
+                >
+                    Recevez les dernières publications directement par email.
+                </p>
+
+
+                <form class="mt-5">
+
+                    <input
+                        type="email"
+                        placeholder="Votre email"
+                        class="w-full
+                        h-11
+                        px-4
+                        text-xs
+                        text-dark
+                        outline-none"
+                    >
+
+                    <button
+                        type="submit"
+                        class="w-full
+                        h-11
+                        bg-primary
+                        text-white
+                        text-xs
+                        font-semibold
+                        mt-2"
+                    >
+                        S'abonner
+                    </button>
+
+                </form>
+
+            </section>
+
+        </aside>
+
+    </div>
+
+</main>
+
+
+
+<!-- ========================================================= -->
+<!-- NEWSLETTER -->
+<!-- ========================================================= -->
+
+<section class="bg-white py-16">
+
+    <div
+        class="max-w-xl
+        mx-auto
+        px-5
+        text-center"
+    >
+
+        <h2
+            class="font-display
+            text-3xl
+            font-extrabold"
+        >
+            Abonnez-vous à
+            <span class="text-primary">M</span>aktub
+        </h2>
+
+
+        <p
+            class="text-sm
+            text-gray-400
+            mt-3"
+        >
+            Recevez nos derniers articles directement dans votre boîte mail.
+        </p>
+
+
+        <form
+            class="flex
+            flex-col sm:flex-row
+            mt-7"
+        >
+
+            <input
+                type="email"
+                placeholder="Votre adresse email"
+                class="flex-1
+                h-12
+                px-5
+                bg-soft
+                border border-gray-100
+                outline-none
+                focus:border-primary"
+            >
+
+            <button
+                class="h-12
+                px-8
+                bg-dark
+                text-white
+                text-sm
+                font-semibold
+                hover:bg-primary"
+            >
+                S'abonner
+            </button>
+
+        </form>
+
+    </div>
+
+</section>
+
+
+
+<!-- ========================================================= -->
+<!-- FOOTER -->
+<!-- ========================================================= -->
+
+<footer class="bg-[#f2f2f8] pt-14">
+
+    <div
+        class="max-w-7xl
+        mx-auto
+        px-5 lg:px-8
+        grid
+        sm:grid-cols-2
+        lg:grid-cols-4
+        gap-10"
+    >
+
+
+        <div>
+
+            <h3
+                class="font-display
+                font-extrabold
+                text-lg
+                mb-5"
+            >
+                Derniers articles
+            </h3>
+
+            <div class="space-y-3">
+
+                <a
+                    href="#"
+                    class="block
+                    text-[12px]
+                    leading-5
+                    hover:text-primary"
+                >
+                    Jusqu'où peut aller notre imagination ?
+                </a>
+
+                <a
+                    href="#"
+                    class="block
+                    text-[12px]
+                    leading-5
+                    hover:text-primary"
+                >
+                    Créer des expériences digitales qui inspirent
+                </a>
+
+                <a
+                    href="#"
+                    class="block
+                    text-[12px]
+                    leading-5
+                    hover:text-primary"
+                >
+                    Créativité musicale et improvisation
+                </a>
+
+            </div>
+
+        </div>
+
+
+        <div>
+
+            <h3
+                class="font-display
+                font-extrabold
+                text-lg
+                mb-5"
+            >
+                Tags
+            </h3>
+
+            <div class="flex flex-wrap gap-2">
+
+                <span class="bg-white px-3 py-1.5 text-[10px]">
+                    Santé
+                </span>
+
+                <span class="bg-white px-3 py-1.5 text-[10px]">
+                    Lifestyle
+                </span>
+
+                <span class="bg-white px-3 py-1.5 text-[10px]">
+                    Technologie
+                </span>
+
+                <span class="bg-white px-3 py-1.5 text-[10px]">
+                    Voyage
+                </span>
+
+            </div>
+
+        </div>
+
+
+        <div>
+
+            <h3
+                class="font-display
+                font-extrabold
+                text-lg
+                mb-5"
+            >
+                Suivez-nous
+            </h3>
+
+
+            <div class="flex gap-3">
+
+                <a
+                    href="#"
+                    class="w-10 h-10
+                    bg-black
+                    text-white
+                    flex items-center
+                    justify-center"
+                >
+                    <i data-lucide="twitter" class="w-4 h-4"></i>
+                </a>
+
+                <a
+                    href="#"
+                    class="w-10 h-10
+                    bg-[#4267B2]
+                    text-white
+                    flex items-center
+                    justify-center"
+                >
+                    <i data-lucide="facebook" class="w-4 h-4"></i>
+                </a>
+
+                <a
+                    href="#"
+                    class="w-10 h-10
+                    bg-pink-500
+                    text-white
+                    flex items-center
+                    justify-center"
+                >
+                    <i data-lucide="instagram" class="w-4 h-4"></i>
+                </a>
+
+            </div>
+
+        </div>
+
+
+        <div>
+
+            <h3
+                class="font-display
+                font-extrabold
+                text-lg
+                mb-5"
+            >
+                À propos
+            </h3>
+
+
+            <p
+                class="text-[12px]
+                text-gray-500
+                leading-6"
+            >
+                Maktub partage des contenus sur la technologie, la culture,
+                le lifestyle et les tendances qui façonnent notre quotidien.
+            </p>
+
+        </div>
+
+    </div>
+
+
+    <div
+        class="max-w-7xl
+        mx-auto
+        px-5 lg:px-8
+        py-12
+        text-center"
+    >
+
+        <div
+            class="font-display
+            text-3xl
+            font-extrabold"
+        >
+            <span class="text-primary">M</span>aktub
+        </div>
+
+
+        <p
+            class="text-[11px]
+            text-gray-400
+            mt-4"
+        >
+            © 2026 Maktub. Tous droits réservés.
+        </p>
+
+    </div>
+
+</footer>
+
+
+
+<!-- ========================================================= -->
+<!-- BACK TO TOP -->
+<!-- ========================================================= -->
+
+<button
+    id="backToTop"
+    class="fixed
+    bottom-5 right-5
+    w-11 h-11
+    bg-dark
+    text-white
+    shadow-lg
+    flex items-center
+    justify-center
+    hover:bg-primary"
+>
+    <i data-lucide="chevron-up" class="w-4 h-4"></i>
+</button>
+
+
+
+<script>
+
+    lucide.createIcons();
+
+
+    const menuButton = document.getElementById("menuButton");
+    const mobileMenu = document.getElementById("mobileMenu");
+
+    menuButton.addEventListener("click", () => {
+        mobileMenu.classList.toggle("hidden");
+    });
+
+
+    const backToTop = document.getElementById("backToTop");
+
+    backToTop.addEventListener("click", () => {
+        window.scrollTo({
+            top: 0,
+            behavior: "smooth"
+        });
+    });
+
+</script>
+
+
+</body>
+</html>
