@@ -1,29 +1,15 @@
 interface LogoProps {
-  dark?: boolean;
   className?: string;
-  iconOnly?: boolean;
 }
 
-export function Logo({ dark = false, className = '', iconOnly = false }: LogoProps) {
+export function Logo({ className = '' }: LogoProps) {
   return (
-    <div className={`flex items-center gap-2.5 ${className}`}>
-      <img
-        src="/alak_1.png"
-        alt="ALAK Digital"
-        width="36"
-        height="36"
-        className="h-9 w-9 rounded-xl object-cover flex-shrink-0"
-      />
-      {!iconOnly && (
-        <div className="flex flex-col leading-none">
-          <span className={`font-display text-base font-extrabold tracking-tight ${dark ? 'text-white' : 'text-ink-900'}`}>
-            ALAK
-          </span>
-          <span className={`text-[10px] font-semibold tracking-[0.2em] uppercase ${dark ? 'text-ink-300' : 'text-ink-400'}`}>
-            Digital
-          </span>
-        </div>
-      )}
-    </div>
+    <img
+      src="/alak_1.png"
+      alt="ALAK Digital"
+      width="48"
+      height="48"
+      className={`h-12 w-12 rounded-xl object-cover flex-shrink-0 ${className}`}
+    />
   );
 }

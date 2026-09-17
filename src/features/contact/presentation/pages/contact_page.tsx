@@ -63,15 +63,15 @@ function FloatingField({ id, label, type = 'text', value, onChange, error, requi
   const [focused, setFocused] = useState(false);
   const active = focused || hasValue;
 
-  const sharedClass = `w-full rounded-2xl border bg-transparent text-sm text-white transition-all duration-300 focus:outline-none ${
-    error ? 'border-red-400/60' : active ? 'border-primary-500/60' : 'border-white/15 hover:border-white/25'
+  const sharedClass = `w-full rounded-2xl border bg-ink-50 text-sm text-ink-900 transition-all duration-300 focus:outline-none ${
+    error ? 'border-red-400' : active ? 'border-primary-500/60' : 'border-ink-200 hover:border-ink-300'
   }`;
 
   return (
     <div className="relative">
       <label htmlFor={id} className={`pointer-events-none absolute left-4 transition-all duration-200 z-10 ${
         active
-          ? 'top-2.5 text-[10px] font-bold uppercase tracking-wider text-primary-400'
+          ? 'top-2.5 text-[10px] font-bold uppercase tracking-wider text-primary-600'
           : 'top-1/2 -translate-y-1/2 text-sm text-ink-400'
       }`}>
         {label}{required && <span className="text-primary-500"> *</span>}
@@ -95,7 +95,7 @@ function FloatingField({ id, label, type = 'text', value, onChange, error, requi
           onChange={onChange}
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
-          className={`${sharedClass} h-14 px-4 text-white appearance-none cursor-pointer [&>option]:bg-ink-900 [&>option]:text-white`}
+          className={`${sharedClass} h-14 px-4 appearance-none cursor-pointer [&>option]:bg-white [&>option]:text-ink-900`}
         >
           <option value="">{active ? '' : ' '}</option>
           {options.map((opt) => (
@@ -123,8 +123,8 @@ function FloatingField({ id, label, type = 'text', value, onChange, error, requi
 
       <AnimatePresence>
         {error && (
-          <motion.p initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }} className="mt-1.5 flex items-center gap-1 text-xs text-red-400">
-            <span className="inline-block h-1 w-1 rounded-full bg-red-400" /> {error}
+          <motion.p initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }} className="mt-1.5 flex items-center gap-1 text-xs text-red-500">
+            <span className="inline-block h-1 w-1 rounded-full bg-red-500" /> {error}
           </motion.p>
         )}
       </AnimatePresence>
@@ -239,12 +239,12 @@ export function ContactPage() {
                 <Button onClick={() => setSubmitted(false)} variant="outline" size="md">Envoyer un autre message</Button>
               </div>
             ) : (
-              <form onSubmit={handleSubmit(onSubmit)} className="rounded-3xl bg-ink-900 text-white p-8 lg:p-10 shadow-premium relative overflow-hidden">
-                <div className="absolute top-0 right-0 h-[200px] w-[200px] rounded-full bg-primary-600/10 blur-[80px] pointer-events-none" />
+              <form onSubmit={handleSubmit(onSubmit)} className="rounded-3xl bg-white border border-ink-100 text-ink-900 p-8 lg:p-10 shadow-premium relative overflow-hidden">
+                <div className="absolute top-0 right-0 h-[200px] w-[200px] rounded-full bg-primary-500/5 blur-[80px] pointer-events-none" />
 
                 <div className="relative mb-8">
-                  <h2 className="text-xl font-bold text-white mb-1">Envoyez-nous un message</h2>
-                  <p className="text-sm text-ink-400">Remplissez le formulaire ci-dessous</p>
+                  <h2 className="text-xl font-bold text-ink-900 mb-1">Envoyez-nous un message</h2>
+                  <p className="text-sm text-ink-500">Remplissez le formulaire ci-dessous</p>
                 </div>
 
                 <div className="relative space-y-4">
@@ -265,7 +265,7 @@ export function ContactPage() {
                     Envoyer ma demande
                   </Button>
                   <a href={`https://wa.me/${APP_CONFIG.whatsapp.replace(/\s/g, '')}`} target="_blank" rel="noopener noreferrer">
-                    <Button type="button" variant="outline" size="lg" leftIcon={<MessageCircle className="h-5 w-5" />} className="!border-white/20 !text-white hover:!bg-white/10">
+                    <Button type="button" variant="outline" size="lg" leftIcon={<MessageCircle className="h-5 w-5" />}>
                       Discuter sur WhatsApp
                     </Button>
                   </a>

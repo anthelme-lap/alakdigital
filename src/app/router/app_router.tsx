@@ -1,9 +1,10 @@
 import { lazy, Suspense } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { MainLayout } from '@/shared/layouts';
-import { FullPageLoader } from '@/shared/ui';
 import { ProtectedRoute } from '@/features/auth/presentation/components/protected_route';
 import { AdminLayout } from '@/features/admin/presentation/layouts/admin_layout';
+import { PageProgressBar, RouteChangeProgress } from '@/shared/components/page_progress_bar';
+import { RouteLoadingFallback } from '@/shared/components/route_loading_fallback';
 
 const HomePage = lazy(() => import('@/features/home/presentation/pages/home_page').then((m) => ({ default: m.HomePage })));
 const AboutPage = lazy(() => import('@/features/about/presentation/pages/about_page').then((m) => ({ default: m.AboutPage })));
@@ -36,56 +37,60 @@ const ProfilePage = lazy(() => import('@/features/profile/presentation/pages/pro
 
 export function AppRouter() {
   return (
-    <Suspense fallback={<FullPageLoader />}>
-      <Routes>
-        <Route path="/admin/login" element={<LoginPage />} />
+    <>
+      <PageProgressBar />
+      <RouteChangeProgress />
+      <Suspense fallback={<RouteLoadingFallback />}>
+        <Routes>
+          <Route path="/admin/login" element={<LoginPage />} />
 
-        <Route
-          path="/admin"
-          element={
-            <ProtectedRoute>
-              <AdminLayout />
-            </ProtectedRoute>
-          }
-        >
-          <Route index element={<AdminDashboardPage />} />
-          <Route path="articles" element={<AdminArticlesPage />} />
-          <Route path="projects" element={<AdminProjectsPage />} />
-          <Route path="services" element={<AdminServicesPage />} />
-          <Route path="solutions" element={<AdminSolutionsPage />} />
-          <Route path="team" element={<AdminTeamPage />} />
-          <Route path="values" element={<AdminValuesPage />} />
-          <Route path="expertise-content" element={<AdminExpertiseContentPage />} />
-          <Route path="messages" element={<AdminMessagesPage />} />
-          <Route path="quotations" element={<AdminQuotationsPage />} />
-          <Route path="homepage" element={<AdminHomepagePage />} />
-          <Route path="about-content" element={<AdminAboutContentPage />} />
-          <Route path="profile" element={<ProfilePage />} />
           <Route
-            path="users"
+            path="/admin"
             element={
-              <ProtectedRoute requireRole="superadmin">
-                <AdminUsersPage />
+              <ProtectedRoute>
+                <AdminLayout />
               </ProtectedRoute>
             }
-          />
-        </Route>
+          >
+            <Route index element={<AdminDashboardPage />} />
+            <Route path="articles" element={<AdminArticlesPage />} />
+            <Route path="projects" element={<AdminProjectsPage />} />
+            <Route path="services" element={<AdminServicesPage />} />
+            <Route path="solutions" element={<AdminSolutionsPage />} />
+            <Route path="team" element={<AdminTeamPage />} />
+            <Route path="values" element={<AdminValuesPage />} />
+            <Route path="expertise-content" element={<AdminExpertiseContentPage />} />
+            <Route path="messages" element={<AdminMessagesPage />} />
+            <Route path="quotations" element={<AdminQuotationsPage />} />
+            <Route path="homepage" element={<AdminHomepagePage />} />
+            <Route path="about-content" element={<AdminAboutContentPage />} />
+            <Route path="profile" element={<ProfilePage />} />
+            <Route
+              path="users"
+              element={
+                <ProtectedRoute requireRole="superadmin">
+                  <AdminUsersPage />
+                </ProtectedRoute>
+              }
+            />
+          </Route>
 
-        <Route element={<MainLayout />}>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/about" element={<AboutPage />} />
-          <Route path="/services" element={<ServicesPage />} />
-          <Route path="/projects" element={<ProjectsPage />} />
-          <Route path="/projects/:slug" element={<ProjectDetailPage />} />
-          <Route path="/solutions" element={<SolutionsPage />} />
-          <Route path="/expertise" element={<ExpertisePage />} />
-          <Route path="/blog" element={<BlogPage />} />
-          <Route path="/blog/:slug" element={<ArticleDetailPage />} />
-          <Route path="/contact" element={<ContactPage />} />
-          <Route path="/quotation" element={<QuotationPage />} />
-          <Route path="*" element={<NotFoundPage />} />
-        </Route>
-      </Routes>
-    </Suspense>
+          <Route element={<MainLayout />}>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/about" element={<AboutPage />} />
+            <Route path="/services" element={<ServicesPage />} />
+            <Route path="/projects" element={<ProjectsPage />} />
+            <Route path="/projects/:slug" element={<ProjectDetailPage />} />
+            <Route path="/solutions" element={<SolutionsPage />} />
+            <Route path="/expertise" element={<ExpertisePage />} />
+            <Route path="/blog" element={<BlogPage />} />
+            <Route path="/blog/:slug" element={<ArticleDetailPage />} />
+            <Route path="/contact" element={<ContactPage />} />
+            <Route path="/quotation" element={<QuotationPage />} />
+            <Route path="*" element={<NotFoundPage />} />
+          </Route>
+        </Routes>
+      </Suspense>
+    </>
   );
 }

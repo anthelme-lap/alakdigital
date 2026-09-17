@@ -31,7 +31,7 @@ export function Header() {
         <div className="mx-auto max-w-8xl container-px">
           <div className={`flex items-center justify-between transition-all duration-300 ${scrolled ? 'h-16' : 'h-20'}`}>
             <Link to="/" onClick={closeMobileMenu} aria-label={`${APP_CONFIG.name} — Accueil`}>
-              <Logo dark={!scrolled && location.pathname === '/'} />
+              <Logo />
             </Link>
 
             <nav className="hidden lg:flex items-center gap-1">

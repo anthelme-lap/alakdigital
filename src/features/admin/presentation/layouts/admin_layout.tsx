@@ -152,7 +152,7 @@ export function AdminLayout() {
         <div className="flex items-center justify-between h-20 px-5 border-b border-white/10">
           {!sidebarCollapsed && (
             <Link to="/admin">
-              <Logo dark />
+              <Logo />
             </Link>
           )}
           <button
@@ -286,7 +286,7 @@ export function AdminLayout() {
             >
               <div className="flex items-center justify-between h-20 px-5 border-b border-white/10">
                 <Link to="/admin" onClick={() => setMobileSidebarOpen(false)}>
-                  <Logo dark />
+                  <Logo />
                 </Link>
                 <button
                   onClick={() => setMobileSidebarOpen(false)}
