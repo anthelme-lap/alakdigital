@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -135,8 +135,9 @@ function FloatingField({ id, label, type = 'text', value, onChange, error, requi
 export function ContactPage() {
   const [submitted, setSubmitted] = useState(false);
   const [submitError, setSubmitError] = useState('');
-  const { register, handleSubmit, formState: { errors, isSubmitting }, watch } = useForm<FormData>({
+  const { control, handleSubmit, formState: { errors, isSubmitting } } = useForm<FormData>({
     resolver: zodResolver(schema),
+    defaultValues: { name: '', company: '', email: '', phone: '', projectType: '', message: '' },
   });
 
   const onSubmit = async (data: FormData) => {
@@ -249,15 +250,51 @@ export function ContactPage() {
 
                 <div className="relative space-y-4">
                   <div className="grid sm:grid-cols-2 gap-4">
-                    <FloatingField id="name" label="Nom" required placeholder="Votre nom" value={watch('name') ?? ''} onChange={(e) => register('name').onChange(e)} error={errors.name?.message} />
-                    <FloatingField id="company" label="Entreprise" placeholder="Nom de l'entreprise" value={watch('company') ?? ''} onChange={(e) => register('company').onChange(e)} />
+                    <Controller
+                      control={control}
+                      name="name"
+                      render={({ field }) => (
+                        <FloatingField id="name" label="Nom" required placeholder="Votre nom" value={field.value} onChange={field.onChange} error={errors.name?.message} />
+                      )}
+                    />
+                    <Controller
+                      control={control}
+                      name="company"
+                      render={({ field }) => (
+                        <FloatingField id="company" label="Entreprise" placeholder="Nom de l'entreprise" value={field.value ?? ''} onChange={field.onChange} />
+                      )}
+                    />
                   </div>
                   <div className="grid sm:grid-cols-2 gap-4">
-                    <FloatingField id="email" label="Email" type="email" required placeholder="vous@entreprise.com" value={watch('email') ?? ''} onChange={(e) => register('email').onChange(e)} error={errors.email?.message} />
-                    <FloatingField id="phone" label="Téléphone" type="tel" placeholder="+225 ..." value={watch('phone') ?? ''} onChange={(e) => register('phone').onChange(e)} />
+                    <Controller
+                      control={control}
+                      name="email"
+                      render={({ field }) => (
+                        <FloatingField id="email" label="Email" type="email" required placeholder="vous@entreprise.com" value={field.value} onChange={field.onChange} error={errors.email?.message} />
+                      )}
+                    />
+                    <Controller
+                      control={control}
+                      name="phone"
+                      render={({ field }) => (
+                        <FloatingField id="phone" label="Téléphone" type="tel" placeholder="+225 ..." value={field.value ?? ''} onChange={field.onChange} />
+                      )}
+                    />
                   </div>
-                  <FloatingField id="projectType" label="Type de projet" required options={projectTypes} placeholder="Sélectionnez..." value={watch('projectType') ?? ''} onChange={(e) => register('projectType').onChange(e)} error={errors.projectType?.message} />
-                  <FloatingField id="message" label="Message" required textarea rows={5} placeholder="Décrivez votre projet en quelques lignes..." value={watch('message') ?? ''} onChange={(e) => register('message').onChange(e)} error={errors.message?.message} />
+                  <Controller
+                    control={control}
+                    name="projectType"
+                    render={({ field }) => (
+                      <FloatingField id="projectType" label="Type de projet" required options={projectTypes} placeholder="Sélectionnez..." value={field.value} onChange={field.onChange} error={errors.projectType?.message} />
+                    )}
+                  />
+                  <Controller
+                    control={control}
+                    name="message"
+                    render={({ field }) => (
+                      <FloatingField id="message" label="Message" required textarea rows={5} placeholder="Décrivez votre projet en quelques lignes..." value={field.value} onChange={field.onChange} error={errors.message?.message} />
+                    )}
+                  />
                 </div>
 
                 <div className="relative mt-8 flex flex-col sm:flex-row gap-3">

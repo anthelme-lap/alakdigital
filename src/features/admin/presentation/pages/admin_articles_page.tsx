@@ -23,7 +23,7 @@ import {
 } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { fetchArticles, insertArticle, updateArticle, deleteArticle } from '@/features/content/infrastructure/content_api';
-import { Button, Input, Textarea, Card, CardHeader, CardTitle, CardDescription, Badge, ImageUpload } from '@/shared/ui';
+import { Button, Input, Textarea, Card, CardHeader, CardTitle, CardDescription, Badge, ImageUpload, RichTextEditor } from '@/shared/ui';
 import { articleSchema, type ArticleFormValues } from '../forms/article_schema';
 import type { BlogArticle } from '@/features/blog/domain/entities/article';
 
@@ -132,11 +132,16 @@ function ArticleForm({ defaultValues, onSubmit, onCancel, loading, isEdit = fals
               <CardTitle>
                 <FileEdit className="h-5 w-5 text-primary-600" /> Contenu
               </CardTitle>
-              <CardDescription>Corps de l'article au format HTML</CardDescription>
+              <CardDescription>Corps de l'article</CardDescription>
             </div>
           </CardHeader>
           <div className="space-y-4">
-            <Textarea label="Contenu HTML *" rows={12} placeholder="<p>Votre contenu...</p>" className="font-mono" error={errors.content?.message} {...register('content')} />
+            <RichTextEditor
+              value={values.content ?? ''}
+              onChange={(html) => setValue('content', html, { shouldValidate: true })}
+              placeholder="Redigez le contenu de l'article..."
+              error={errors.content?.message}
+            />
           </div>
         </Card>
 
@@ -158,16 +163,23 @@ function ArticleForm({ defaultValues, onSubmit, onCancel, loading, isEdit = fals
               <Input label="Temps de lecture" placeholder="6 min" error={errors.readingTime?.message} {...register('readingTime')} />
               <Input label="Tags (virgule)" placeholder="TypeScript, Web, Qualite" error={errors.tags?.message} {...register('tags')} />
             </div>
-            <label className="flex items-center gap-3 cursor-pointer">
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                aria-pressed={values.featured}
+                onClick={() => setValue('featured', !values.featured, { shouldValidate: true })}
+                className={`relative inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full transition-colors duration-300 ${values.featured ? 'bg-primary-600' : 'bg-ink-200'}`}
+              >
+                <span className={`inline-block h-5 w-5 rounded-full bg-white shadow transition-transform duration-300 ${values.featured ? 'translate-x-5' : 'translate-x-0.5'}`} />
+              </button>
               <button
                 type="button"
                 onClick={() => setValue('featured', !values.featured, { shouldValidate: true })}
-                className={`relative h-6 w-11 rounded-full transition-colors duration-300 ${values.featured ? 'bg-primary-600' : 'bg-ink-200'}`}
+                className="text-sm font-medium text-ink-700"
               >
-                <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform duration-300 ${values.featured ? 'translate-x-5' : 'translate-x-0.5'}`} />
+                Mettre a la une
               </button>
-              <span className="text-sm font-medium text-ink-700">Mettre a la une</span>
-            </label>
+            </div>
           </div>
         </Card>
       </div>
@@ -412,7 +424,7 @@ export function AdminArticlesPage() {
     setView('edit');
   }
 
-  function handleSave(values: ArticleFormValues) {
+  async function handleSave(values: ArticleFormValues) {
     const payload = {
       title: values.title,
       slug: values.slug,
@@ -428,12 +440,16 @@ export function AdminArticlesPage() {
       date: editingArticle ? editingArticle.date : new Date().toISOString().split('T')[0],
       authorBio: editingArticle ? editingArticle.authorBio : '',
     };
-    if (editingArticle) {
-      updateMutation.mutate({ id: editingArticle.id, ...payload });
-    } else {
-      insertMutation.mutate(payload);
+    try {
+      if (editingArticle) {
+        await updateMutation.mutateAsync({ id: editingArticle.id, ...payload });
+      } else {
+        await insertMutation.mutateAsync(payload);
+      }
+      setView('list');
+    } catch {
+      // on reste sur le formulaire d'edition en cas d'echec de l'enregistrement
     }
-    setView('list');
   }
 
   function handleDelete() {

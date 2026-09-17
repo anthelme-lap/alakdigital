@@ -175,16 +175,23 @@ function ProjectForm({ defaultValues, onSubmit, onCancel, loading, isEdit = fals
             </div>
             <Input label="Lien du site" type="url" placeholder="https://exemple.com" error={errors.link?.message} {...register('link')} />
             <Input label="Fonctionnalites (virgule)" placeholder="Billetterie, Check-in QR, Dashboard" error={errors.features?.message} {...register('features')} />
-            <label className="flex items-center gap-3 cursor-pointer">
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                aria-pressed={values.featured}
+                onClick={() => setValue('featured', !values.featured, { shouldValidate: true })}
+                className={`relative inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full transition-colors duration-300 ${values.featured ? 'bg-primary-600' : 'bg-ink-200'}`}
+              >
+                <span className={`inline-block h-5 w-5 rounded-full bg-white shadow transition-transform duration-300 ${values.featured ? 'translate-x-5' : 'translate-x-0.5'}`} />
+              </button>
               <button
                 type="button"
                 onClick={() => setValue('featured', !values.featured, { shouldValidate: true })}
-                className={`relative h-6 w-11 rounded-full transition-colors duration-300 ${values.featured ? 'bg-primary-600' : 'bg-ink-200'}`}
+                className="text-sm font-medium text-ink-700"
               >
-                <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform duration-300 ${values.featured ? 'translate-x-5' : 'translate-x-0.5'}`} />
+                Mettre en avant
               </button>
-              <span className="text-sm font-medium text-ink-700">Mettre en avant</span>
-            </label>
+            </div>
           </div>
         </Card>
       </div>
@@ -492,7 +499,7 @@ export function AdminProjectsPage() {
     setView('edit');
   }
 
-  function handleSave(values: ProjectFormValues) {
+  async function handleSave(values: ProjectFormValues) {
     const payload = {
       name: values.name,
       slug: values.slug,
@@ -512,12 +519,16 @@ export function AdminProjectsPage() {
       link: values.link ?? '',
       results: editingProject ? editingProject.results : [],
     };
-    if (editingProject) {
-      updateMutation.mutate({ id: editingProject.id, ...payload });
-    } else {
-      insertMutation.mutate(payload);
+    try {
+      if (editingProject) {
+        await updateMutation.mutateAsync({ id: editingProject.id, ...payload });
+      } else {
+        await insertMutation.mutateAsync(payload);
+      }
+      setView('list');
+    } catch {
+      // on reste sur le formulaire d'edition en cas d'echec de l'enregistrement
     }
-    setView('list');
   }
 
   if (view === 'detail' && viewingProject) {
