@@ -24,8 +24,8 @@ export class UpdateMyProfile {
 export class UpdateMyAvatar {
   constructor(private readonly repository: ProfileRepository) {}
 
-  execute(file: File): Promise<Profile> {
-    return this.repository.updateAvatar(file);
+  execute(file: File, onProgress?: (percent: number) => void): Promise<Profile> {
+    return this.repository.updateAvatar(file, onProgress);
   }
 }
 

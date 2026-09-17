@@ -61,6 +61,7 @@ export function ProfilePage() {
   const [editing, setEditing] = useState(false);
   const [infoError, setInfoError] = useState<string | null>(null);
   const [avatarError, setAvatarError] = useState<string | null>(null);
+  const [avatarProgress, setAvatarProgress] = useState(0);
   const [passwordError, setPasswordError] = useState<string | null>(null);
   const [passwordSuccess, setPasswordSuccess] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -111,11 +112,13 @@ export function ProfilePage() {
   async function handleAvatarFile(file: File | undefined) {
     if (!file) return;
     setAvatarError(null);
+    setAvatarProgress(0);
     try {
-      await updateAvatar.mutateAsync(file);
+      await updateAvatar.mutateAsync({ file, onProgress: setAvatarProgress });
     } catch (e) {
       setAvatarError(e instanceof Error ? e.message : "Echec du televersement de la photo.");
     } finally {
+      setAvatarProgress(0);
       if (fileInputRef.current) fileInputRef.current.value = '';
     }
   }
@@ -262,6 +265,19 @@ export function ProfilePage() {
                     {getInitials(profile.prenom, profile.nom)}
                   </div>
                 )}
+
+                {updateAvatar.isPending && (
+                  <div className="absolute inset-0 flex flex-col items-center justify-center gap-1 rounded-full bg-ink-950/60">
+                    <span className="text-xs font-bold text-white">{avatarProgress}%</span>
+                    <div className="w-12 h-1 rounded-full bg-white/30 overflow-hidden">
+                      <div
+                        className="h-full rounded-full bg-white transition-all duration-200 ease-out"
+                        style={{ width: `${avatarProgress}%` }}
+                      />
+                    </div>
+                  </div>
+                )}
+
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}

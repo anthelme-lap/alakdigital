@@ -29,7 +29,8 @@ export function useUpdateMyProfile() {
 export function useUpdateMyAvatar() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (file: File) => updateMyAvatar.execute(file),
+    mutationFn: ({ file, onProgress }: { file: File; onProgress?: (percent: number) => void }) =>
+      updateMyAvatar.execute(file, onProgress),
     onSuccess: (profile: Profile) => queryClient.setQueryData(PROFILE_KEY, profile),
   });
 }

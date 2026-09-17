@@ -14,19 +14,22 @@ interface ImageUploadProps {
 export function ImageUpload({ label, value, onChange, folder, error, hint }: ImageUploadProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
+  const [progress, setProgress] = useState(0);
   const [uploadError, setUploadError] = useState<string | null>(null);
 
   async function handleFile(file: File | undefined) {
     if (!file) return;
     setUploading(true);
+    setProgress(0);
     setUploadError(null);
     try {
-      const url = await uploadImage(file, folder);
+      const url = await uploadImage(file, folder, setProgress);
       onChange(url);
     } catch (e) {
       setUploadError(e instanceof Error ? e.message : 'Echec du televersement.');
     } finally {
       setUploading(false);
+      setProgress(0);
       if (inputRef.current) inputRef.current.value = '';
     }
   }
@@ -63,8 +66,15 @@ export function ImageUpload({ label, value, onChange, folder, error, hint }: Ima
         )}
 
         {uploading && (
-          <div className="absolute inset-0 flex items-center justify-center bg-white/70">
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-white/80 px-6">
             <Loader2 className="h-6 w-6 animate-spin text-primary-600" />
+            <div className="w-full max-w-[200px] h-1.5 rounded-full bg-ink-200 overflow-hidden">
+              <div
+                className="h-full rounded-full bg-primary-600 transition-all duration-200 ease-out"
+                style={{ width: `${progress}%` }}
+              />
+            </div>
+            <span className="text-xs font-medium text-ink-500">{progress}%</span>
           </div>
         )}
 

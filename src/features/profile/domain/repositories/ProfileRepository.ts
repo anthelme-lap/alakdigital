@@ -15,7 +15,7 @@ export interface ChangePasswordInput {
 export interface ProfileRepository {
   getMe(): Promise<Profile>;
   updateMe(input: UpdateProfileInput): Promise<Profile>;
-  updateAvatar(file: File): Promise<Profile>;
+  updateAvatar(file: File, onProgress?: (percent: number) => void): Promise<Profile>;
   deleteAvatar(): Promise<Profile>;
   changePassword(input: ChangePasswordInput): Promise<void>;
 }

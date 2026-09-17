@@ -45,10 +45,12 @@ export class ApiProfileRepository implements ProfileRepository {
     return mapProfile(res);
   }
 
-  async updateAvatar(file: File): Promise<Profile> {
+  async updateAvatar(file: File, onProgress?: (percent: number) => void): Promise<Profile> {
     const formData = new FormData();
     formData.append('file', file);
-    const res = await apiClient.upload<UserResponse>('/auth/me/avatar', formData, undefined, 'PUT');
+    const res = onProgress
+      ? await apiClient.uploadWithProgress<UserResponse>('/auth/me/avatar', formData, onProgress, undefined, 'PUT')
+      : await apiClient.upload<UserResponse>('/auth/me/avatar', formData, undefined, 'PUT');
     return mapProfile(res);
   }
 

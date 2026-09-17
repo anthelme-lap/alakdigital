@@ -13,7 +13,11 @@ interface UploadResponse {
   url: string;
 }
 
-export async function uploadImage(file: File, folder: string): Promise<string> {
+export async function uploadImage(
+  file: File,
+  folder: string,
+  onProgress?: (percent: number) => void,
+): Promise<string> {
   if (!ALLOWED_TYPES.includes(file.type)) {
     throw new Error('Format non supporte (JPEG, PNG, WEBP, GIF ou SVG uniquement).');
   }
@@ -29,6 +33,8 @@ export async function uploadImage(file: File, folder: string): Promise<string> {
   const formData = new FormData();
   formData.append('image', file);
 
-  const { url } = await apiClient.upload<UploadResponse>(endpoint, formData);
+  const { url } = onProgress
+    ? await apiClient.uploadWithProgress<UploadResponse>(endpoint, formData, onProgress)
+    : await apiClient.upload<UploadResponse>(endpoint, formData);
   return url;
 }

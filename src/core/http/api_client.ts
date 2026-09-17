@@ -49,6 +49,63 @@ export class ApiClient {
     return this.request<T>(method, path, formData, options, true);
   }
 
+  /**
+   * Upload multipart avec suivi de progression (0-100). `fetch` n'expose pas
+   * la progression d'un envoi, on passe donc par XMLHttpRequest pour cet
+   * unique cas d'usage.
+   */
+  uploadWithProgress<T>(
+    path: string,
+    formData: FormData,
+    onProgress: (percent: number) => void,
+    options?: RequestOptions,
+    method: 'POST' | 'PUT' = 'POST',
+  ): Promise<T> {
+    return new Promise((resolve, reject) => {
+      const url = `${this.baseUrl}${path}`;
+      const accessToken = tokenStore.getAccessToken();
+      const xhr = new XMLHttpRequest();
+      xhr.open(method, url);
+      if (accessToken) xhr.setRequestHeader('Authorization', `Bearer ${accessToken}`);
+      Object.entries(options?.headers ?? {}).forEach(([key, value]) => xhr.setRequestHeader(key, value));
+
+      xhr.upload.onprogress = (event) => {
+        if (event.lengthComputable) {
+          onProgress(Math.round((event.loaded / event.total) * 100));
+        }
+      };
+
+      xhr.onload = () => {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          if (xhr.status === 204 || !xhr.responseText) {
+            resolve(undefined as T);
+            return;
+          }
+          try {
+            resolve(JSON.parse(xhr.responseText) as T);
+          } catch {
+            resolve(undefined as T);
+          }
+          return;
+        }
+        let message: string | undefined;
+        try {
+          message = JSON.parse(xhr.responseText)?.message;
+        } catch {
+          // reponse non JSON
+        }
+        reject(parseApiError(xhr.status, message));
+      };
+
+      xhr.onerror = () => reject(new NetworkError());
+      xhr.onabort = () => reject(new NetworkError('Televersement annule.'));
+
+      options?.signal?.addEventListener('abort', () => xhr.abort());
+
+      xhr.send(formData);
+    });
+  }
+
   private async request<T>(
     method: string,
     path: string,
