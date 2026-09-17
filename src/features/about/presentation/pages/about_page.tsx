@@ -36,6 +36,49 @@ export function AboutPage() {
         </Container>
       </section>
 
+      <Section>
+        <div className="grid lg:grid-cols-[1.1fr_1.4fr] gap-10 lg:gap-16 items-center">
+          <Reveal>
+            <div className="grid grid-cols-4 gap-3 sm:gap-4">
+              {[
+                { letter: 'A', name: 'Affouété' },
+                { letter: 'L', name: 'Luc' },
+                { letter: 'A', name: 'Anthelme' },
+                { letter: 'K', name: 'Koffi' },
+              ].map((item) => (
+                <div
+                  key={item.name}
+                  className="flex flex-col items-center gap-2 rounded-2xl border border-ink-100 bg-white p-4 sm:p-5 shadow-sm"
+                >
+                  <span className="text-3xl sm:text-4xl font-extrabold text-primary-600">{item.letter}</span>
+                  <span className="text-[11px] sm:text-xs font-medium text-ink-500 text-center">{item.name}</span>
+                </div>
+              ))}
+            </div>
+          </Reveal>
+
+          <Reveal delay={0.1}>
+            <SectionHeading
+              eyebrow="Notre histoire"
+              title="D'où vient le nom ALAK ?"
+            />
+            <p className="mt-6 text-lg text-ink-600 leading-relaxed">
+              ALAK DIGITAL est né de l'amitié entre <strong>Affouété Luc</strong> et <strong>Anthelme Koffi</strong>,
+              deux amis depuis le lycée qui ont ensuite suivi ensemble la filière Informatique Développement
+              d'Applications (IDA).
+            </p>
+            <p className="mt-4 text-lg text-ink-600 leading-relaxed">
+              Le nom <strong className="text-ink-900">ALAK</strong> est né de la contraction de leurs prénoms :
+              <strong className="text-primary-600"> A</strong>ffouété <strong className="text-primary-600">L</strong>uc
+              et <strong className="text-primary-600">A</strong>nthelme <strong className="text-primary-600">K</strong>offi.
+              Ce qui a commencé comme une passion commune pour le code, née sur les bancs de l'école, est devenu
+              une entreprise dédiée à la conception de solutions digitales sur mesure pour les entreprises et
+              organisations africaines.
+            </p>
+          </Reveal>
+        </div>
+      </Section>
+
       {missionVision.length > 0 && (
         <Section>
           <div className="grid lg:grid-cols-[1fr_1.5fr] gap-10 lg:gap-16 items-start">
@@ -162,11 +205,11 @@ export function AboutPage() {
             subtitle="Une équipe pluridisciplinaire passionnée, qui combine expertise technique et sens du produit pour livrer des solutions d'exception."
           />
 
-          <StaggerContainer className="mt-14 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <StaggerContainer className="mt-14 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {team.map((member) => (
               <StaggerItem key={member.id}>
                 <div className="group relative rounded-3xl overflow-hidden bg-white border border-ink-100 transition-all duration-500 hover:shadow-premium-lg hover:border-primary-200">
-                  <div className="relative aspect-square overflow-hidden bg-ink-100">
+                  <div className="relative aspect-[4/5] overflow-hidden bg-ink-100">
                     <img
                       src={member.image}
                       alt={member.name}
